@@ -24,7 +24,12 @@
 #     evolai-web:latest
 
 # ---- builder ---------------------------------------------------------
-FROM node:20-bookworm-slim AS builder
+# Pinned to 22.23.4, the first 22.x carrying the CVE-2026-111497 fix
+# (HTTP2Shell — an out-of-bounds write in the Brotli decoder Node vendors in
+# node:zlib). The Node fix is a cherry-pick, not a version bump, so
+# `node:20-bookworm-slim` and a floating `node:22-bookworm-slim` cannot be
+# read as "patched" from the tag alone — the patch level is pinned on purpose.
+FROM node:22.23.4-bookworm-slim AS builder
 WORKDIR /repo
 ENV PNPM_HOME=/usr/local/share/pnpm
 ENV PATH=$PNPM_HOME:$PATH
@@ -40,7 +45,7 @@ RUN pnpm install --frozen-lockfile
 RUN pnpm --filter @evolai/web build
 
 # ---- runtime ---------------------------------------------------------
-FROM node:20-bookworm-slim AS runtime
+FROM node:22.23.4-bookworm-slim AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
