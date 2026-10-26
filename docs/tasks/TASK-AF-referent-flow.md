@@ -13,13 +13,13 @@ report. The seven screens were agreed on the clickable prototype of 2026-10-26 (
 
 | # | Goal | Done when | State |
 |---|------|-----------|-------|
-| 1 | One survey address per team | `/client` shows one address `https://www.evolai.io/s/<slug>` per team of the mission, with a QR code; opening it on a fresh browser starts the survey; a second fresh browser gets its own answers; the per-person link creation (`CreateLinksForm`, link CSV, `#links`) is gone | todo |
-| 2 | "Open my space" without a password | The referent's welcome email carries one address that opens `/client` signed in; no set-password step on that path; `/set-password` stays only for staff (`/admin`) | todo |
-| 3 | Share with the team | `/client` has a "Share with the team" action that shows the prefilled message (FR/EN) with the team address, a Copy button, and a `https://wa.me/?text=…` link; nothing is sent by the platform | todo |
-| 4 | Progress and one reminder | `/client` shows "N of M answered" per team (M = team size set by the referent, min-group rule kept), and a "Send a reminder" action with a prefilled message and Copy button | todo |
-| 5 | Learn before you share | The welcome email and `/client` (while the team has 0 answers) link to `/learn` ("Learn the audit in 10 minutes", TASK-AE) | todo |
-| 6 | Report | `/client/report` shows the readiness score, the three actions (30/60/90 days) and the PDF; unchanged if it already does, verified on the Demo Client mission | todo |
-| 7 | Token cost | Sonnet does the coding in one worktree; one Playwright spec `referent-flow.spec.ts`; no manual browser session longer than the spec | todo |
+| 1 | One survey address per team | `/client` shows one address `https://www.evolai.io/s/<slug>` per team of the mission, with a QR code; opening it on a fresh browser starts the survey; a second fresh browser gets its own answers; the per-person link creation (`CreateLinksForm`, link CSV, `#links`) is gone | done |
+| 2 | "Open my space" without a password | The referent's welcome email carries one address that opens `/client` signed in; no set-password step on that path; `/set-password` stays only for staff (`/admin`) | done |
+| 3 | Share with the team | `/client` has a "Share with the team" action that shows the prefilled message (FR/EN) with the team address, a Copy button, and a `https://wa.me/?text=…` link; nothing is sent by the platform | done |
+| 4 | Progress and one reminder | `/client` shows "N of M answered" per team (M = team size set by the referent, min-group rule kept), and a "Send a reminder" action with a prefilled message and Copy button | done |
+| 5 | Learn before you share | The welcome email and `/client` (while the team has 0 answers) link to `/learn` ("Learn the audit in 10 minutes", TASK-AE) | done |
+| 6 | Report | `/client/report` shows the readiness score, the three actions (30/60/90 days) and the PDF; unchanged if it already does, verified on the Demo Client mission | done |
+| 7 | Token cost | Sonnet does the coding in one worktree; one Playwright spec `referent-flow.spec.ts`; no manual browser session longer than the spec | done |
 
 ## The seven screens (contract)
 

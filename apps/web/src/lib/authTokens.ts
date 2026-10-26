@@ -10,10 +10,15 @@ import { passwordProblem, type PasswordProblem } from './passwordPolicy';
  * (never read inside SQL) so expiry is testable. A token is spent by one atomic UPDATE, so two
  * parallel requests cannot both win.
  */
-export type TokenKind = 'invite' | 'reset';
+export type TokenKind = 'invite' | 'reset' | 'space';
 
 /** Owner-made links are sent by hand, so they live longer than a self-service reset. */
-export const TOKEN_TTL_MINUTES: Record<TokenKind, number> = { invite: 72 * 60, reset: 60 };
+export const TOKEN_TTL_MINUTES: Record<TokenKind, number> = {
+  invite: 72 * 60,
+  reset: 60,
+  // "Open my space" (TASK-AF, ADR 0051): the referent's welcome email, single use.
+  space: 30 * 24 * 60,
+};
 
 export const tokenDigest = (token: string): string =>
   createHash('sha256').update(token).digest('hex');
@@ -36,10 +41,18 @@ export const issueToken = async (
   ]);
   const token = newToken();
   const expiresAt = new Date(now.getTime() + TOKEN_TTL_MINUTES[kind] * 60_000);
+  // A space token is stored as an 'invite' with purpose 'space' (migration 0027).
   await client.query(
-    `INSERT INTO auth_tokens (user_id, kind, token_hash, expires_at, created_at)
-     VALUES ($1, $2, $3, $4, $5)`,
-    [userId, kind, tokenDigest(token), expiresAt, now],
+    `INSERT INTO auth_tokens (user_id, kind, token_hash, expires_at, created_at, purpose)
+     VALUES ($1, $2, $3, $4, $5, $6)`,
+    [
+      userId,
+      kind === 'space' ? 'invite' : kind,
+      tokenDigest(token),
+      expiresAt,
+      now,
+      kind === 'space' ? 'space' : 'password',
+    ],
   );
   return { token, expiresAt };
 };
@@ -58,7 +71,8 @@ export const peekToken = async (
   return withServiceAccount(async (client) => {
     const { rows } = await client.query<{ user_id: string; kind: TokenKind }>(
       `SELECT t.user_id, t.kind FROM auth_tokens t JOIN users u ON u.id = t.user_id
-        WHERE t.token_hash = $1 AND t.used_at IS NULL AND t.expires_at > $2 AND u.disabled_at IS NULL`,
+        WHERE t.token_hash = $1 AND t.purpose = 'password' AND t.used_at IS NULL
+          AND t.expires_at > $2 AND u.disabled_at IS NULL`,
       [tokenDigest(token), now],
     );
     const row = rows[0];
@@ -87,7 +101,8 @@ export const setPasswordWithToken = async (
   return withServiceAccount(async (client) => {
     const spent = await client.query<{ user_id: string; kind: TokenKind }>(
       `UPDATE auth_tokens t SET used_at = $2
-        WHERE t.token_hash = $1 AND t.used_at IS NULL AND t.expires_at > $2
+        WHERE t.token_hash = $1 AND t.purpose = 'password' AND t.used_at IS NULL
+          AND t.expires_at > $2
           AND EXISTS (SELECT 1 FROM users u WHERE u.id = t.user_id AND u.disabled_at IS NULL)
         RETURNING t.user_id, t.kind`,
       [tokenDigest(token), now],
@@ -109,5 +124,32 @@ export const setPasswordWithToken = async (
       kind: row.kind,
       displayName: user.rows[0]?.display_name ?? '',
     };
+  });
+};
+
+/**
+ * Spend an "Open my space" token (TASK-AF): one atomic UPDATE, so a second use or a parallel one
+ * finds nothing. Only `space` tokens qualify; a set-password or reset link cannot open a session.
+ */
+export const spendSpaceToken = async (
+  token: string,
+  now: Date = new Date(),
+): Promise<{ userId: string; displayName: string } | null> => {
+  if (!looksLikeToken(token)) return null;
+  return withServiceAccount(async (client) => {
+    const spent = await client.query<{ user_id: string }>(
+      `UPDATE auth_tokens t SET used_at = $2
+        WHERE t.token_hash = $1 AND t.purpose = 'space' AND t.used_at IS NULL AND t.expires_at > $2
+          AND EXISTS (SELECT 1 FROM users u WHERE u.id = t.user_id AND u.disabled_at IS NULL)
+        RETURNING t.user_id`,
+      [tokenDigest(token), now],
+    );
+    const row = spent.rows[0];
+    if (!row) return null;
+    const user = await client.query<{ display_name: string }>(
+      `SELECT display_name FROM users WHERE id = $1`,
+      [row.user_id],
+    );
+    return { userId: row.user_id, displayName: user.rows[0]?.display_name ?? '' };
   });
 };

@@ -2,12 +2,26 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { ORG_COOKIE, ORG_HEADER, ORG_UUID } from '@/lib/orgShared';
 import { readSessionCookie, verifySession } from '@/lib/session';
 
+/** Origin the browser used (not the bind host), so cookie scope and redirects stay on one host. */
+const requestOrigin = (req: NextRequest): string => {
+  const host = req.headers.get('x-forwarded-host') ?? req.headers.get('host') ?? req.nextUrl.host;
+  const proto = req.headers.get('x-forwarded-proto') ?? req.nextUrl.protocol.replace(':', '');
+  return `${proto}://${host}`;
+};
+
 /**
  * Gate for the auditor and client surfaces (ADR 0023, ADR 0035). /intake joins them (ADR 0037). Respondent routes
  * (/s, /quiz, /welcome, /privacy, /about) are deliberately outside the matcher. Pages and actions re-check the
  * session themselves; this is the first line, not the only one.
  */
 export async function middleware(req: NextRequest) {
+  // "Open my space" (TASK-AF): /client?open=<token> is exchanged for a session by a route handler.
+  const open = req.nextUrl.pathname === '/client' ? req.nextUrl.searchParams.get('open') : null;
+  if (open) {
+    return NextResponse.redirect(
+      new URL(`/api/auth/open?token=${encodeURIComponent(open)}`, requestOrigin(req)),
+    );
+  }
   let session = null;
   try {
     session = await verifySession(readSessionCookie((n) => req.cookies.get(n)));
@@ -41,9 +55,7 @@ export async function middleware(req: NextRequest) {
   const next = req.nextUrl.pathname + req.nextUrl.search;
   // Build the redirect on the host the browser used (not req.nextUrl's bind host), so the
   // cookie scope stays the same and the Location is an absolute URL the middleware accepts.
-  const host = req.headers.get('x-forwarded-host') ?? req.headers.get('host') ?? req.nextUrl.host;
-  const proto = req.headers.get('x-forwarded-proto') ?? req.nextUrl.protocol.replace(':', '');
-  const login = new URL(`/login?next=${encodeURIComponent(next)}`, `${proto}://${host}`);
+  const login = new URL(`/login?next=${encodeURIComponent(next)}`, requestOrigin(req));
   return NextResponse.redirect(login);
 }
 

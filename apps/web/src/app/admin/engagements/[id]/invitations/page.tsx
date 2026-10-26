@@ -1,22 +1,14 @@
 import { notFound } from 'next/navigation';
 import { headers } from 'next/headers';
-import Typography from '@mui/material/Typography';
-import { EmptyState, PageTitle, StatTiles } from '@evolai/ui';
-import { formatDate, formatNumber, messages } from '@evolai/i18n';
+import { EmptyState, PageTitle } from '@evolai/ui';
 import { sessionTenantIds } from '@/lib/authServer';
 import { getT } from '@/lib/i18n';
-import {
-  getSettings,
-  listBatches,
-  listEngagementTeams,
-  linkTotals,
-  listOpen,
-  progress,
-  reminderList,
-} from '@/lib/invitationData';
+import { getSettings, progress } from '@/lib/invitationData';
 import { isUuid } from '@/lib/invitationForm';
 import { MIN_GROUP_SIZE, resolveBaseUrl } from '@/lib/invitationTracking';
-import InvitationsPanel from '@/app/admin/invitations/InvitationsPanel';
+import { listReferents } from '@/lib/referentData';
+import { addressUrl, ensureTeamAddresses } from '@/lib/teamAddresses';
+import TeamPanel from './TeamPanel';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,12 +18,12 @@ interface Props {
 }
 
 /**
- * Invitations for one engagement (FR-03). Everything shown is aggregate or a bare link: no name,
- * no address, and nothing says which invitation was completed (PRD §15, §25.1).
+ * Team tab of a mission (TASK-AF, ADR 0051): the referent's welcome email, the survey address of
+ * each team with its ending and size, and the contact line of the forwarded message. Counts are
+ * aggregate and hidden under the minimum group (PRD §15, §25.1); no per-person link exists.
  */
-export default async function InvitationsPage({ params, searchParams }: Props) {
-  const { t, locale } = getT();
-  const copy = messages[locale].admin.invitations;
+export default async function TeamPage({ params, searchParams }: Props) {
+  const { t } = getT();
   const tenants = await sessionTenantIds();
   const tenantId = tenants.find((id) => id === searchParams.tenant) ?? tenants[0];
   if (!tenantId) {
@@ -44,6 +36,8 @@ export default async function InvitationsPage({ params, searchParams }: Props) {
   }
   const engagementId = params.id;
   if (!isUuid(engagementId)) notFound();
+  const settings = await getSettings(tenantId, engagementId);
+  if (!settings) notFound();
 
   const h = headers();
   const baseUrl = resolveBaseUrl(
@@ -51,45 +45,35 @@ export default async function InvitationsPage({ params, searchParams }: Props) {
     h.get('x-forwarded-host') ?? h.get('host'),
     h.get('x-forwarded-proto'),
   );
-  const [settings, teams, prog, open, due, batchList, totalsOfLinks] = await Promise.all([
-    getSettings(tenantId, engagementId),
-    listEngagementTeams(tenantId, engagementId),
+  const [addresses, prog, referents] = await Promise.all([
+    ensureTeamAddresses(tenantId, engagementId),
     progress(tenantId, engagementId),
-    listOpen(tenantId, engagementId, baseUrl),
-    reminderList(tenantId, engagementId, baseUrl),
-    listBatches(tenantId, engagementId),
-    linkTotals(tenantId, engagementId),
+    listReferents(tenantId),
   ]);
-  if (!settings) {
-    return (
-      <section className="wide admin" aria-labelledby="inv-title">
-        <PageTitle level="h2" id="inv-title" title={t('admin.invitations.title')} />
-        <EmptyState title={t('admin.invitations.errors.engagement_not_found')} />
-      </section>
-    );
-  }
-  const fewer = t('admin.invitations.teams.fewerThan', { n: MIN_GROUP_SIZE });
-  const pct = (n: number) => formatNumber(locale, n / 100, { style: 'percent' });
-  const totals = prog.totals;
-  const tiles = [
-    {
-      label: t('admin.invitations.tiles.invited'),
-      value: String(prog.teams.reduce((n, r) => n + r.invited, 0)),
-    },
-    ...(totals
-      ? [
-          { label: t('admin.invitations.tiles.opened'), value: String(totals.opened) },
-          { label: t('admin.invitations.tiles.started'), value: String(totals.started) },
-          { label: t('admin.invitations.tiles.completed'), value: String(totals.completed) },
-          { label: t('admin.invitations.tiles.rate'), value: pct(totals.completionRate) },
-        ]
-      : [
-          {
-            label: t('admin.invitations.tiles.rate'),
-            value: t('admin.invitations.teams.hidden'),
-          },
-        ]),
-  ];
+  const statusKey = {
+    none: 'statusNone',
+    ready: 'statusReady',
+    disabled: 'statusDisabled',
+  } as const;
+  const teams = addresses.map((a) => {
+    const row = prog.teams.find((r) => r.teamId === a.teamId);
+    const visitors = row?.invited ?? 0;
+    const total = Math.max(a.expectedSize ?? 0, visitors);
+    const answers =
+      !row || visitors === 0
+        ? t('client.home.noAnswers')
+        : row.suppressed
+          ? t('admin.invitations.addresses.hidden', { n: MIN_GROUP_SIZE })
+          : t('admin.invitations.addresses.answered', { done: row.completed, total });
+    return {
+      teamId: a.teamId,
+      teamName: a.teamName,
+      slug: a.slug,
+      address: addressUrl(baseUrl, a.slug),
+      expectedSize: a.expectedSize,
+      answers,
+    };
+  });
 
   return (
     <section className="wide admin" aria-labelledby="inv-title">
@@ -99,63 +83,18 @@ export default async function InvitationsPage({ params, searchParams }: Props) {
         title={t('admin.invitations.title')}
         subtitle={t('admin.invitations.subtitle')}
       />
-      <StatTiles items={tiles} />
-      <Typography
-        variant="body2"
-        color="text.secondary"
-        data-testid="invitation-counts"
-        sx={{ mb: 4 }}
-      >
-        {t(
-          totalsOfLinks.expected > 0
-            ? 'admin.invitations.counts'
-            : 'admin.invitations.countsNoExpected',
-          {
-            expected: totalsOfLinks.expected,
-            created: totalsOfLinks.created,
-            revoked: totalsOfLinks.revoked,
-            invited: totalsOfLinks.created - totalsOfLinks.revoked,
-          },
-        )}
-      </Typography>
-      <InvitationsPanel
-        copy={copy}
-        fewer={fewer}
-        minGroup={MIN_GROUP_SIZE}
+      <TeamPanel
         tenantId={tenantId}
         engagementId={engagementId}
-        emailDelivery={settings.emailDelivery}
-        reminderDays={settings.reminderDays.join(', ')}
-        closesOn={settings.closesOn ?? ''}
-        contact={settings.contact ?? ''}
-        teams={teams}
-        progress={prog.teams.map((r) => ({
-          teamId: r.teamId,
+        referents={referents.map((r) => ({
+          userId: r.userId,
+          name: r.name,
           teamName: r.teamName,
-          invited: r.invited,
-          suppressed: r.suppressed,
-          completionRate: r.suppressed ? 0 : r.completionRate,
-          completed: r.suppressed ? 0 : r.completed,
-          lastActivityOn:
-            r.suppressed || !r.lastActivityOn ? null : formatDate(locale, r.lastActivityOn),
+          status: t(`trust.referents.${statusKey[r.status]}`),
         }))}
-        open={open.map((o) => ({
-          id: o.id,
-          code: o.code,
-          teamName: o.teamName,
-          expiresOn: formatDate(locale, o.expiresOn),
-          link: o.link,
-        }))}
-        dueCount={due.length}
-        batches={batchList.map((b) => ({
-          batchId: b.batchId,
-          label: t('admin.invitations.batches.label', {
-            n: b.total,
-            date: formatDate(locale, b.createdOn),
-          }),
-          stillOpen: t('admin.invitations.batches.stillOpen', { n: b.open }),
-          canRevoke: b.open > 0,
-        }))}
+        teams={teams}
+        contact={settings.contact ?? ''}
+        reminderDays={settings.reminderDays.join(', ')}
       />
     </section>
   );

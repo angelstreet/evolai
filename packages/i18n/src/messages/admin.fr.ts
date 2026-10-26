@@ -131,7 +131,7 @@ export const adminFr: AdminMessages = {
       published: 'Rapport publié',
     },
     next: {
-      createLinks: 'Créer les liens',
+      createLinks: 'Préparer l’équipe',
       followAnswers: 'Suivre les réponses',
       readBrief: 'Lire la synthèse',
       writeReport: 'Rédiger le rapport',
@@ -139,7 +139,7 @@ export const adminFr: AdminMessages = {
     tabsAria: 'Sections de la mission',
     tabs: {
       overview: 'Vue d’ensemble',
-      invitations: 'Liens',
+      invitations: 'Équipe',
       answers: 'Réponses',
       report: 'Rapport',
       settings: 'Paramètres',

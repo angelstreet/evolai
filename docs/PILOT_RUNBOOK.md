@@ -21,7 +21,7 @@ data, not code.
 | All 24 migrations on the live database                                                                             | verified — applied through `0024_audit_verbs_resync`                                    |
 | `GET /api/health`                                                                                                  | verified — `{"ok":true,"db":true}`                                                      |
 | Auditor screens (Engagements, Invitations, Teams, Synergies, Reports, Data, Names to hide, Audit trail, Portfolio) | verified — all HTTP 200 on the client tenant                                            |
-| Client space (`/client`, `/client/results`, `/client/report`, `/client/invitations`)                               | verified — signed-in only, anonymous is redirected to `/login`                          |
+| Client space (`/client`, `/client/results`, `/client/report`)                                                      | verified — signed-in only, anonymous is redirected to `/login`                          |
 | Invitation signing in production                                                                                   | verified — a real link was created and opened; `SURVEY_SIGNING_SECRET` is set and works |
 | Anonymous access to admin, board or client                                                                         | verified — refused, no tenant data leaks                                                |
 
@@ -84,10 +84,9 @@ default is not French.
    from _Draft_ to _Open_. Links cannot be created before this.
 2. **Names to hide** is already checked in step 6 — do this again if the client
    added a product name since.
-3. Create the invitation links. Either the owner does it from **Invitations**,
-   or the referent does it from their own space now that they have a login. The number
-   must be the real number of colleagues, one link each.
-4. **Check the link before you send it.** Open one link yourself in a private
+3. Send the referent the welcome email from the mission's **Team** tab (one address per team,
+   no links to create). Enter the real team size there or let the referent do it.
+4. **Check the address before you send it.** Open the team address yourself in a private
    window. You should land on the survey, in French, with the privacy notice
    visible. Only then send the set to the client.
 

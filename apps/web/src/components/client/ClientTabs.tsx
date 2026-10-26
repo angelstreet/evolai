@@ -8,20 +8,18 @@ import { useI18n } from '@/components/I18nProvider';
 
 const SECTIONS = [
   { href: '/client', key: 'home', icon: 'home' },
-  { href: '/client/invitations', key: 'invitations', icon: 'invite' },
   { href: '/client/results', key: 'results', icon: 'results' },
   { href: '/client/report', key: 'report', icon: 'report' },
 ] as const;
 
 /**
- * Team space navigation (TASK-P, TASK-V): four sections only, no admin or auditor link and no
+ * Team space navigation (TASK-P, TASK-V, TASK-AF): three sections only, no admin or auditor link and no
  * organisation switcher. The current section is marked by colour and underline (UI_RULES §6).
  * Full width tabs from `sm` up; on phones the icons are dropped and the strip scrolls, so no label clips.
  */
 export default function ClientTabs() {
   const { t } = useI18n();
   const pathname = usePathname() ?? '';
-  if (pathname.endsWith('/sheet')) return null;
   const current =
     [...SECTIONS].reverse().find((s) => pathname === s.href || pathname.startsWith(`${s.href}/`))
       ?.href ?? false;
@@ -30,7 +28,7 @@ export default function ClientTabs() {
       component="nav"
       aria-label={t('client.nav.aria')}
       value={current}
-      // Four sections do not fit a 360 px phone without clipping a word: the strip scrolls there
+      // Three sections may not fit a 360 px phone without clipping a word: the strip scrolls there
       // (like the admin tabs) and stretches to the full width from `sm` up (TASK-V).
       variant="scrollable"
       scrollButtons={false}

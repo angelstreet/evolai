@@ -32,9 +32,9 @@ export const trustEn = {
     back: 'Back to sign in',
   },
   email: {
-    inviteSubject: 'Choose your password',
+    inviteSubject: 'Your team’s audit is ready',
     inviteBody:
-      'You can now sign in. Open this link to choose your password. It works once and for 3 days:\n\n{link}\n\nIf you did not expect this message, ignore it.',
+      'Your team’s audit is ready. First, learn the audit in 10 minutes:\n\n{learn}\n\nThen open your space. The address works once and for 30 days:\n\n{link}\n\nIf you did not expect this message, ignore it.',
     resetSubject: 'Choose a new password',
     resetBody:
       'Open this link to choose a new password. It works once and for 60 minutes:\n\n{link}\n\nIf you did not ask for this, ignore it. Your password has not changed.',
@@ -45,7 +45,7 @@ export const trustEn = {
   referents: {
     title: 'Referents',
     intro:
-      'A referent follows one team. Create a sign-in link, then send it to them yourself. It works once and for 3 days.',
+      'A referent follows one team. Send the welcome email: it opens their space without a password. If no email can be sent from here, copy the address and send it yourself. It works once and for 30 days.',
     none: 'No referent in this organisation yet.',
     statusNone: 'No sign-in yet',
     statusReady: 'Can sign in',
@@ -53,18 +53,18 @@ export const trustEn = {
     email: 'Their email address',
     emailHelp:
       'Leave empty to keep the current address. It is used to sign in and is not shown again.',
-    create: 'Create sign-in link',
-    creating: 'Creating…',
-    linkLabel: 'Sign-in link',
-    copy: 'Copy the link',
-    copied: 'Link copied',
-    emailedTo: 'An email with the link was also sent.',
-    sendYourself: 'Send this link to the referent. It is shown only now.',
+    create: 'Send the welcome email',
+    creating: 'Sending…',
+    linkLabel: 'Address that opens their space',
+    copy: 'Copy the address',
+    copied: 'Address copied',
+    emailedTo: 'The welcome email was sent.',
+    sendYourself: 'Send this address to the referent. It is shown only now.',
     errEmail: 'This email address does not look right.',
     errTaken: 'Another account already uses this address.',
     errNotReferent: 'This person is not a referent of this organisation.',
     errDisabled: 'This account is disabled.',
-    errFailed: 'The link could not be created. Try again.',
+    errFailed: 'The welcome email could not be prepared. Try again.',
   },
   audit: {
     title: 'Audit trail',

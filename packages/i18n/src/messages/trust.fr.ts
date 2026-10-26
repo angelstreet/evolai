@@ -31,9 +31,9 @@ export const trustFr: Messages['trust'] = {
     back: 'Retour à la connexion',
   },
   email: {
-    inviteSubject: 'Choisissez votre mot de passe',
+    inviteSubject: 'L’audit de votre équipe est prêt',
     inviteBody:
-      'Vous pouvez maintenant vous connecter. Ouvrez ce lien pour choisir votre mot de passe. Il ne sert qu’une fois, pendant 3 jours :\n\n{link}\n\nSi ce message ne vous était pas destiné, ignorez-le.',
+      'L’audit de votre équipe est prêt. D’abord, découvrez l’audit en 10 minutes :\n\n{learn}\n\nPuis ouvrez votre espace. L’adresse ne sert qu’une fois, pendant 30 jours :\n\n{link}\n\nSi ce message ne vous était pas destiné, ignorez-le.',
     resetSubject: 'Choisissez un nouveau mot de passe',
     resetBody:
       'Ouvrez ce lien pour choisir un nouveau mot de passe. Il ne sert qu’une fois, pendant 60 minutes :\n\n{link}\n\nSi vous n’avez rien demandé, ignorez ce message. Votre mot de passe n’a pas changé.',
@@ -44,7 +44,7 @@ export const trustFr: Messages['trust'] = {
   referents: {
     title: 'Référents',
     intro:
-      'Un référent suit une équipe. Créez un lien de connexion, puis envoyez-le vous-même. Il ne sert qu’une fois, pendant 3 jours.',
+      'Un référent suit une équipe. Envoyez l’e-mail de bienvenue : il ouvre son espace sans mot de passe. Si aucun e-mail ne peut partir d’ici, copiez l’adresse et envoyez-la vous-même. Elle ne sert qu’une fois, pendant 30 jours.',
     none: 'Aucun référent dans cette organisation pour l’instant.',
     statusNone: 'Pas encore de connexion',
     statusReady: 'Peut se connecter',
@@ -52,18 +52,18 @@ export const trustFr: Messages['trust'] = {
     email: 'Son adresse e-mail',
     emailHelp:
       'Laissez vide pour garder l’adresse actuelle. Elle sert à se connecter et n’est plus affichée ensuite.',
-    create: 'Créer le lien de connexion',
-    creating: 'Création…',
-    linkLabel: 'Lien de connexion',
-    copy: 'Copier le lien',
-    copied: 'Lien copié',
-    emailedTo: 'Un e-mail contenant le lien a aussi été envoyé.',
-    sendYourself: 'Envoyez ce lien au référent. Il n’est affiché que maintenant.',
+    create: 'Envoyer l’e-mail de bienvenue',
+    creating: 'Envoi…',
+    linkLabel: 'Adresse qui ouvre son espace',
+    copy: 'Copier l’adresse',
+    copied: 'Adresse copiée',
+    emailedTo: 'L’e-mail de bienvenue a été envoyé.',
+    sendYourself: 'Envoyez cette adresse au référent. Elle n’est affichée que maintenant.',
     errEmail: 'Cette adresse e-mail ne semble pas correcte.',
     errTaken: 'Un autre compte utilise déjà cette adresse.',
     errNotReferent: 'Cette personne n’est pas référente de cette organisation.',
     errDisabled: 'Ce compte est désactivé.',
-    errFailed: 'Le lien n’a pas pu être créé. Réessayez.',
+    errFailed: 'L’e-mail de bienvenue n’a pas pu être préparé. Réessayez.',
   },
   audit: {
     title: 'Journal d’audit',

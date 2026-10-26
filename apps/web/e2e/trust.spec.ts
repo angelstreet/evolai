@@ -1,4 +1,4 @@
-import { createHash, createHmac, randomUUID } from 'node:crypto';
+import { createHash, createHmac, randomBytes, randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import AxeBuilder from '@axe-core/playwright';
@@ -151,7 +151,7 @@ const newReferent = async (ctx: Ctx, label: string) => {
 };
 
 for (const locale of LOCALES) {
-  test(`owner invites a referent, who sets a password once and lands on /client (${locale})`, async ({
+  test(`owner sends the welcome email, the referent opens the space once, no password (${locale})`, async ({
     browser,
     context,
     page,
@@ -162,7 +162,6 @@ for (const locale of LOCALES) {
     const label = `${locale}-${testInfo.project.name}-${Date.now()}`;
     const referent = await newReferent(ctx, label);
     const address = `demo-${randomUUID().slice(0, 8)}@example.test`;
-    const password = 'a demo passphrase of words';
 
     await setLocale(context, baseURL, locale);
     await signIn(page, OWNER, /\/(admin\/|board)/);
@@ -176,18 +175,19 @@ for (const locale of LOCALES) {
     const link = card.getByTestId('invite-link');
     await expect(link).toBeVisible();
     const url = await link.inputValue();
-    expect(url).toMatch(/\/set-password\?token=[A-Za-z0-9_-]{43}$/);
-    const token = url.split('token=')[1] as string;
+    expect(url).toMatch(/\/client\?open=[A-Za-z0-9_-]{43}$/);
+    const token = url.split('open=')[1] as string;
 
     // Hashed at rest: the table never holds the token itself.
-    const stored = await run<{ token_hash: string }>(
-      `SELECT token_hash FROM auth_tokens WHERE user_id = $1`,
+    const stored = await run<{ token_hash: string; purpose: string }>(
+      `SELECT token_hash, purpose FROM auth_tokens WHERE user_id = $1`,
       [referent.id],
     );
     expect(stored.map((r) => r.token_hash)).not.toContain(token);
     expect(stored[0]?.token_hash).toMatch(/^[0-9a-f]{64}$/);
+    expect(stored[0]?.purpose).toBe('space');
 
-    // An expired link is refused.
+    // An expired address is refused: back to sign-in, nothing opened.
     await run(
       `UPDATE auth_tokens SET expires_at = now() - interval '1 minute' WHERE user_id = $1`,
       [referent.id],
@@ -195,59 +195,47 @@ for (const locale of LOCALES) {
     const stranger = await browser.newContext({ baseURL });
     await setLocale(stranger, baseURL, locale);
     const sp = await stranger.newPage();
-    await sp.goto(`/set-password?token=${token}`);
-    await expect(sp.getByRole('heading', { level: 1 })).toHaveText(copy.invalid);
-    await axe(sp, `${locale} set-password invalid`);
+    await sp.goto(`/client?open=${token}`);
+    await expect(sp).toHaveURL(/\/login/);
 
-    // A fresh link replaces it.
+    // A fresh address replaces it and opens the space without any password.
     await card.locator('button[type=submit]').click();
     await expect(card.getByTestId('invite-link')).not.toHaveValue(url);
-    const fresh = (await card.getByTestId('invite-link').inputValue()).split('token=')[1] as string;
-
-    await sp.goto(`/set-password?token=${fresh}`);
-    await expect(sp.locator('h1:visible')).toHaveCount(1);
-    await axe(sp, `${locale} set-password form`);
-    await noOverflow(sp, `${locale} set-password`);
-    // The show/hide eye works with the keyboard.
-    const first = sp.locator('input[name=password]');
-    await expect(first).toHaveAttribute('type', 'password');
-    const eye = sp.getByTestId('password-visibility').first();
-    await eye.focus();
-    await sp.keyboard.press('Enter');
-    await expect(first).toHaveAttribute('type', 'text');
-    // The rule is told up front, a short password and a mismatch are refused, and do not burn the link.
-    await first.fill('short');
-    await sp.locator('input[name=again]').fill('short');
-    await sp.keyboard.press('Enter');
-    await expect(sp.locator('form [role=alert]')).toContainText(copy.short);
-    await first.fill(password);
-    await sp.locator('input[name=again]').fill(`${password}x`);
-    await sp.locator('button[type=submit]').click();
-    await expect(sp.locator('form [role=alert]')).toContainText(copy.mismatch);
-    await first.fill(password);
-    await sp.locator('input[name=again]').fill(password);
-    await sp.locator('button[type=submit]').click();
+    const fresh = (await card.getByTestId('invite-link').inputValue()).split('open=')[1] as string;
+    await sp.goto(`/client?open=${fresh}`);
     await sp.waitForURL(/\/client$/);
+    await expect(sp.locator('h1:visible')).toHaveCount(1);
+    await axe(sp, `${locale} opened space`);
+    await noOverflow(sp, `${locale} opened space`);
 
-    // Single use: the same link is dead now, in a clean browser.
+    // Single use: the same address is dead now, in a clean browser.
     const again = await browser.newContext({ baseURL });
     await setLocale(again, baseURL, locale);
     const ap = await again.newPage();
-    await ap.goto(`/set-password?token=${fresh}`);
-    await expect(ap.getByRole('heading', { level: 1 })).toHaveText(copy.invalid);
+    await ap.goto(`/client?open=${fresh}`);
+    await expect(ap).toHaveURL(/\/login/);
     await again.close();
 
-    // Role landing: the referent signs in with the new address and never sees the admin.
-    await stranger.clearCookies();
-    await setLocale(stranger, baseURL, locale);
-    await signIn(sp, { email: address, password }, /\/client$/);
+    // A set-password token cannot open a session.
+    const setPasswordToken = randomBytes(32).toString('base64url');
+    await run(
+      `INSERT INTO auth_tokens (user_id, kind, token_hash, expires_at) VALUES ($1, 'invite', $2, now() + interval '1 day')`,
+      [referent.id, createHash('sha256').update(setPasswordToken).digest('hex')],
+    );
+    const third = await browser.newContext({ baseURL });
+    const tp = await third.newPage();
+    await tp.goto(`/client?open=${setPasswordToken}`);
+    await expect(tp).toHaveURL(/\/login/);
+    await third.close();
+
+    // Role landing: the opened space never reaches the admin.
     await sp.goto('/admin/engagements');
     await expect(sp).toHaveURL(/\/client$/);
     await sp.goto('/board');
     await expect(sp).toHaveURL(/\/client$/);
     await stranger.close();
 
-    // The trail has the invitation and the choice of password, in plain words, with no address.
+    // The trail has the invitation, in plain words, with no address.
     await page.goto(`/admin/settings/audit?tenant=${ctx.tenantC}`);
     await expect(page.getByTestId('audit-table')).toContainText(copy.inviteAudit);
     expect(await page.getByTestId('audit-table').innerText()).not.toContain(address);

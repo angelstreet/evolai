@@ -74,22 +74,12 @@ the session picks up the new `platform_owner` membership, then open the account 
 
 ### Give a referent a real login
 
-Apply migration 0022 first. In the admin, **Teams**, **Referents**: type the referent's real address (with their
-agreement) and press "Create sign-in link". The address replaces the placeholder (only its hash is stored). The
-page shows a single-use link, valid 3 days: copy it and send it yourself (email goes out as well only when
-`EMAIL_PROVIDER` is configured). The referent opens it, chooses a password of 12 characters or more and lands on
-`/client`; the link works once. To send a fresh link (lost, expired), press the button again: the old one dies.
-
-Forgot password: `/forgot-password` sends a 60-minute link when an email provider is configured, with the same
-answer for every address. Without a provider nothing is delivered: create a new link from the Referents section
-(or `pnpm auditor:set-password` for staff). Rate limit: 3 requests per address and 10 per network address per
-hour.
-
-Trail: Admin, **Audit trail** shows `referent.invite`, `password.set`, `password.reset_request` and
-`password.reset` (never an address or a token). To revoke: `pnpm auditor:disable --email <real address>`. To
-remove a persona entirely, end its membership (`UPDATE memberships SET ends_at = now() WHERE user_id = ...`) as
-the service account. The older command-line route (`pnpm auditor:set-email` then `auditor:set-password`) still
-works.
+Apply migration 0026 first. In the mission, **Team**, **Referent**: type the referent's real address (with their
+agreement) and press "Send the welcome email". The address replaces the placeholder (only its hash is stored). The
+page shows the address that opens their space, valid 30 days and usable once: copy it and send it yourself (the
+email goes out as well only when `EMAIL_PROVIDER` is configured). The referent opens it and lands on `/client`
+with no password. To send a fresh one (lost, expired, spent by a mail scanner), press the button again: the old
+one dies. Staff keep a password (`/set-password`, `pnpm auditor:set-password`).
 
 ### Privacy notice and requests (TASK-U, ADR 0040)
 
@@ -108,14 +98,14 @@ view writes a `view_as.request` row with your own user id. "Back to my view" (ba
 or the 8-hour session expiry ends it too. Trail: `SELECT created_at, action, payload_json FROM audit_log WHERE
 action LIKE 'view_as.%' ORDER BY created_at DESC LIMIT 50;` (as the service account).
 
-### Referent self-service (TASK-S, ADR 0039)
+### Referent self-service (TASK-AF, ADR 0051)
 
-Before the referent sends links, set the engagement's **closing date** and **contact person** on the auditor
-Invitations page (Options). Both appear in the referent's ready-made message and on their Home page; the reminder
-days are computed from the closing date (7 and 2 days before). The referent's Invitations page lists every link
-with copy, copy all, CSV, QR sheet, email and WhatsApp sharing (nothing is sent by the platform), and one generic
-reminder message. The referent never sees which link was answered; if a client asks "who has not answered?", the
-answer is no, by design (ADR 0039). Per-link status stays on the auditor page.
+Before the referent shares the survey, set the mission's **closing date** (Settings) and the **contact person**
+(Team tab). Both appear in the referent's ready-made message and on their space; the reminder days are computed
+from the closing date (7 and 2 days before). The referent's space shows one survey address per team with a QR code,
+"Share with the team" (prefilled message, Copy, WhatsApp; nothing is sent by the platform) and one generic reminder
+message. The referent never sees who answered; if a client asks "who has not answered?", the answer is no, by
+design (ADR 0039, ADR 0051).
 
 ## Produce the audit result for a client (TASK-V, ADRs 0041-0043)
 
@@ -194,28 +184,26 @@ saved so the survey can be finished). After editing French, ask a native speaker
    prompts; do not paste the password into a shared place), update `DATABASE_APP_PASSWORD` in `$ENV_FILE` and
    Vercel, redeploy. Check `/api/health`.
 
-## Invitations and reminders (FR-03, ADR 0033)
+## Survey addresses and reminders (FR-03, ADR 0033, ADR 0051)
 
-Create links on the live database (default mode: no names, no addresses). Sign in as an auditor, then either use
-the admin screen _Invitations_ (`/admin/invitations`, pick the engagement; create, progress by team, CSV, printable QR sheet at `/admin/invitations/sheet`, reminders, revoke, extend), or the JSON API with the session cookie:
+Each team has one survey address, `/s/<slug>`, made when the Team tab or the referent's space is first opened (the
+auditor can change its ending there). A browser that opens it gets its own anonymous invitation. There is no link
+creation, CSV or QR sheet any more. Progress by team stays in the app (Team and Overview tabs) and in the JSON API
+with the session cookie:
 
 ```bash
 set -a; . "$ENV_FILE"; set +a
 BASE=https://evolai.io
 curl -sS -c jar -X POST "$BASE/api/auth/login" --data-urlencode "email=$AUDITOR_EMAIL" \
   --data-urlencode "password=$AUDITOR_PASSWORD"   # prompt for the password, do not paste it into history
-curl -sS -b jar -H 'content-type: application/json' "$BASE/api/admin/invitations" \
-  -d '{"tenantId":"<tenant>","engagementId":"<engagement>","op":"create","counts":{"<team id>":25},"expiresInDays":14}'
-curl -sS -b jar "$BASE/admin/invitations/export?tenant=<tenant>&engagement=<engagement>" -o links.csv
+curl -sS -b jar "$BASE/api/admin/invitations?tenant=<tenant>&engagement=<engagement>"
 ```
 
-The CSV is `link,team` and lists links not yet completed. Hand it to the client's HR; never mail it to yourself in
-clear text. Progress: `GET /api/admin/invitations?tenant=..&engagement=..` (aggregates; teams under 5 show nothing).
-Revoke, extend, regenerate: `op` = `revoke | extend | regenerate` with `invitationId`.
+Progress is aggregate (teams under 5 show nothing). Revoke, extend: `op` = `revoke | extend` with `invitationId`.
 
 Reminders run from `apps/web/vercel.json`: `GET /api/cron/reminders` daily at 07:43 UTC with the same
 `CRON_SECRET` bearer as the retention route. Default mode: it only counts what is due; use the _Reminder list_
-(`...&view=reminders`, or `/admin/invitations/export?...&kind=reminders`) and press "mark as resent" after the
+(`GET /api/admin/invitations?...&view=reminders`) and press "mark as resent" after the
 client sends it. That list is for the auditor only: never hand it to the team referent, who knows which link went
 to whom (ADR 0039); the referent has their own generic reminder. Email mode (per engagement setting, off by default): it sends and consumes each step, then purges
 stored addresses. Run it by hand: `curl -sS -H "Authorization: Bearer $CRON_SECRET" "$BASE/api/cron/reminders"`;

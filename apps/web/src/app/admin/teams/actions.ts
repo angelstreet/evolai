@@ -17,7 +17,7 @@ export interface InviteState {
   emailed?: boolean;
 }
 
-/** Owner action: create a sign-in link for one referent (TASK-U, ADR 0040). Actor from the session. */
+/** Owner action: send the welcome email to one referent (TASK-U, ADR 0040). Actor from the session. */
 export async function inviteReferentAction(
   _prev: InviteState,
   formData: FormData,
@@ -45,7 +45,9 @@ export async function inviteReferentAction(
       return { ok: false, message: t(key[res.reason]) };
     }
     const h = headers();
-    const link = `${resolveBaseUrl(process.env, h.get('host'), h.get('x-forwarded-proto'))}/set-password?token=${res.token}`;
+    const base = resolveBaseUrl(process.env, h.get('host'), h.get('x-forwarded-proto'));
+    // "Open my space" (TASK-AF): the referent signs in with this address alone, no password.
+    const link = `${base}/client?open=${res.token}`;
     let emailed = false;
     if (email) {
       try {
@@ -53,7 +55,7 @@ export async function inviteReferentAction(
         await resolveEmailProvider().send({
           to: email,
           subject: tr('trust.email.inviteSubject'),
-          text: tr('trust.email.inviteBody', { link }),
+          text: tr('trust.email.inviteBody', { link, learn: `${base}/learn` }),
         });
         emailed = true;
       } catch {

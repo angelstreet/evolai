@@ -3,7 +3,6 @@ import { getSession } from '@/lib/authServer';
 import { isTenantAllowed } from '@/lib/tenantAccess';
 import {
   InvitationError,
-  createBatch,
   extend,
   getSettings,
   listOpen,
@@ -13,7 +12,7 @@ import {
   reminderList,
   revoke,
 } from '@/lib/invitationData';
-import { isUuid, parseCreateForm } from '@/lib/invitationForm';
+import { isUuid } from '@/lib/invitationForm';
 import { resolveBaseUrl } from '@/lib/invitationTracking';
 import type { TenantId, UserId } from '@evolai/contracts';
 
@@ -82,30 +81,8 @@ export async function POST(req: NextRequest) {
   }
   const a = await authorise(String(body['tenantId'] ?? ''), String(body['engagementId'] ?? ''));
   if (!a) return forbidden();
-  const op = String(body['op'] ?? 'create');
+  const op = String(body['op'] ?? '');
   try {
-    if (op === 'create') {
-      const counts = (body['counts'] ?? {}) as Record<string, unknown>;
-      const form = new Map<string, unknown>(
-        Object.entries(counts).map(([team, n]) => [`count:${team}`, String(n)]),
-      );
-      form.set('expiresInDays', String(body['expiresInDays'] ?? 14));
-      const parsed = parseCreateForm(form);
-      if (!parsed.ok) return bad(parsed.error);
-      const out = await createBatch({
-        ...a,
-        groups: parsed.groups,
-        expiresInDays: parsed.expiresInDays,
-      });
-      return NextResponse.json({
-        ok: true,
-        count: out.invitations.length,
-        links: out.invitations.map((i) => ({
-          team: i.teamName,
-          link: `${base(req)}/s/${i.token}`,
-        })),
-      });
-    }
     const id = String(body['invitationId'] ?? '');
     if (op === 'remind') {
       return NextResponse.json({

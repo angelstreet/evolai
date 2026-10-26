@@ -115,10 +115,10 @@ const ACTIONS: [string, () => Promise<Record<string, unknown>>][] = [
   ['admin/opportunities', () => import('@/app/admin/engagements/[id]/opportunities/actions')],
   ['admin/analyses', () => import('@/app/admin/engagements/[id]/analyses/[analysisId]/actions')],
   ['admin/synergies', () => import('@/app/admin/synergies/actions')],
-  ['admin/invitations', () => import('@/app/admin/invitations/actions')],
+  ['admin/invitations', () => import('@/app/admin/engagements/[id]/invitations/actions')],
   ['intake', () => import('@/app/intake/actions')],
   ['quiz', () => import('@/app/quiz/actions')],
-  ['client/invitations', () => import('@/app/client/invitations/actions')],
+  ['client/space', () => import('@/app/client/actions')],
 ];
 
 describe('every server action refuses in a view-as session', () => {
@@ -172,15 +172,6 @@ describe('routes refuse in a view-as session', () => {
     );
     expect(post.status).toBe(403);
     expect(state.sql).toEqual([]);
-  });
-
-  it('admin CSV export: 403', async () => {
-    const { GET } = await import('@/app/admin/invitations/export/route');
-    const { NextRequest } = await import('next/server');
-    const res = await GET(
-      new NextRequest(`http://x/admin/invitations/export?tenant=${T}&engagement=${ID}`),
-    );
-    expect(res.status).toBe(403);
   });
 
   it('survey answer route: 403 read_only, nothing written but the trail', async () => {
