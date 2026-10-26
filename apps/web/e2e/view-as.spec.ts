@@ -112,7 +112,7 @@ for (const locale of LOCALES) {
     await expect(banner).toHaveCSS('position', 'sticky');
     await expect(page.getByTestId('account-button')).toContainText('SS');
     await expect(page.getByTestId('client-organisation')).toContainText('Synthetic client C');
-    await expect(page.locator('[data-testid^="client-tab-"]')).toHaveCount(4);
+    await expect(page.locator('[data-testid^="client-tab-"]')).toHaveCount(3);
     await expect(page.locator('main a[href^="/admin"], header a[href^="/admin"]')).toHaveCount(0);
     await expect(page.locator('h1:visible')).toHaveCount(1);
     await axe(page, `${locale} client home (view as)`);
@@ -121,12 +121,14 @@ for (const locale of LOCALES) {
     await page.mouse.wheel(0, 2000);
     await expect(banner).toBeInViewport();
 
-    // Read only: creating links is refused by the server, with a clear message.
-    await page.getByTestId('client-tab-invitations').click();
-    await page.waitForURL(/\/client\/invitations$/);
-    await axe(page, `${locale} client invitations (view as)`);
-    await page.getByTestId('client-create-links').click();
-    await expect(page.getByTestId('client-create-error')).toContainText(copy.readOnly);
+    // Read only: the team size cannot be changed, and no per-person link exists (TASK-AF).
+    await page.getByTestId('client-share').click();
+    await page.getByTestId('team-size').fill('5');
+    await page.getByTestId('client-share-dialog').locator('button[type=submit]').click();
+    await expect(page.getByTestId('client-share-dialog')).toContainText(/Read only|Lecture seule/);
+    await expect(page.locator('.MuiDialog-container').last()).toHaveCSS('opacity', '1');
+    await axe(page, `${locale} client share (view as)`);
+    await page.keyboard.press('Escape');
     await page.getByTestId('client-tab-results').click();
     await page.waitForURL(/\/client\/results$/);
     await axe(page, `${locale} client results (view as)`);
@@ -153,11 +155,6 @@ for (const locale of LOCALES) {
       `/api/admin/invitations?tenant=${TENANT_A}&engagement=${ENGAGEMENT_A}`,
     );
     expect(api.status()).toBe(403);
-    const exportA = await page.request.get(
-      `/admin/invitations/export?tenant=${TENANT_A}&engagement=${ENGAGEMENT_A}`,
-      { maxRedirects: 0 },
-    );
-    expect([303, 307, 403]).toContain(exportA.status());
     // No nested switch while viewing as.
     const nested = await page.request.post('/api/view-as', {
       form: { persona: '88888888-8888-4888-8888-888888888888' },
@@ -254,23 +251,18 @@ test('a non-owner cannot start a view-as, even with a real persona id', async ({
   await expect(page.getByTestId('view-as-banner')).toHaveCount(0);
 });
 
-test('a real referent lands on the team space, may create links, cannot leave it', async ({
+test('a real referent lands on the team space, sees one team address, cannot leave it', async ({
   page,
 }) => {
   await signIn(page, REFERENT, /\/client$/);
   await expect(page.getByTestId('view-as-banner')).toHaveCount(0);
   await expect(page.getByTestId('account-button')).toContainText('SS');
-  await page.getByTestId('client-tab-invitations').click();
-  await page.waitForURL(/\/client\/invitations$/);
-  await page.getByTestId('client-create-links').click();
-  await expect(page.getByTestId('client-create-done')).toBeVisible();
-  await expect(page.getByTestId('client-links')).toContainText(/\d+/);
-  const csv = await page.request.get('/client/invitations/export');
-  expect(csv.status()).toBe(200);
-  const lines = (await csv.text()).trim().split(/\r?\n/);
-  expect(lines[0]).toBe('link,team');
-  expect(lines.length).toBeGreaterThan(5);
-  for (const line of lines.slice(1)) expect(line).toContain('Synthetic pilot team');
+  await expect(page.getByTestId('client-address')).toHaveText(/\/s\/[a-z0-9-]+$/);
+  await expect(page.getByTestId('client-qr')).toBeVisible();
+  // The old per-person pages are gone: the old address redirects home, the export does not exist.
+  await page.goto('/client/invitations');
+  await expect(page).toHaveURL(/\/client$/);
+  expect((await page.request.get('/client/invitations/export')).status()).toBe(404);
   // Admin, board, other tenants: closed.
   for (const path of [
     '/admin/engagements',

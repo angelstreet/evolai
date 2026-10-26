@@ -8,6 +8,8 @@ export interface MessageFacts {
   readonly contact: string | null;
   /** Estimated minutes to answer. */
   readonly minutes: number;
+  /** The team's survey address, put after the line that introduces it in the reminder. */
+  readonly address?: string;
 }
 
 export interface Prepared {
@@ -49,6 +51,7 @@ export const prepareMessages = (
     t('client.invitations.reminder.body', vars),
     facts.closesOn ? t('client.invitations.reminder.closes', vars) : null,
     t('client.invitations.reminder.link'),
+    facts.address ?? null,
     facts.contact ? t('client.invitations.reminder.contact', vars) : null,
     '',
     t('client.invitations.reminder.thanks'),

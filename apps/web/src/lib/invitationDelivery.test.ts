@@ -13,7 +13,6 @@ import {
   resolveEmailProvider,
 } from './emailProvider';
 import { buildMessage, sendInvitationEmails } from './invitationDelivery';
-import { parseCreateForm } from './invitationForm';
 
 const key = randomBytes(32);
 const ID = '11111111-1111-4111-8111-111111111111';
@@ -85,43 +84,5 @@ describe('email provider', () => {
       ),
     ).toEqual({ sent: 0, failed: 1 });
     expect(buildMessage('remind', 'en', 'a@synthetic.invalid', 'L').subject).toMatch(/Reminder/);
-  });
-});
-
-describe('create form', () => {
-  const form = (entries: Record<string, string>) => new Map(Object.entries(entries));
-  const T = '33333333-3333-4333-8333-333333333333';
-  it('accepts counts per team and defaults the expiry', () => {
-    const r = parseCreateForm(form({ [`count:${T}`]: '12' }));
-    expect(r).toMatchObject({ ok: true, groups: [{ teamId: T, count: 12 }], expiresInDays: 14 });
-  });
-  it('rejects empty, negative, huge, bad-team and bad-expiry input', () => {
-    expect(parseCreateForm(form({}))).toEqual({ ok: false, error: 'bad_count' });
-    expect(parseCreateForm(form({ [`count:${T}`]: '-1' }))).toEqual({
-      ok: false,
-      error: 'bad_count',
-    });
-    expect(parseCreateForm(form({ [`count:${T}`]: '99999' }))).toEqual({
-      ok: false,
-      error: 'bad_count',
-    });
-    expect(parseCreateForm(form({ 'count:nope': '3' }))).toEqual({ ok: false, error: 'bad_team' });
-    expect(parseCreateForm(form({ [`count:${T}`]: '3', expiresInDays: '0' }))).toEqual({
-      ok: false,
-      error: 'bad_expiry',
-    });
-  });
-  it('parses one address per line and rejects a bad one', () => {
-    const ok = parseCreateForm(
-      form({ addresses: 'a@synthetic.invalid\nc@synthetic.invalid\n', addressTeam: T }),
-    );
-    expect(ok).toMatchObject({
-      ok: true,
-      addresses: [{ address: 'a@synthetic.invalid' }, { address: 'c@synthetic.invalid' }],
-    });
-    expect(parseCreateForm(form({ addresses: 'nope', addressTeam: T }))).toEqual({
-      ok: false,
-      error: 'bad_address',
-    });
   });
 });

@@ -1,3 +1,4 @@
+import { notFound, redirect } from 'next/navigation';
 import Button from '@mui/material/Button';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
@@ -10,6 +11,8 @@ import { firstUnanswered, loadRespondent, teamProgress } from '@/lib/respondent'
 import { getPublicNotice } from '@/lib/privacyNotice';
 import { surveyEstimatedMinutes, totalQuestionCount } from '@/lib/syntheticTemplate';
 import { isSubmitted } from '@/lib/surveyState';
+import { getT } from '@/lib/i18n';
+import { looksLikeSlug } from '@/lib/teamAddresses';
 
 // Always render at request time so the DB connection is fresh.
 export const dynamic = 'force-dynamic';
@@ -28,8 +31,15 @@ export default async function WelcomePage({
   searchParams,
 }: {
   params: Params;
-  searchParams: { l?: string };
+  searchParams: { l?: string; closed?: string };
 }) {
+  // A team address (`/s/demo-sales`, TASK-AF): the route handler gives this browser its own
+  // invitation and sends it back here with the signed token.
+  if (looksLikeSlug(params.token)) {
+    if (searchParams.closed === '1') return <LinkProblem gate="expired" t={getT().t} />;
+    if (searchParams.closed === '0') notFound();
+    redirect(`/s/open/${params.token}`);
+  }
   const ctx = await loadRespondent(params.token, { rememberLocale: searchParams.l !== '1' });
   if (ctx.kind === 'blocked') return <LinkProblem gate={ctx.gate} t={ctx.t} />;
   const { invite, state, locale, t } = ctx;

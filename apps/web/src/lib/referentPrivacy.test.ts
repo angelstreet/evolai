@@ -3,7 +3,7 @@ import { join, relative } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 /**
- * TASK-S, ADR 0039: a team referent knows which link went to which colleague, so no page, route or
+ * TASK-S, ADR 0039, TASK-AF, ADR 0051: a team referent holds one address for the whole team, so no page, route or
  * export they can reach may depend on a per-link status. This guard reads the source of every file
  * behind the team space and fails if one imports a per-link status listing or selects a status
  * column for a link. The Playwright spec `referent-share.spec.ts` checks the same rule end to end.
@@ -60,9 +60,8 @@ describe('team space never sees a per-link status', () => {
   it('covers the referent files', () => {
     const rel = files.map((f) => relative(SRC, f));
     expect(rel).toContain('app/client/page.tsx');
-    expect(rel).toContain('app/client/invitations/page.tsx');
-    expect(rel).toContain('app/client/invitations/export/route.ts');
-    expect(rel).toContain('app/client/invitations/sheet/page.tsx');
+    expect(rel).toContain('app/client/actions.ts');
+    expect(rel).toContain('components/client/TeamCard.tsx');
   });
 
   for (const file of files) {
@@ -72,21 +71,16 @@ describe('team space never sees a per-link status', () => {
     });
   }
 
-  it('the referent export ignores ?kind= and has no reminders variant', () => {
-    const route = readFileSync(join(SRC, 'app/client/invitations/export/route.ts'), 'utf8');
-    expect(route).not.toMatch(/searchParams/);
-    expect(route).not.toMatch(/reminder/i);
-  });
-
-  it('the referent link query selects no status, expiry or reminder column, and does not filter on them', () => {
-    const data = readFileSync(join(SRC, 'lib/invitationData.ts'), 'utf8');
-    const fn = sliceOf(data, 'listTeamLinks');
-    const select = fn.slice(fn.indexOf('SELECT'), fn.indexOf('FROM'));
-    expect(select).not.toMatch(/status|expires|reminder|last_activity|opened|submitted/);
-    // The only status condition allowed is "not revoked" (a revoked link no longer works).
-    const statusConds = [...fn.matchAll(/i\.status\s*([^\n]*)/g)].map((m) => m[1]?.trim());
-    expect(statusConds).toEqual(["<> 'revoked'"]);
-    expect(fn).not.toMatch(/submissions|answers|respondents/);
+  it('no per-person link exists anywhere the referent can reach (TASK-AF)', () => {
+    for (const file of files) {
+      const source = readFileSync(file, 'utf8');
+      expect(source, relative(SRC, file)).not.toMatch(
+        /tokenFor|surveyLink|signInviteToken|token_reference|listTeamLinks/,
+      );
+    }
+    expect(files.map((f) => relative(SRC, f))).not.toContain(
+      'app/client/invitations/export/route.ts',
+    );
   });
 
   it('clientData uses raw counts only through referentParticipation', () => {

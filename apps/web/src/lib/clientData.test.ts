@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { aggregateThemes } from './clientData';
-import { parseLinkCount } from './clientActions';
 
 const theme = (label: string, axis = 'practice', summary = 'quote that must never leak') => ({
   id: 't',
@@ -35,15 +34,5 @@ describe('aggregateThemes (only approved, at least five people, no summary)', ()
   it('ignores malformed payloads', () => {
     expect(aggregateThemes([{ submissionId: 's', payload: null }])).toEqual([]);
     expect(aggregateThemes([{ submissionId: 's', payload: { themes: 'x' } }])).toEqual([]);
-  });
-});
-
-describe('parseLinkCount', () => {
-  it('accepts 1 to 500 whole numbers only', () => {
-    expect(parseLinkCount('5')).toBe(5);
-    expect(parseLinkCount(' 500 ')).toBe(500);
-    for (const bad of ['0', '501', '2.5', '', 'abc', null, '-1']) {
-      expect(parseLinkCount(bad)).toBeNull();
-    }
   });
 });

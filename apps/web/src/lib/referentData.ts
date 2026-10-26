@@ -48,7 +48,7 @@ export type InviteResult =
   | { ok: false; reason: 'not_referent' | 'disabled' | 'taken' };
 
 /**
- * Create the single-use link for one referent of this organisation, optionally replacing their
+ * Create the single-use "Open my space" token for one referent of this organisation, optionally replacing their
  * sign-in address. The membership is checked against the organisation first, so an owner of one
  * organisation cannot invite a user of another. One audit row, with no address in it.
  */
@@ -80,7 +80,7 @@ export const inviteReferent = async (
         emailHash(email),
       ]);
     }
-    const { token, expiresAt } = await issueToken(client, userId, 'invite', now);
+    const { token, expiresAt } = await issueToken(client, userId, 'space', now);
     await client.query(
       `INSERT INTO audit_log (tenant_id, actor_user_id, action, target_kind, target_id, payload_json)
        VALUES ($1, $2, 'referent.invite', 'user', $3, $4)`,

@@ -1,9 +1,9 @@
-import { randomBytes, randomUUID } from 'node:crypto';
+import { randomBytes } from 'node:crypto';
 import type { TenantId, UserId } from '@evolai/contracts';
 import type pg from 'pg';
 import { withServiceAccount, withTenant } from './db';
 import { signInviteToken } from './invitationToken';
-import { decryptAddress, encryptAddress } from './invitationCrypto';
+import { decryptAddress } from './invitationCrypto';
 import {
   applyMinGroup,
   engagementTotals,
@@ -25,13 +25,11 @@ import { parseContact } from './referentView';
  *  - default mode stores no email address and no name;
  *  - progress is computed from `invitations` only, never joined to submissions or answers;
  *  - the only per-invitation listing is "not yet completed", with a short opaque code, no status,
- *    and it is for the auditor only; a team referent gets every link with no status at all
- *    (`listTeamLinks`, ADR 0039), because the referent knows which link went to whom.
+ *    and it is for the auditor only; a team referent has one address per team and no list of
+ *    people at all (TASK-AF, ADR 0051).
  */
 
 const SYSTEM_ACTOR = '00000000-0000-4000-8000-000000000000';
-export const MAX_BATCH = 2000;
-export const MAX_ADDRESSES_PER_BATCH = 200;
 const OPEN_STATUSES = "('pending','opened','in_progress')";
 
 export class InvitationError extends Error {
@@ -64,7 +62,6 @@ export interface EngagementSettings {
 }
 
 const newReference = (): string => `i${randomBytes(18).toString('base64url')}`;
-const newPseudonym = (): string => `p-${randomBytes(8).toString('hex')}`;
 
 export const tokenFor = (reference: string): string => signInviteToken(reference);
 
@@ -171,149 +168,6 @@ export const updateSettings = async (
     });
   });
 
-export interface BatchGroup {
-  readonly teamId: string;
-  readonly count: number;
-}
-export interface CreatedInvitation {
-  readonly id: string;
-  readonly teamName: string;
-  readonly token: string;
-  readonly expiresAt: string;
-}
-
-export interface BatchInput {
-  readonly tenantId: TenantId;
-  readonly engagementId: string;
-  readonly actor: UserId;
-  readonly groups: readonly BatchGroup[];
-  readonly expiresInDays: number;
-  /** Email mode only: one address per invitation, paired positionally with the created rows. */
-  readonly addresses?: readonly { teamId: string; address: string }[];
-  /**
-   * Admin only (TASK-T): refuse a batch of the same size created in the last ten minutes unless
-   * `confirmDuplicate` is set. Off by default so the team space keeps its current behaviour.
-   */
-  readonly checkDuplicate?: boolean;
-  readonly confirmDuplicate?: boolean;
-}
-
-/** Bulk-create invitations. No names, no addresses unless the engagement switched email on. */
-export const createBatch = async (
-  input: BatchInput,
-): Promise<{ invitations: CreatedInvitation[]; deliveries: { id: string; address: string }[] }> => {
-  const { tenantId, engagementId, actor, expiresInDays } = input;
-  if (!Number.isInteger(expiresInDays) || expiresInDays < 1 || expiresInDays > 90) {
-    throw new InvitationError('bad_expiry');
-  }
-  // Addresses become one group entry per address so counts and links stay aligned.
-  const addressList = input.addresses ?? [];
-  const groups: BatchGroup[] = [...input.groups];
-  for (const a of addressList) groups.push({ teamId: a.teamId, count: 1 });
-  const total = groups.reduce((s, g) => s + g.count, 0);
-  if (
-    groups.some((g) => !Number.isInteger(g.count) || g.count < 1) ||
-    total < 1 ||
-    total > MAX_BATCH
-  ) {
-    throw new InvitationError('bad_count');
-  }
-  if (addressList.length > MAX_ADDRESSES_PER_BATCH) throw new InvitationError('bad_count');
-
-  const created = await withTenant(tenantId, async (client) => {
-    const settings = await readSettings(client, tenantId, engagementId);
-    if (!settings) throw new InvitationError('engagement_not_found');
-    if (!['draft', 'scheduled', 'in_field'].includes(settings.status)) {
-      throw new InvitationError('engagement_closed');
-    }
-    if (addressList.length > 0 && !settings.emailDelivery) throw new InvitationError('email_off');
-    const teams = await client.query<{ id: string; name: string }>(
-      `SELECT t.id, t.name FROM engagement_teams et JOIN teams t ON t.id = et.team_id
-        WHERE et.tenant_id = $1 AND et.engagement_id = $2`,
-      [tenantId, engagementId],
-    );
-    const names = new Map(teams.rows.map((t) => [t.id, t.name]));
-    if (groups.some((g) => !names.has(g.teamId)))
-      throw new InvitationError('team_not_in_engagement');
-    if (input.checkDuplicate && !input.confirmDuplicate) {
-      const dup = await client.query(
-        `SELECT 1 FROM invitations
-          WHERE tenant_id = $1 AND engagement_id = $2 AND batch_id IS NOT NULL
-            AND created_at > now() - interval '10 minutes'
-          GROUP BY batch_id HAVING count(*) = $3 LIMIT 1`,
-        [tenantId, engagementId, total],
-      );
-      if ((dup.rowCount ?? 0) > 0) throw new InvitationError('duplicate_batch');
-    }
-    const batchId = randomUUID();
-    const expires = new Date(Date.now() + expiresInDays * 86_400_000);
-    const out: CreatedInvitation[] = [];
-    for (const g of groups) {
-      for (let i = 0; i < g.count; i += 1) {
-        const id = randomUUID();
-        const reference = newReference();
-        const token = tokenFor(reference);
-        await client.query(
-          `INSERT INTO invitations (id, tenant_id, engagement_id, team_id, respondent_pseudonym,
-                                    status, token_reference, token_signature, opens_at, expires_at,
-                                    created_by, batch_id)
-           VALUES ($1,$2,$3,$4,$5,'pending',$6,$7, now(), $8, $9, $10)`,
-          [
-            id,
-            tenantId,
-            engagementId,
-            g.teamId,
-            newPseudonym(),
-            reference,
-            token.split('.')[1],
-            expires,
-            actor,
-            batchId,
-          ],
-        );
-        out.push({
-          id,
-          teamName: names.get(g.teamId) as string,
-          token,
-          expiresAt: expires.toISOString(),
-        });
-      }
-    }
-    await audit(client, tenantId, actor, 'invitation.create_batch', 'engagement', engagementId, {
-      count: out.length,
-      teams: groups.length,
-      expiresInDays,
-      withAddresses: addressList.length,
-      batchId,
-    });
-    return out;
-  });
-
-  // Addresses were appended last, in order: pair them with the tail of the created rows.
-  const deliveries: { id: string; address: string }[] = [];
-  if (addressList.length > 0) {
-    const tail = created.slice(created.length - addressList.length);
-    await withServiceAccount(async (client) => {
-      for (let i = 0; i < addressList.length; i += 1) {
-        const inv = tail[i] as CreatedInvitation;
-        const address = (addressList[i] as { address: string }).address;
-        await client.query(
-          `INSERT INTO invitation_deliveries (invitation_id, tenant_id, address_cipher, purge_after)
-           VALUES ($1, $2, $3, $4)`,
-          [
-            inv.id,
-            tenantId,
-            encryptAddress(address, inv.id),
-            new Date(new Date(inv.expiresAt).getTime() + 86_400_000),
-          ],
-        );
-        deliveries.push({ id: inv.id, address });
-      }
-    });
-  }
-  return { invitations: created, deliveries };
-};
-
 export interface Progress {
   readonly teams: TeamProgressRow[];
   readonly totals: EngagementTotals | null;
@@ -380,38 +234,6 @@ export const progress = async (tenantId: TenantId, engagementId: string): Promis
   const counts = await teamCounts(tenantId, engagementId);
   return { teams: applyMinGroup(counts), totals: engagementTotals(counts) };
 };
-
-export interface TeamLink {
-  readonly link: string;
-  readonly teamName: string;
-}
-
-/**
- * Every link of the given teams that still exists (not revoked), whatever its state, in creation
- * order (TASK-S, ADR 0039). For the team referent: no status, no expiry, no code, and the set and
- * order do not change when someone opens, starts or finishes the survey, so the list says nothing
- * about who answered.
- */
-export const listTeamLinks = async (
-  tenantId: TenantId,
-  engagementId: string,
-  baseUrl: string,
-  teamIds: readonly string[],
-): Promise<TeamLink[]> =>
-  withTenant(tenantId, async (client) => {
-    const { rows } = await client.query<{ token_reference: string; team_name: string }>(
-      `SELECT i.token_reference, t.name AS team_name
-         FROM invitations i JOIN teams t ON t.id = i.team_id
-        WHERE i.tenant_id = $1 AND i.engagement_id = $2 AND i.status <> 'revoked'
-          AND i.team_id = ANY($3::uuid[])
-        ORDER BY t.name, i.created_at, i.id`,
-      [tenantId, engagementId, teamIds],
-    );
-    return rows.map((r) => ({
-      link: surveyLink(baseUrl, tokenFor(r.token_reference)),
-      teamName: r.team_name,
-    }));
-  });
 
 export interface OpenInvitation {
   readonly id: string;
@@ -684,19 +506,6 @@ export const withAudit = async (
       ? await reminderList(tenantId as TenantId, engagementId, baseUrl, new Date())
       : await listOpen(tenantId as TenantId, engagementId, baseUrl);
   await auditExport(tenantId, engagementId, actor, kind, rows.length);
-  return rows;
-};
-
-/** Referent export (CSV, QR sheet): every team link, no status (ADR 0039); one audit row. */
-export const teamLinksWithAudit = async (
-  tenantId: string,
-  engagementId: string,
-  actor: string,
-  baseUrl: string,
-  teamIds: readonly string[],
-): Promise<TeamLink[]> => {
-  const rows = await listTeamLinks(tenantId as TenantId, engagementId, baseUrl, teamIds);
-  await auditExport(tenantId, engagementId, actor, 'team', rows.length, teamIds.length);
   return rows;
 };
 

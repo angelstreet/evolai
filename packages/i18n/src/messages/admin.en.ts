@@ -126,7 +126,7 @@ export const adminEn = {
       published: 'Report published',
     },
     next: {
-      createLinks: 'Create links',
+      createLinks: 'Prepare the team',
       followAnswers: 'Follow answers',
       readBrief: 'Read the brief',
       writeReport: 'Write the report',
@@ -134,7 +134,7 @@ export const adminEn = {
     tabsAria: 'Mission sections',
     tabs: {
       overview: 'Overview',
-      invitations: 'Links',
+      invitations: 'Team',
       answers: 'Answers',
       report: 'Report',
       settings: 'Settings',

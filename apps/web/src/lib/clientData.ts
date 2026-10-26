@@ -87,24 +87,28 @@ export const loadTeamNames = async (
   });
 
 /**
- * Participation of the referent's teams, one row per team of the survey (a team with no link yet
- * shows 0 invited). Raw counts stay in this function: only what `referentParticipation` allows
+ * Participation of the referent's teams, one row per team of the survey (a team nobody has opened
+ * yet shows 0). Raw counts stay in this function: only what `referentParticipation` allows
  * leaves it.
  */
 export const referentProgress = async (
   tenantId: string,
   survey: Pick<ClientSurvey, 'engagementId' | 'teams'>,
   teamIds: readonly string[],
+  expectedSize: ReadonlyMap<string, number | null> = new Map(),
 ): Promise<Participation[]> => {
   const counts = await teamCounts(tenantId as TenantId, survey.engagementId);
   return survey.teams
     .filter((team) => teamIds.includes(team.id))
     .map((team) => {
       const c = counts.find((r) => r.teamId === team.id);
+      // M of "N of M answered" (TASK-AF): the size the referent stated, never below the number of
+      // people who opened the team address, so the line cannot read "14 of 12".
+      const visitors = c?.invited ?? 0;
       return referentParticipation({
         teamId: team.id,
         teamName: team.name,
-        invited: c?.invited ?? 0,
+        invited: Math.max(expectedSize.get(team.id) ?? 0, visitors),
         started: c?.started ?? 0,
         completed: c?.completed ?? 0,
       });
@@ -199,4 +203,23 @@ export const loadPublishedResults = async (
       ),
       opportunities: opps.rows,
     };
+  });
+
+/**
+ * Has anybody of the referent's teams submitted? A yes or a no only, never a count: the space
+ * shows the "learn the audit" nudge while the answer is no (TASK-AF).
+ */
+export const anyAnswerSubmitted = async (
+  tenantId: string,
+  engagementId: string,
+  teamIds: readonly string[],
+): Promise<boolean> =>
+  withTenant(tenantId as TenantId, async (client) => {
+    const { rows } = await client.query(
+      `SELECT 1 FROM invitations
+        WHERE tenant_id = $1 AND engagement_id = $2 AND team_id = ANY($3::uuid[])
+          AND status = 'submitted' LIMIT 1`,
+      [tenantId, engagementId, teamIds],
+    );
+    return rows.length > 0;
   });

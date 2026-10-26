@@ -1,35 +1,37 @@
-import Box from '@mui/material/Box';
+import { headers } from 'next/headers';
+import QRCode from 'qrcode';
 import Button from '@mui/material/Button';
-import LinearProgress from '@mui/material/LinearProgress';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import type { TenantId } from '@evolai/contracts';
 import type { Translator } from '@evolai/i18n';
 import { AppIcon, EmptyState, IconTile, PageTitle, StatusText } from '@evolai/ui';
+import TeamCard from '@/components/client/TeamCard';
 import { requireClientContext } from '@/lib/clientContext';
 import {
+  anyAnswerSubmitted,
   earliestLinkExpiryOn,
   firstLinkOn,
   loadClientSurvey,
-  loadPublishedResults,
   loadTeamNames,
   referentProgress,
 } from '@/lib/clientData';
 import { getT } from '@/lib/i18n';
-import { MIN_GROUP_SIZE } from '@/lib/invitationTracking';
+import { MIN_GROUP_SIZE, resolveBaseUrl } from '@/lib/invitationTracking';
 import { longDate, prepareMessages } from '@/lib/referentMessages';
 import {
   barValue,
   contactFor,
   daysUntil,
   effectiveCloseDay,
-  nextStep,
   reminderPlan,
-  type NextStep,
+  withLink,
   type Participation,
 } from '@/lib/referentView';
+import { loadPublishedReport } from '@/lib/reportData';
 import { surveyEstimatedMinutes } from '@/lib/syntheticTemplate';
-import HomeReminder from '@/components/client/HomeReminder';
+import { addressUrl, ensureTeamAddresses } from '@/lib/teamAddresses';
 
 export const dynamic = 'force-dynamic';
 
@@ -43,25 +45,9 @@ const STATUS_KEYS = new Set([
   'archived',
 ]);
 
-const CTA: Record<NextStep, string | null> = {
-  create: '/client/invitations',
-  share: '/client/invitations#links',
-  remind: '/client/invitations#reminder',
-  wait: null,
-  results: '/client/results',
-};
-
-const ICON = {
-  create: 'add',
-  share: 'invite',
-  remind: 'time',
-  wait: 'pending',
-  results: 'results',
-} as const;
-
-/** Words for one team's participation; never a number the minimum group rule hides. */
-const participationText = (t: Translator, p: Participation): { main: string; hint?: string } => {
-  if (p.invited === 0) return { main: t('client.home.noLinks') };
+/** Words for one team's answers; never a number the minimum group rule hides. */
+const answersText = (t: Translator, p: Participation): { main: string; hint?: string } => {
+  if (p.invited === 0) return { main: t('client.home.noAnswers') };
   if (p.kind === 'hidden') {
     return {
       main: t('client.home.hidden', { count: p.invited }),
@@ -74,92 +60,50 @@ const participationText = (t: Translator, p: Participation): { main: string; hin
       hint: t('client.home.bandHint', { n: MIN_GROUP_SIZE }),
     };
   }
-  return {
-    main: t('client.home.answered', { done: p.completed, total: p.invited }),
-    hint: t('client.home.startedCount', { count: p.started }),
-  };
+  return { main: t('client.home.answered', { done: p.completed, total: p.invited }) };
 };
 
 /**
- * Team space home (TASK-P, TASK-S, ADR 0039): the survey and its closing date, answers per team
- * as a bar ("12 of 24 answered" only when the minimum group rules allow it), and the one thing to
- * do next. The reminder step appears only on a suggested day while the survey is open.
+ * "My space" (TASK-AF, ADR 0051): one card per team with the team address, its QR code, Share
+ * with the team, the questions, "N of M answered" and one reminder; then the report. No
+ * per-person link and no password step: the referent opens this page from the welcome email.
  */
 export default async function ClientHome() {
   const { session, ctx } = await requireClientContext();
   const { t, locale } = getT();
   const minutes = surveyEstimatedMinutes();
   const teams = await loadTeamNames(ctx.tenantId, ctx.teamIds);
-  const teamName = teams.join(', ');
   const header = (
     <PageTitle
       id="client-title"
       title={t('client.home.title')}
-      subtitle={t('client.home.subtitle', { team: teamName })}
+      subtitle={t('client.home.subtitle', { team: teams.join(', ') })}
     />
-  );
-  const how = (
-    <Paper variant="outlined" sx={{ p: 4, borderRadius: 3 }} data-testid="client-how">
-      <Typography variant="sectionTitle" component="h2" sx={{ m: 0, mb: 2 }}>
-        {t('client.home.how.title')}
-      </Typography>
-      <Typography variant="body1" sx={{ m: 0, mb: 2 }}>
-        {t('client.home.how.ask', { minutes })}
-      </Typography>
-      <Typography variant="body1" sx={{ m: 0, mb: 3 }}>
-        {t('client.home.how.who', { n: MIN_GROUP_SIZE })}
-      </Typography>
-      <Box
-        component="ol"
-        aria-label={t('client.home.how.stepsLabel')}
-        sx={{ m: 0, pl: 5, '& li': { py: 0.5 } }}
-      >
-        <li>{t('client.home.how.send')}</li>
-        <li>{t('client.home.how.remind')}</li>
-        <li>{t('client.home.how.report')}</li>
-      </Box>
-    </Paper>
-  );
-  const learn = (
-    <Paper variant="outlined" sx={{ p: 4, borderRadius: 3 }} data-testid="client-learn">
-      <Stack direction="row" spacing={3} sx={{ alignItems: 'flex-start' }}>
-        <IconTile name="info" />
-        <div>
-          <Typography variant="cardTitle" component="h2" sx={{ m: 0 }}>
-            {t('learn.entry.cardTitle')}
-          </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ m: 0, mt: 1 }}>
-            {t('learn.entry.cardBody')}
-          </Typography>
-        </div>
-      </Stack>
-      <Button
-        variant="outlined"
-        href="/learn"
-        endIcon={<AppIcon name="forward" size={16} />}
-        data-testid="client-learn-cta"
-        sx={{ mt: 4, minHeight: 44 }}
-      >
-        {t('learn.entry.cardCta')}
-      </Button>
-    </Paper>
   );
   const survey = await loadClientSurvey(ctx.tenantId, ctx.teamIds);
   if (!survey) {
     return (
       <section aria-labelledby="client-title">
         {header}
-        <Stack spacing={4}>
-          {how}
-          {learn}
-          <EmptyState icon="pending" title={t('client.home.noSurvey')} />
-        </Stack>
+        <EmptyState icon="pending" title={t('client.home.noSurvey')} />
       </section>
     );
   }
-  const [rows, results, firstOn, expiryOn] = await Promise.all([
-    referentProgress(ctx.tenantId, survey, ctx.teamIds),
-    loadPublishedResults(ctx.tenantId, survey.engagementId),
+  const h = headers();
+  const baseUrl = resolveBaseUrl(
+    process.env,
+    h.get('x-forwarded-host') ?? h.get('host'),
+    h.get('x-forwarded-proto'),
+  );
+  const tenantId = ctx.tenantId as TenantId;
+  const addresses = (await ensureTeamAddresses(tenantId, survey.engagementId)).filter((a) =>
+    ctx.teamIds.includes(a.teamId),
+  );
+  const expected = new Map(addresses.map((a) => [a.teamId, a.expectedSize]));
+  const [rows, published, anySubmitted, firstOn, expiryOn] = await Promise.all([
+    referentProgress(ctx.tenantId, survey, ctx.teamIds, expected),
+    loadPublishedReport(tenantId, survey.engagementId),
+    anyAnswerSubmitted(ctx.tenantId, survey.engagementId, ctx.teamIds),
     firstLinkOn(ctx.tenantId, survey.engagementId, ctx.teamIds),
     earliestLinkExpiryOn(ctx.tenantId, survey.engagementId, ctx.teamIds),
   ]);
@@ -171,35 +115,54 @@ export default async function ClientHome() {
     schedule: survey.reminderDays,
     today,
   });
-  const hasResults = results.themes.length > 0 || results.opportunities.length > 0;
-  const step = nextStep({ status: survey.status, rows, hasResults, plan });
-  const cta = CTA[step];
+  const open = survey.status === 'in_field' || survey.status === 'scheduled';
+  const reminderHint = !open
+    ? null
+    : plan.due
+      ? t('client.home.reminderDue')
+      : plan.next
+        ? t('client.home.reminderNext', { date: longDate(locale, plan.next) })
+        : null;
+  const hasResults = published !== null;
+  // Only a yes/no leaves this page: no figure the minimum group rule hides.
+  const noAnswersYet = !anySubmitted;
   const statusKey = STATUS_KEYS.has(survey.status) ? survey.status : 'none';
   const left = closeDay ? daysUntil(closeDay, today) : null;
-  // The reminder is for an open survey with links out and a day still ahead (or today).
-  const showReminder =
-    (survey.status === 'in_field' || survey.status === 'scheduled') &&
-    rows.some((r) => r.invited > 0) &&
-    (plan.due || plan.next !== null);
-  const reminder = prepareMessages(locale, {
-    closesOn: closeDay,
-    contact: contactFor(survey.contact, ctx.viewAs?.label ?? session.name),
-    minutes,
-  }).reminder;
-  const nextText =
-    step === 'share' && plan.next
-      ? t('client.home.next.shareUntil', { date: longDate(locale, plan.next) })
-      : t(`client.home.next.${step}`);
+  const contact = contactFor(survey.contact, ctx.viewAs?.label ?? session.name);
+
+  const cards = await Promise.all(
+    addresses.map(async (a, i) => {
+      const url = addressUrl(baseUrl, a.slug);
+      const facts = { closesOn: closeDay, contact, minutes, address: url };
+      const fr = prepareMessages('fr', facts);
+      const en = prepareMessages('en', facts);
+      const row = rows.find((r) => r.teamId === a.teamId);
+      const answers = row ? answersText(t, row) : { main: t('client.home.noAnswers') };
+      return (
+        <TeamCard
+          key={a.id}
+          teamId={a.teamId}
+          teamName={a.teamName}
+          address={url}
+          qrSvg={await QRCode.toString(url, { type: 'svg', margin: 1 })}
+          invite={{ fr: withLink(fr.invite.text, url), en: withLink(en.invite.text, url) }}
+          reminder={{ fr: fr.reminder.text, en: en.reminder.text }}
+          defaultLang={locale}
+          expectedSize={a.expectedSize}
+          primary={i === 0}
+          answers={answers}
+          bar={row && row.invited > 0 ? barValue(row) : null}
+          reminderHint={reminderHint}
+        />
+      );
+    }),
+  );
 
   return (
     <section aria-labelledby="client-title">
       {header}
       <Stack spacing={4}>
-        {how}
         <Paper variant="outlined" sx={{ p: 4, borderRadius: 3 }} data-testid="client-survey">
-          <Typography variant="sectionTitle" component="h2" sx={{ m: 0, mb: 3 }}>
-            {t('client.home.surveyTitle')}
-          </Typography>
           <Typography variant="body1" sx={{ m: 0 }} data-testid="client-status">
             <StatusText
               status={
@@ -229,83 +192,54 @@ export default async function ClientHome() {
           </Stack>
         </Paper>
 
-        {learn}
-        <Paper variant="outlined" sx={{ p: 4, borderRadius: 3 }} data-testid="client-progress">
-          <Typography variant="sectionTitle" component="h2" sx={{ m: 0, mb: 3 }}>
-            {t('client.home.progressTitle')}
-          </Typography>
-          <Stack spacing={4}>
-            {rows.map((p) => {
-              const text = participationText(t, p);
-              const value = p.invited === 0 ? null : barValue(p);
-              return (
-                <Box key={p.teamId} data-testid="client-team-progress" data-kind={p.kind}>
-                  <Stack
-                    direction={{ xs: 'column', sm: 'row' }}
-                    sx={{ justifyContent: 'space-between', gap: 1, mb: 2 }}
-                  >
-                    <Typography variant="cardTitle" component="h3" sx={{ m: 0 }}>
-                      {p.teamName}
-                    </Typography>
-                    <Typography
-                      variant="body1"
-                      sx={{ m: 0, fontVariantNumeric: 'tabular-nums' }}
-                      data-testid="client-team-answered"
-                    >
-                      {text.main}
-                    </Typography>
-                  </Stack>
-                  {value !== null ? (
-                    <LinearProgress
-                      variant="determinate"
-                      value={value}
-                      aria-label={t('client.home.progressAria', { team: p.teamName })}
-                      aria-valuetext={text.main}
-                      sx={{ height: 8, borderRadius: 4 }}
-                    />
-                  ) : null}
-                  {text.hint ? (
-                    <Typography variant="body1" color="text.secondary" sx={{ m: 0, mt: 2 }}>
-                      {text.hint}
-                    </Typography>
-                  ) : null}
-                </Box>
-              );
-            })}
-          </Stack>
-        </Paper>
-
-        <Paper variant="outlined" sx={{ p: 4, borderRadius: 3 }} data-testid="client-next">
-          <Stack direction="row" spacing={3} sx={{ alignItems: 'flex-start' }}>
-            <IconTile name={ICON[step]} />
-            <div>
-              <Typography variant="cardTitle" component="h2" sx={{ m: 0 }}>
-                {t('client.home.nextTitle')}
-              </Typography>
-              <Typography variant="body1" color="text.secondary" sx={{ m: 0, mt: 1 }}>
-                {nextText}
-              </Typography>
-            </div>
-          </Stack>
-          {cta ? (
+        {noAnswersYet ? (
+          <Paper variant="outlined" sx={{ p: 4, borderRadius: 3 }} data-testid="client-learn">
+            <Stack direction="row" spacing={3} sx={{ alignItems: 'flex-start' }}>
+              <IconTile name="info" />
+              <div>
+                <Typography variant="cardTitle" component="h2" sx={{ m: 0 }}>
+                  {t('client.space.learnTitle')}
+                </Typography>
+                <Typography variant="body1" color="text.secondary" sx={{ m: 0, mt: 1 }}>
+                  {t('client.space.learnNudge')}
+                </Typography>
+              </div>
+            </Stack>
             <Button
-              variant="contained"
-              href={cta}
+              variant="outlined"
+              href="/learn"
               endIcon={<AppIcon name="forward" size={16} />}
-              data-testid={`client-cta-${step}`}
-              sx={{ mt: 6, minHeight: 44 }}
+              data-testid="client-learn-cta"
+              sx={{ mt: 4, minHeight: 44 }}
             >
-              {t(`client.home.cta.${step as Exclude<NextStep, 'wait'>}`)}
+              {t('client.space.learnCta')}
+            </Button>
+          </Paper>
+        ) : null}
+
+        {cards}
+
+        <Paper variant="outlined" sx={{ p: 4, borderRadius: 3 }} data-testid="client-report">
+          <Typography variant="sectionTitle" component="h2" sx={{ m: 0, mb: 2 }}>
+            {t('client.home.reportLabel')}
+          </Typography>
+          <Typography variant="body1" sx={{ m: 0 }} data-testid="client-report-state">
+            <StatusText status={hasResults ? 'success' : 'pending'}>
+              {hasResults ? t('client.home.reportReady') : t('client.home.reportPending')}
+            </StatusText>
+          </Typography>
+          {hasResults ? (
+            <Button
+              variant="outlined"
+              href="/client/report"
+              endIcon={<AppIcon name="forward" size={16} />}
+              data-testid="client-report-open"
+              sx={{ mt: 4, minHeight: 44 }}
+            >
+              {t('client.home.reportOpen')}
             </Button>
           ) : null}
         </Paper>
-        {showReminder ? (
-          <HomeReminder
-            date={plan.next ? longDate(locale, plan.next) : null}
-            today={plan.due}
-            text={reminder.text}
-          />
-        ) : null}
       </Stack>
     </section>
   );

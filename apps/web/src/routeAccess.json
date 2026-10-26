@@ -33,9 +33,17 @@
       "access": "public",
       "reason": "Stores the engagement language in a cookie for a first visit, then redirects to a /s/<token> path; reads nothing."
     },
+    "/api/auth/open": {
+      "access": "public",
+      "reason": "Spends a single-use, expiring 'Open my space' token and sets the referent session cookie; reads no tenant data and shows none."
+    },
     "/s/[token]": {
       "access": "invitation",
       "reason": "Signed invitation token fixes tenant and pseudonym; respondent sees only their own state."
+    },
+    "/s/open/[slug]": {
+      "access": "invitation",
+      "reason": "Public team address: creates one anonymous invitation for this browser (httpOnly cookie) and redirects to its signed token; reads and shows no tenant data."
     },
     "/s/[token]/done": {
       "access": "invitation",
@@ -115,7 +123,7 @@
     },
     "/learn/results": {
       "access": "public",
-      "reason": "Static learning page: copy, the questionnaire file and video ids from the repo; reads nothing from the database."
+      "reason": "Static learning page: copy, the questionnaire file and video ids from the repo; reads only the session cookie (no database) to offer a way back to a referent's space."
     },
     "/learn/videos": {
       "access": "public",
