@@ -1,12 +1,10 @@
 -- 0026_team_addresses.sql
 --
--- TASK-AF (ADR 0051): one survey address per team, and the "Open my space" sign-in token.
+-- TASK-AF (ADR 0051): one survey address per team.
 --
 --   * team_addresses: one row per team of an engagement. `slug` is the public part of the address
 --     (`/s/<slug>`), lower-case ASCII, unique across the platform. `expected_size` is the team
 --     size the referent states; it only feeds the "N of M answered" line.
---   * auth_tokens.kind gains 'space': single use, 30 days, opens the referent's space without a
---     password.
 --
 -- Same RLS pattern as invitations. Forward only.
 
@@ -40,9 +38,5 @@ CREATE POLICY team_addresses_delete ON team_addresses FOR DELETE
   USING (app_is_service_account() OR tenant_id = app_current_tenant_id());
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON team_addresses TO auditai_app;
-
-ALTER TABLE auth_tokens DROP CONSTRAINT IF EXISTS auth_tokens_kind_check;
-ALTER TABLE auth_tokens
-  ADD CONSTRAINT auth_tokens_kind_check CHECK (kind IN ('invite', 'reset', 'space'));
 
 COMMIT;

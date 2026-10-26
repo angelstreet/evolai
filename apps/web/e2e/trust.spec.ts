@@ -179,13 +179,13 @@ for (const locale of LOCALES) {
     const token = url.split('open=')[1] as string;
 
     // Hashed at rest: the table never holds the token itself.
-    const stored = await run<{ token_hash: string; kind: string }>(
-      `SELECT token_hash, kind FROM auth_tokens WHERE user_id = $1`,
+    const stored = await run<{ token_hash: string; purpose: string }>(
+      `SELECT token_hash, purpose FROM auth_tokens WHERE user_id = $1`,
       [referent.id],
     );
     expect(stored.map((r) => r.token_hash)).not.toContain(token);
     expect(stored[0]?.token_hash).toMatch(/^[0-9a-f]{64}$/);
-    expect(stored[0]?.kind).toBe('space');
+    expect(stored[0]?.purpose).toBe('space');
 
     // An expired address is refused: back to sign-in, nothing opened.
     await run(

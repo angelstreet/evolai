@@ -8,6 +8,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 interface Tok {
   user_id: string;
   kind: string;
+  purpose: string;
   token_hash: string;
   expires_at: Date;
   used_at: Date | null;
@@ -28,6 +29,7 @@ vi.mock('@/lib/db', () => {
         db.tokens.push({
           user_id: p[0] as string,
           kind: p[1] as string,
+          purpose: p[5] as string,
           token_hash: p[2] as string,
           expires_at: p[3] as Date,
           used_at: null,
@@ -38,7 +40,7 @@ vi.mock('@/lib/db', () => {
         const t = db.tokens.find(
           (x) =>
             x.token_hash === p[0] &&
-            x.kind === 'space' &&
+            x.purpose === 'space' &&
             !x.used_at &&
             x.expires_at > (p[1] as Date) &&
             !db.disabled.has(x.user_id),
@@ -72,6 +74,7 @@ describe('space token', () => {
     const { withServiceAccount } = await import('@/lib/db');
     const { token } = await withServiceAccount((c) => issueToken(c, USER, 'space', NOW));
     expect(db.tokens[0]?.token_hash).not.toBe(token);
+    expect(db.tokens[0]).toMatchObject({ kind: 'invite', purpose: 'space' });
     expect(await spendSpaceToken(token, later(60_000))).toEqual({
       userId: USER,
       displayName: 'Demo Referent',
@@ -84,7 +87,8 @@ describe('space token', () => {
     const token = 'a'.repeat(43);
     db.tokens.push({
       user_id: USER,
-      kind: 'space',
+      kind: 'invite',
+      purpose: 'space',
       token_hash: tokenDigest(token),
       expires_at: later(30 * 86_400_000),
       used_at: null,
@@ -102,6 +106,7 @@ describe('space token', () => {
       db.tokens.push({
         user_id: USER,
         kind,
+        purpose: 'password',
         token_hash: tokenDigest(token),
         expires_at: later(86_400_000),
         used_at: null,

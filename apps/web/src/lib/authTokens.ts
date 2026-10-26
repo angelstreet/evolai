@@ -41,10 +41,18 @@ export const issueToken = async (
   ]);
   const token = newToken();
   const expiresAt = new Date(now.getTime() + TOKEN_TTL_MINUTES[kind] * 60_000);
+  // A space token is stored as an 'invite' with purpose 'space' (migration 0027).
   await client.query(
-    `INSERT INTO auth_tokens (user_id, kind, token_hash, expires_at, created_at)
-     VALUES ($1, $2, $3, $4, $5)`,
-    [userId, kind, tokenDigest(token), expiresAt, now],
+    `INSERT INTO auth_tokens (user_id, kind, token_hash, expires_at, created_at, purpose)
+     VALUES ($1, $2, $3, $4, $5, $6)`,
+    [
+      userId,
+      kind === 'space' ? 'invite' : kind,
+      tokenDigest(token),
+      expiresAt,
+      now,
+      kind === 'space' ? 'space' : 'password',
+    ],
   );
   return { token, expiresAt };
 };
@@ -63,7 +71,8 @@ export const peekToken = async (
   return withServiceAccount(async (client) => {
     const { rows } = await client.query<{ user_id: string; kind: TokenKind }>(
       `SELECT t.user_id, t.kind FROM auth_tokens t JOIN users u ON u.id = t.user_id
-        WHERE t.token_hash = $1 AND t.used_at IS NULL AND t.expires_at > $2 AND u.disabled_at IS NULL`,
+        WHERE t.token_hash = $1 AND t.purpose = 'password' AND t.used_at IS NULL
+          AND t.expires_at > $2 AND u.disabled_at IS NULL`,
       [tokenDigest(token), now],
     );
     const row = rows[0];
@@ -92,7 +101,8 @@ export const setPasswordWithToken = async (
   return withServiceAccount(async (client) => {
     const spent = await client.query<{ user_id: string; kind: TokenKind }>(
       `UPDATE auth_tokens t SET used_at = $2
-        WHERE t.token_hash = $1 AND t.used_at IS NULL AND t.expires_at > $2
+        WHERE t.token_hash = $1 AND t.purpose = 'password' AND t.used_at IS NULL
+          AND t.expires_at > $2
           AND EXISTS (SELECT 1 FROM users u WHERE u.id = t.user_id AND u.disabled_at IS NULL)
         RETURNING t.user_id, t.kind`,
       [tokenDigest(token), now],
@@ -129,7 +139,7 @@ export const spendSpaceToken = async (
   return withServiceAccount(async (client) => {
     const spent = await client.query<{ user_id: string }>(
       `UPDATE auth_tokens t SET used_at = $2
-        WHERE t.token_hash = $1 AND t.kind = 'space' AND t.used_at IS NULL AND t.expires_at > $2
+        WHERE t.token_hash = $1 AND t.purpose = 'space' AND t.used_at IS NULL AND t.expires_at > $2
           AND EXISTS (SELECT 1 FROM users u WHERE u.id = t.user_id AND u.disabled_at IS NULL)
         RETURNING t.user_id`,
       [tokenDigest(token), now],

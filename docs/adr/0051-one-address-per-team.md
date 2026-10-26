@@ -27,7 +27,7 @@ expected_size, created_at)` with the `invitations` RLS pattern (migration `0026_
   never below the number of people who opened the address (so it cannot read "14 of 12"); without a stated size M
   is the number of people who opened it. The referent view still goes through `referentParticipation`, so under
   `MIN_GROUP_SIZE` it shows words, not figures.
-- **"Open my space"**: `auth_tokens.kind` gains `space` (30 days, single use, hashed at rest, spent by one atomic
+- **"Open my space"**: `auth_tokens` gains `purpose = 'space'` (migration 0027, additive; stored with kind `invite`; 30 days, single use, hashed at rest, spent by one atomic
   UPDATE). `/client?open=<token>` is redirected by the middleware to `/api/auth/open`, which spends the token and
   sets the normal client session cookie, for team referents only. Set-password and reset tokens cannot open a session.
   Staff keep `/set-password`. No extra security work on this path beyond single use and expiry, as the owner asked.
