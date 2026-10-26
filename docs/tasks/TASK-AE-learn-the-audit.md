@@ -7,13 +7,13 @@ the must-know facts, and at most ten short videos. Nothing else is built before 
 
 ## Goal
 
-| #   | Goal                                              | Done when                                                                                       | State   |
-| --- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ------- |
-| 1   | A client learns the audit in five pages            | `/learn` opens from the referent home and the front page; five pages, Next/Back, FR and EN       | to do   |
-| 2   | The ten questions are visible before the survey    | Page 3 lists the live questionnaire from `pilot-v1.json`, same words as the survey, read only     | to do   |
-| 3   | Ten video slots, filled by the owner, never fewer than one | A list of up to 10 videos; each is title, length, YouTube id; the list comes from one JSON file | to do   |
-| 4   | Nothing new to maintain                            | No database change, no new i18n namespace beyond `learn.*`, MUI components only, `style-guard` green | to do   |
-| 5   | Token cost                                         | Sonnet builds; Haiku fills the FR/EN strings and the video JSON; one review pass                  | to do   |
+| #   | Goal                                                       | Done when                                                                                            | State |
+| --- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ----- |
+| 1   | A client learns the audit in five pages                    | `/learn` opens from the referent home and the front page; five pages, Next/Back, FR and EN           | to do |
+| 2   | The ten questions are visible before the survey            | Page 3 lists the live questionnaire from `pilot-v1.json`, same words as the survey, read only        | to do |
+| 3   | Ten video slots, filled by the owner, never fewer than one | A list of up to 10 videos; each is title, length, YouTube id; the list comes from one JSON file      | to do |
+| 4   | Nothing new to maintain                                    | No database change, no new i18n namespace beyond `learn.*`, MUI components only, `style-guard` green | to do |
+| 5   | Token cost                                                 | Sonnet builds; Haiku fills the FR/EN strings and the video JSON; one review pass                     | to do |
 
 ## Ground rules
 
@@ -40,7 +40,7 @@ buttons, a progress line "Page 2 of 5". On a phone the page is one column; on de
    - answers are anonymous: no name, no email; names typed in free text are masked before saving;
    - the referent sees counts only, never who answered; groups under 5 people are never shown;
    - the visit comes after the survey closes; the report follows the visit.
-   Video slot 2.
+     Video slot 2.
 3. **The ten questions** (`/learn/questions`). The live questionnaire, read only, rendered from
    `packages/contracts/src/questionnaires/pilot-v1.json` (same source as the survey, so it never drifts). One card per
    question: the question text, the choices as a plain list, and one line in the client's language on what the
@@ -59,18 +59,18 @@ there answer, they do not learn).
 
 ## The ten questions and what each tells us (page 3 copy, EN; Haiku writes FR)
 
-| Question (pilot-v1)                                                          | What it tells us                                                |
-| ---------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| An AI tool gives an answer without saying where it comes from. What do you do? | Whether people check AI output before using it                   |
-| A document with client data and a public AI assistant. What do you do?       | How client data is handled today, and whether rules are known    |
-| You ask an AI tool to summarise customer feedback. How do you word it?       | How far people already know how to ask                           |
-| A report is made by hand through 4 tools. Where would you start?             | Whether people map the work before automating it                 |
-| Someone copies the same data every day. How would you do it differently?     | Whether AI is the reflex, or a simple automation                 |
-| Hours per week on tasks that come back the same way                          | The size of the repetitive work, per team                        |
-| Which repetitive task took you the most time last week? (free text)          | The first candidates for an improvement step                     |
-| What tool or information were you missing this week? (free text)             | Friction that is not about AI at all                             |
-| If an assistant could help with one thing, what would it be? (free text)     | What people would accept help with                               |
-| Which area do you work in?                                                   | Results by area, only for groups of 5 or more                    |
+| Question (pilot-v1)                                                            | What it tells us                                              |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------------- |
+| An AI tool gives an answer without saying where it comes from. What do you do? | Whether people check AI output before using it                |
+| A document with client data and a public AI assistant. What do you do?         | How client data is handled today, and whether rules are known |
+| You ask an AI tool to summarise customer feedback. How do you word it?         | How far people already know how to ask                        |
+| A report is made by hand through 4 tools. Where would you start?               | Whether people map the work before automating it              |
+| Someone copies the same data every day. How would you do it differently?       | Whether AI is the reflex, or a simple automation              |
+| Hours per week on tasks that come back the same way                            | The size of the repetitive work, per team                     |
+| Which repetitive task took you the most time last week? (free text)            | The first candidates for an improvement step                  |
+| What tool or information were you missing this week? (free text)               | Friction that is not about AI at all                          |
+| If an assistant could help with one thing, what would it be? (free text)       | What people would accept help with                            |
+| Which area do you work in?                                                     | Results by area, only for groups of 5 or more                 |
 
 The choices on page 3 are read from the JSON and never retyped here.
 
@@ -80,18 +80,18 @@ File: `packages/contracts/src/learn/videos.json`, validated by a zod schema in `
 `{ "id": "slot-1", "page": "why" | "how" | "questions" | "results" | "more", "youtubeId": "", "minutes": 0,
 "title": { "en": "", "fr": "" } }`, at most 10 entries, `youtubeId` empty means hidden.
 
-| Slot | Page      | Suggested subject (owner replaces with the real video)           |
-| ---- | --------- | ---------------------------------------------------------------- |
-| 1    | why       | Why most AI roll-outs stall: tools without the work understood   |
-| 2    | how       | The three steps in two minutes (Understand, Adapt, Evolve)        |
-| 3    | questions | How to answer the survey honestly: there is no right answer       |
-| 4    | results   | Reading a readiness score                                         |
-| 5    | results   | What a 30/60/90-day plan looks like                               |
-| 6    | more      | Using an AI assistant without leaking client data                 |
-| 7    | more      | Writing a request an AI tool can act on                           |
-| 8    | more      | Map the work before you automate it                               |
-| 9    | more      | Simple automation versus AI: choosing the cheap one               |
-| 10   | more      | After the audit: how a team keeps improving                       |
+| Slot | Page      | Suggested subject (owner replaces with the real video)         |
+| ---- | --------- | -------------------------------------------------------------- |
+| 1    | why       | Why most AI roll-outs stall: tools without the work understood |
+| 2    | how       | The three steps in two minutes (Understand, Adapt, Evolve)     |
+| 3    | questions | How to answer the survey honestly: there is no right answer    |
+| 4    | results   | Reading a readiness score                                      |
+| 5    | results   | What a 30/60/90-day plan looks like                            |
+| 6    | more      | Using an AI assistant without leaking client data              |
+| 7    | more      | Writing a request an AI tool can act on                        |
+| 8    | more      | Map the work before you automate it                            |
+| 9    | more      | Simple automation versus AI: choosing the cheap one            |
+| 10   | more      | After the audit: how a team keeps improving                    |
 
 Embeds use `youtube-nocookie.com` in an MUI Card with a 16:9 box; the page passes the contrast test with the video
 title as a caption, not an overlay.

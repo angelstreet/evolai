@@ -1,6 +1,7 @@
 import type { Messages } from './index.js';
 import { adminFr } from './admin.fr.js';
 import { clientFr } from './client.fr.js';
+import { learnFr } from './learn.fr.js';
 import { trustFr } from './trust.fr.js';
 import { reportFr } from './report.fr.js';
 
@@ -300,6 +301,7 @@ export const fr: Messages = {
   },
   admin: adminFr,
   client: clientFr,
+  learn: learnFr,
   trust: trustFr,
   report: reportFr,
   auth: {

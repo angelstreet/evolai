@@ -24,3 +24,4 @@ export * from './deletion.js';
 export * from './redactionTerm.js';
 export * from './improvementCatalogue.js';
 export * from './report.js';
+export * from './learn.js';

@@ -100,6 +100,26 @@
     "/forgot-password": {
       "access": "public",
       "reason": "Asks for an email address; same answer for every address, rate limited, no tenant data."
+    },
+    "/learn": {
+      "access": "public",
+      "reason": "Static learning page: copy, the questionnaire file and video ids from the repo; reads nothing from the database."
+    },
+    "/learn/how": {
+      "access": "public",
+      "reason": "Static learning page: copy, the questionnaire file and video ids from the repo; reads nothing from the database."
+    },
+    "/learn/questions": {
+      "access": "public",
+      "reason": "Static learning page: copy, the questionnaire file and video ids from the repo; reads nothing from the database."
+    },
+    "/learn/results": {
+      "access": "public",
+      "reason": "Static learning page: copy, the questionnaire file and video ids from the repo; reads nothing from the database."
+    },
+    "/learn/videos": {
+      "access": "public",
+      "reason": "Static learning page: copy, the questionnaire file and video ids from the repo; reads nothing from the database."
     }
   }
 }

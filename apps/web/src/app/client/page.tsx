@@ -120,6 +120,30 @@ export default async function ClientHome() {
       </Box>
     </Paper>
   );
+  const learn = (
+    <Paper variant="outlined" sx={{ p: 4, borderRadius: 3 }} data-testid="client-learn">
+      <Stack direction="row" spacing={3} sx={{ alignItems: 'flex-start' }}>
+        <IconTile name="info" />
+        <div>
+          <Typography variant="cardTitle" component="h2" sx={{ m: 0 }}>
+            {t('learn.entry.cardTitle')}
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ m: 0, mt: 1 }}>
+            {t('learn.entry.cardBody')}
+          </Typography>
+        </div>
+      </Stack>
+      <Button
+        variant="outlined"
+        href="/learn"
+        endIcon={<AppIcon name="forward" size={16} />}
+        data-testid="client-learn-cta"
+        sx={{ mt: 4, minHeight: 44 }}
+      >
+        {t('learn.entry.cardCta')}
+      </Button>
+    </Paper>
+  );
   const survey = await loadClientSurvey(ctx.tenantId, ctx.teamIds);
   if (!survey) {
     return (
@@ -127,6 +151,7 @@ export default async function ClientHome() {
         {header}
         <Stack spacing={4}>
           {how}
+          {learn}
           <EmptyState icon="pending" title={t('client.home.noSurvey')} />
         </Stack>
       </section>
@@ -204,6 +229,7 @@ export default async function ClientHome() {
           </Stack>
         </Paper>
 
+        {learn}
         <Paper variant="outlined" sx={{ p: 4, borderRadius: 3 }} data-testid="client-progress">
           <Typography variant="sectionTitle" component="h2" sx={{ m: 0, mb: 3 }}>
             {t('client.home.progressTitle')}
