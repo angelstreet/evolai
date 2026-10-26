@@ -81,9 +81,18 @@ export default function FrontPage() {
           </Paper>
         ))}
       </Box>
+      <Button
+        variant="text"
+        href="/learn"
+        endIcon={<AppIcon name="forward" size={16} />}
+        data-testid="front-learn"
+        sx={{ mt: 4, minHeight: 44 }}
+      >
+        {t('learn.entry.front')}
+      </Button>
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
-        sx={{ mt: 8, gap: 3, alignItems: { xs: 'stretch', sm: 'center' } }}
+        sx={{ mt: 4, gap: 3, alignItems: { xs: 'stretch', sm: 'center' } }}
       >
         <Button variant="contained" size="large" href={contactHref} data-testid="contact-us">
           {t('welcome.contact')}

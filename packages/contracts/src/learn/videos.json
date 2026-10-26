@@ -1,0 +1,75 @@
+{
+  "$comment": "Up to ten video slots for the public /learn pages. The owner fills youtubeId (the 11-character id in the YouTube link), minutes and the titles. A slot with an empty youtubeId is hidden everywhere. Public repository: no client names, no personal data.",
+  "videos": [
+    {
+      "id": "slot-1",
+      "page": "why",
+      "youtubeId": "",
+      "minutes": 0,
+      "title": { "en": "", "fr": "" }
+    },
+    {
+      "id": "slot-2",
+      "page": "how",
+      "youtubeId": "",
+      "minutes": 0,
+      "title": { "en": "", "fr": "" }
+    },
+    {
+      "id": "slot-3",
+      "page": "questions",
+      "youtubeId": "",
+      "minutes": 0,
+      "title": { "en": "", "fr": "" }
+    },
+    {
+      "id": "slot-4",
+      "page": "results",
+      "youtubeId": "",
+      "minutes": 0,
+      "title": { "en": "", "fr": "" }
+    },
+    {
+      "id": "slot-5",
+      "page": "results",
+      "youtubeId": "",
+      "minutes": 0,
+      "title": { "en": "", "fr": "" }
+    },
+    {
+      "id": "slot-6",
+      "page": "more",
+      "youtubeId": "",
+      "minutes": 0,
+      "title": { "en": "", "fr": "" }
+    },
+    {
+      "id": "slot-7",
+      "page": "more",
+      "youtubeId": "",
+      "minutes": 0,
+      "title": { "en": "", "fr": "" }
+    },
+    {
+      "id": "slot-8",
+      "page": "more",
+      "youtubeId": "",
+      "minutes": 0,
+      "title": { "en": "", "fr": "" }
+    },
+    {
+      "id": "slot-9",
+      "page": "more",
+      "youtubeId": "",
+      "minutes": 0,
+      "title": { "en": "", "fr": "" }
+    },
+    {
+      "id": "slot-10",
+      "page": "more",
+      "youtubeId": "",
+      "minutes": 0,
+      "title": { "en": "", "fr": "" }
+    }
+  ]
+}
