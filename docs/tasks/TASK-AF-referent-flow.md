@@ -11,15 +11,15 @@ referent forwards it with a prefilled message, watches the count, sends one remi
 report. The seven screens were agreed on the clickable prototype of 2026-10-26 (artifact
 "EvolAI referent flow"); this doc is the written contract for them.
 
-| # | Goal | Done when | State |
-|---|------|-----------|-------|
-| 1 | One survey address per team | `/client` shows one address `https://www.evolai.io/s/<slug>` per team of the mission, with a QR code; opening it on a fresh browser starts the survey; a second fresh browser gets its own answers; the per-person link creation (`CreateLinksForm`, link CSV, `#links`) is gone | done |
-| 2 | "Open my space" without a password | The referent's welcome email carries one address that opens `/client` signed in; no set-password step on that path; `/set-password` stays only for staff (`/admin`) | done |
-| 3 | Share with the team | `/client` has a "Share with the team" action that shows the prefilled message (FR/EN) with the team address, a Copy button, and a `https://wa.me/?text=…` link; nothing is sent by the platform | done |
-| 4 | Progress and one reminder | `/client` shows "N of M answered" per team (M = team size set by the referent, min-group rule kept), and a "Send a reminder" action with a prefilled message and Copy button | done |
-| 5 | Learn before you share | The welcome email and `/client` (while the team has 0 answers) link to `/learn` ("Learn the audit in 10 minutes", TASK-AE) | done |
-| 6 | Report | `/client/report` shows the readiness score, the three actions (30/60/90 days) and the PDF; unchanged if it already does, verified on the Demo Client mission | done |
-| 7 | Token cost | Sonnet does the coding in one worktree; one Playwright spec `referent-flow.spec.ts`; no manual browser session longer than the spec | done |
+| #   | Goal                               | Done when                                                                                                                                                                                                                                                                        | State |
+| --- | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| 1   | One survey address per team        | `/client` shows one address `https://www.evolai.io/s/<slug>` per team of the mission, with a QR code; opening it on a fresh browser starts the survey; a second fresh browser gets its own answers; the per-person link creation (`CreateLinksForm`, link CSV, `#links`) is gone | done  |
+| 2   | "Open my space" without a password | The referent's welcome email carries one address that opens `/client` signed in; no set-password step on that path; `/set-password` stays only for staff (`/admin`)                                                                                                              | done  |
+| 3   | Share with the team                | `/client` has a "Share with the team" action that shows the prefilled message (FR/EN) with the team address, a Copy button, and a `https://wa.me/?text=…` link; nothing is sent by the platform                                                                                  | done  |
+| 4   | Progress and one reminder          | `/client` shows "N of M answered" per team (M = team size set by the referent, min-group rule kept), and a "Send a reminder" action with a prefilled message and Copy button                                                                                                     | done  |
+| 5   | Learn before you share             | The welcome email and `/client` (while the team has 0 answers) link to `/learn` ("Learn the audit in 10 minutes", TASK-AE)                                                                                                                                                       | done  |
+| 6   | Report                             | `/client/report` shows the readiness score, the three actions (30/60/90 days) and the PDF; unchanged if it already does, verified on the Demo Client mission                                                                                                                     | done  |
+| 7   | Token cost                         | Sonnet does the coding in one worktree; one Playwright spec `referent-flow.spec.ts`; no manual browser session longer than the spec                                                                                                                                              | done  |
 
 ## The seven screens (contract)
 
@@ -47,7 +47,7 @@ Every screen below is a page or a state of a page that already exists. Nothing n
 ## How one address works (design, keep it this simple)
 
 - A **team address** is a row in a new table `team_addresses (id, tenant_id, engagement_id, team_id,
-  slug UNIQUE, expected_size INT NULL, created_at)`. The slug is `<engagement-short>-<team-short>`
+slug UNIQUE, expected_size INT NULL, created_at)`. The slug is `<engagement-short>-<team-short>`
   lower-case ASCII, e.g. `demo-sales`; the auditor can edit it on the Team tab. Migration
   `infra/db/migrations/0025_team_addresses.sql`, RLS like `invitations`.
 - `GET /s/<slug>` (new branch inside `apps/web/src/app/s/[token]/page.tsx`, decided by shape: a slug
@@ -67,16 +67,16 @@ Every screen below is a page or a state of a page that already exists. Nothing n
 
 ## What changes, what goes
 
-| Area | Change |
-|------|--------|
-| `/client/invitations` | Removed; `/client` and its two dialogs replace it. `ClientTabs` becomes Home / Results / Report. Old URL redirects to `/client`. |
-| `CreateLinksForm.tsx`, `ShareLinks.tsx`, link CSV export, `listTeamLinks` | Deleted with their tests. |
-| Mission **Links** tab (`MissionTabs`, `invitations`) | Renamed **Team**: the referent (name, email, "Send the welcome email" / "Send again"), the team addresses with slug + expected size, and the per-team count. Per-person link table and CSV go. |
-| `api/admin/invitations` | Keeps the referent invite; the batch link creation (`createBatch`, `MAX_BATCH`) goes. |
-| Reminder cron (`api/cron/reminders`) | Unchanged: it only emails referents / staff, never respondents. |
-| i18n | New keys in `packages/i18n/src/messages` FR + EN; `client.home.noLinks` and every "link" string the referent can see is reworded ("address"). |
-| `docs/AUDITOR_GUIDE.md` | Rewritten to the five mission tabs Overview / Team / Answers / Report / Settings and the referent flow above (it still lists nine tabs). |
-| ADR | `docs/adr/0051-one-address-per-team.md`: supersedes the per-person link part of ADR 0039 and 0047. |
+| Area                                                                      | Change                                                                                                                                                                                         |
+| ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/client/invitations`                                                     | Removed; `/client` and its two dialogs replace it. `ClientTabs` becomes Home / Results / Report. Old URL redirects to `/client`.                                                               |
+| `CreateLinksForm.tsx`, `ShareLinks.tsx`, link CSV export, `listTeamLinks` | Deleted with their tests.                                                                                                                                                                      |
+| Mission **Links** tab (`MissionTabs`, `invitations`)                      | Renamed **Team**: the referent (name, email, "Send the welcome email" / "Send again"), the team addresses with slug + expected size, and the per-team count. Per-person link table and CSV go. |
+| `api/admin/invitations`                                                   | Keeps the referent invite; the batch link creation (`createBatch`, `MAX_BATCH`) goes.                                                                                                          |
+| Reminder cron (`api/cron/reminders`)                                      | Unchanged: it only emails referents / staff, never respondents.                                                                                                                                |
+| i18n                                                                      | New keys in `packages/i18n/src/messages` FR + EN; `client.home.noLinks` and every "link" string the referent can see is reworded ("address").                                                  |
+| `docs/AUDITOR_GUIDE.md`                                                   | Rewritten to the five mission tabs Overview / Team / Answers / Report / Settings and the referent flow above (it still lists nine tabs).                                                       |
+| ADR                                                                       | `docs/adr/0051-one-address-per-team.md`: supersedes the per-person link part of ADR 0039 and 0047.                                                                                             |
 
 ## Ground rules
 
@@ -89,7 +89,7 @@ Every screen below is a page or a state of a page that already exists. Nothing n
   `apps/web/e2e/referent-flow.spec.ts` walking screens 3 → 6 on Demo Client (two fresh contexts
   answer the same address and count 2); axe clean; 360 and 1280 widths.
 - Gates as in TASK-AE (`pnpm lint`, `pnpm typecheck`, `pnpm test`, e2e), then `integrate request
-  feat/referent-flow` or merge to main and let Vercel deploy; verify on www.evolai.io with the Demo
+feat/referent-flow` or merge to main and let Vercel deploy; verify on www.evolai.io with the Demo
   Client mission and end with `STATUS: done — <merge sha>, live at …`.
 
 ## Do not
