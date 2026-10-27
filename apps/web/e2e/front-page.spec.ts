@@ -271,9 +271,7 @@ for (const size of SIZES) {
       test('French copy and the language control', async ({ page, baseURL }) => {
         await setLocale(page, 'fr', baseURL as string);
         await page.goto('/');
-        await expect(page.getByRole('heading', { level: 1 })).toContainText(
-          'commence par vos équipes',
-        );
+        await expect(page.getByRole('heading', { level: 1 })).toContainText('part de vos équipes');
         await expect(page.getByTestId('ck-next')).toHaveText('Question suivante');
         await expect(page.getByTestId('ck-try-count')).toHaveText('1 sur 10');
         await expect(menu(page, 'survey')).toContainText('Questionnaire');
@@ -284,6 +282,58 @@ for (const size of SIZES) {
     });
   });
 }
+
+test.describe('small phones', () => {
+  onlyDesktopProject();
+  test.use({ reducedMotion: 'reduce' });
+  for (const width of [360, 375, 390]) {
+    for (const locale of ['en', 'fr'] as const) {
+      test(`${locale} at ${width}: headline in two lines, tab bar words whole and off the edges`, async ({
+        page,
+        baseURL,
+      }) => {
+        await page.setViewportSize({ width, height: 812 });
+        await setLocale(page, locale, baseURL as string);
+        await page.goto('/');
+        const lines = async () =>
+          page.evaluate(() => {
+            const h = document.querySelector<HTMLElement>(
+              '[data-testid=ck-main] h1',
+            ) as HTMLElement;
+            return Math.round(
+              h.getBoundingClientRect().height / parseFloat(getComputedStyle(h).lineHeight),
+            );
+          });
+        expect(await lines(), 'home headline').toBeLessThanOrEqual(2);
+        await menu(page, 'learn').click();
+        for (let i = 0; i < 5; i++) {
+          expect(await lines(), `lesson ${i + 1} headline`).toBeLessThanOrEqual(2);
+          if (i < 4) await page.locator('.ck-foot-row .MuiButton-outlined').click();
+        }
+        await expectWordsFit(page);
+        const edges = await page.evaluate(() => {
+          const l = [...document.querySelectorAll<HTMLElement>('.ck-menu .ck-label')].map((e) =>
+            e.getBoundingClientRect(),
+          );
+          const first = l[0] as DOMRect;
+          const last = l[l.length - 1] as DOMRect;
+          const gaps = l.slice(1).map((r, i) => r.left - (l[i] as DOMRect).right);
+          return { left: first.left, right: innerWidth - last.right, minGap: Math.min(...gaps) };
+        });
+        expect(edges.left).toBeGreaterThanOrEqual(8);
+        expect(edges.right).toBeGreaterThanOrEqual(8);
+        expect(edges.minGap).toBeGreaterThanOrEqual(8);
+        const small = await page.evaluate(
+          () =>
+            [...document.querySelectorAll<HTMLElement>('.ck-menu button')].filter(
+              (b) => b.getBoundingClientRect().height < 44,
+            ).length,
+        );
+        expect(small).toBe(0);
+      });
+    }
+  }
+});
 
 test.describe('phone layout', () => {
   onlyDesktopProject();

@@ -19,7 +19,8 @@
 .ck ol {
   margin: 0;
 }
-.ck button:not([class*='Mui']) {
+/* zero specificity, so the component rules below set their own font, weight and colour */
+.ck :where(button:not([class*='Mui'])) {
   font: inherit;
   color: inherit;
   background: none;
@@ -706,7 +707,7 @@
     height: auto;
     flex-direction: row;
     gap: 0;
-    padding: var(--space-1) var(--space-2) calc(var(--space-1) + env(safe-area-inset-bottom, 0px));
+    padding: var(--space-1) var(--space-3) calc(var(--space-1) + env(safe-area-inset-bottom, 0px));
     border-right: 0;
     border-top: 1px solid var(--color-border);
   }
@@ -719,7 +720,7 @@
   .ck-menu {
     flex: 1;
     flex-direction: row;
-    gap: 0;
+    gap: var(--space-1);
   }
   .ck-menu button {
     flex: 1 1 auto;
@@ -727,8 +728,9 @@
     justify-content: center;
     gap: var(--space-1);
     min-height: 56px;
-    padding: var(--space-1) 2px;
-    font-size: var(--text-sm);
+    padding: var(--space-1) 0;
+    /* 13 px: the mockup's tab label, so the full word and a clear gap fit at 360 px */
+    font-size: calc(var(--text-sm) * 0.93);
   }
   .ck-label {
     text-align: center;
@@ -753,6 +755,10 @@
   }
   .ck-lesson {
     padding: var(--space-5);
+  }
+  /* phone headline: the role scale's h1 size, so it stays within two lines at 360 px */
+  .ck-lesson h1 {
+    font-size: var(--text-xl);
   }
   .ck-point {
     display: grid;

@@ -18,7 +18,7 @@ export const cockpitFr = {
   back: 'Retour',
   skip: 'Passer',
   home: {
-    title: 'Un audit IA qui commence par vos équipes.',
+    title: 'Un audit IA qui part de vos équipes.',
     lede: 'Lisez tout. Connectez-vous seulement pour envoyer.',
     start: 'Commencer',
     understand: { title: 'Comprendre', line: 'Chaque équipe répond à dix questions.' },
