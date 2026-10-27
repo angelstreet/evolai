@@ -41,14 +41,7 @@ const configSchema = z
     /** The only models that may go through OpenRouter (owner, 2026-10-27). Lowercase ids. */
     openRouterModels: z
       .array(z.string().min(1))
-      .default([
-        'openai/o4-mini',
-        'openai/o4-mini-high',
-        'o4-mini',
-        'qwen/qwen3-vl-8b-instruct',
-        'typesafe/jev-1.13',
-        'typesafe/jev-router',
-      ]),
+      .default(['qwen/qwen3-vl-8b-instruct', 'typesafe/jev-1.13', 'typesafe/jev-router']),
     caps: z
       .object({
         currency: z.string().length(3),
