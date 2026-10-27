@@ -121,7 +121,12 @@ describe('OpenRouter model allowlist', () => {
       ...testConfig(),
       approvedRoutes: [
         ...testConfig().approvedRoutes,
-        { provider: 'openai-compatible', model, region: 'eu-example', baseUrl: 'https://openrouter.ai/api/v1' },
+        {
+          provider: 'openai-compatible',
+          model,
+          region: 'eu-example',
+          baseUrl: 'https://openrouter.ai/api/v1',
+        },
       ],
     });
   const env = (model: string) => ({
@@ -132,16 +137,21 @@ describe('OpenRouter model allowlist', () => {
     EVOLAI_AI_API_KEY: 'test-key',
   });
 
-  it.each(['openai/o4-mini', 'qwen/qwen3-vl-8b-instruct', 'typesafe/jev-1.13'])('allows %s', (m) => {
-    expect(resolveRoute(via(m), env(m)).id).toBe(`openai-compatible/${m}`);
-  });
-
-  it.each(['anthropic/claude-sonnet-5.5', 'minimax/minimax-m3', 'openai/gpt-4.1-mini', 'z-ai/glm-5.3'])(
-    'rejects %s before any call',
+  it.each(['openai/o4-mini', 'qwen/qwen3-vl-8b-instruct', 'typesafe/jev-1.13'])(
+    'allows %s',
     (m) => {
-      expect(() => resolveRoute(via(m), env(m))).toThrow(RouteNotApprovedError);
-      const route = via(m).approvedRoutes.at(-1)!;
-      expect(() => assertApproved(via(m), route)).toThrow(/not allowed on OpenRouter/);
+      expect(resolveRoute(via(m), env(m)).id).toBe(`openai-compatible/${m}`);
     },
   );
+
+  it.each([
+    'anthropic/claude-sonnet-5.5',
+    'minimax/minimax-m3',
+    'openai/gpt-4.1-mini',
+    'z-ai/glm-5.3',
+  ])('rejects %s before any call', (m) => {
+    expect(() => resolveRoute(via(m), env(m))).toThrow(RouteNotApprovedError);
+    const route = via(m).approvedRoutes.at(-1)!;
+    expect(() => assertApproved(via(m), route)).toThrow(/not allowed on OpenRouter/);
+  });
 });
