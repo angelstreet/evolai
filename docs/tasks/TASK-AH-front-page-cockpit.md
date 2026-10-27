@@ -42,6 +42,10 @@ the free-text hint reworded short in `pilot-v1.json` (same codes, same meaning);
 reached, answered, or right after an answered one); Your path is read-only, its status comes only from
 progress, and a lesson is done when the person moves on from it, not when it is opened.
 
+Send step (2026-10-27, ADR 0055): the end of the survey asks to sign in; answers stay in the browser until
+then; a signed-in referent's Send files them as one anonymous response of their own team. The email form is
+gone.
+
 Carried over from round 1 and still open: goal 3 (the send step creates no account yet, ADR 0053) and
 the Lighthouse mobile ≥ 90 measure of goal 7.
 

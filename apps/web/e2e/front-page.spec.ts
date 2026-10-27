@@ -4,7 +4,7 @@ import { expect, test, type Page } from '@playwright/test';
 /**
  * Front page cockpit, Workbench look (TASK-AH W1-W8, ADR 0051, docs/mockups/glowup-c-workbench.html),
  * at phone (390x844) and desktop (1280x800) width: splash once, every menu item, Try it up to the
- * send sheet, the path checklist, FR and EN, light and dark, axe clean, no label cut, no real
+ * sign-in step, the path checklist, FR and EN, light and dark, axe clean, no label cut, no real
  * client or person name. No account.
  */
 const SIZES = [
@@ -143,7 +143,7 @@ for (const size of SIZES) {
         await expect(steps.nth(1)).toContainText('Now');
       });
 
-      test('survey: ten questions, answers kept in the browser, ends at the send sheet', async ({
+      test('survey: ten questions, answers kept in the browser, ends at the sign-in step', async ({
         page,
         baseURL,
       }) => {
@@ -156,6 +156,7 @@ for (const size of SIZES) {
           else await page.locator('.ck-try textarea').first().fill('Copy the same lines by hand.');
           await page.getByTestId('ck-next').click();
         }
+        await expect(page.getByTestId('ck-send')).toHaveText('Sign in');
         await expect(page.getByTestId('ck-try-done')).toContainText('You answered 10 of 10');
         // Nothing asked for an email or a sign-in before this point.
         await expect(page.getByRole('dialog')).toHaveCount(0);
@@ -164,11 +165,8 @@ for (const size of SIZES) {
         await expect(page.getByTestId('ck-path-count')).toHaveText('1 / 7');
         await page.getByTestId('ck-send').click();
         const sheet = page.getByRole('dialog');
-        await expect(sheet).toBeVisible();
-        await expect(sheet.getByLabel('Work email')).toBeFocused();
-        await sheet.getByLabel('Work email').fill('not-an-email');
-        await sheet.getByRole('button', { name: 'Send my answers' }).click();
-        await expect(sheet).toContainText('Enter a valid work email');
+        await expect(sheet).toContainText('Sign in to send');
+        await expect(sheet).toContainText('Your 10 answers stay in this browser');
         await page.keyboard.press('Escape');
         await expect(page.getByRole('dialog')).toHaveCount(0);
       });

@@ -62,8 +62,8 @@
       "reason": "Verifies the invitation token before any write."
     },
     "/api/send": {
-      "access": "public",
-      "reason": "Front-page send step (ADR 0053): throttled, validates the payload, emails the owner a request without any free text; reads no tenant data and writes nothing."
+      "access": "session",
+      "reason": "Front-page send step (ADR 0055): the handler checks the session itself; signed out gets 401 and nothing is written; the team comes from the session only."
     },
     "/api/skip": {
       "access": "invitation",

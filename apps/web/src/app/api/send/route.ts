@@ -1,32 +1,34 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { PILOT_QUESTIONNAIRE } from '@evolai/contracts';
-import { resolveEmailProvider } from '@/lib/emailProvider';
-import { clientAddress } from '@/lib/loginThrottle';
-import { hitPublicLimit } from '@/lib/publicThrottle';
-import { formatOwnerMessage, parseSendRequest } from '@/lib/sendRequest';
+import { getSession } from '@/lib/authServer';
+import { sendCockpitAnswers, type BrowserAnswers } from '@/lib/cockpitSend';
 
 export const dynamic = 'force-dynamic';
 
-const CODES: ReadonlySet<string> = new Set(PILOT_QUESTIONNAIRE.questions.map((q) => q.code));
+const STATUS = { ok: 200, signin: 401, no_team: 403, read_only: 403, closed: 410, choose: 409 };
+
+const parse = (raw: unknown) => {
+  if (!raw || typeof raw !== 'object') return null;
+  const b = raw as { answers?: unknown; locale?: unknown; slug?: unknown };
+  if (!b.answers || typeof b.answers !== 'object' || Array.isArray(b.answers)) return null;
+  const answers: Record<string, number | string> = {};
+  for (const [k, v] of Object.entries(b.answers as Record<string, unknown>)) {
+    if (typeof v === 'number' && Number.isInteger(v)) answers[k] = v;
+    else if (typeof v === 'string' && v.length <= 2000) answers[k] = v;
+  }
+  return {
+    answers: answers as BrowserAnswers,
+    locale: b.locale === 'fr' ? ('fr' as const) : ('en' as const),
+    slug: typeof b.slug === 'string' && b.slug.length <= 120 ? b.slug : null,
+  };
+};
 
 /**
- * POST /api/send: the last step of the front-page survey (ADR 0051, 0053). Public, throttled,
- * fails closed: with no contact address or no email provider nothing is accepted, so the visitor
- * is never told a request was received when it was not.
+ * POST /api/send: the front page's last step (ADR 0055). Signed in only: the answers kept in the
+ * browser become one anonymous response of the referent's own team. Signed out gets `signin`.
  */
 export async function POST(req: NextRequest) {
-  const parsed = parseSendRequest(await req.json().catch(() => null), CODES);
-  if (!parsed) return NextResponse.json({ ok: false, error: 'invalid' }, { status: 400 });
-  const to = process.env['CONTACT_EMAIL']?.trim();
-  if (!to) return NextResponse.json({ ok: false, error: 'unavailable' }, { status: 503 });
-  // Shares the forgot-password counters (3 per address and 10 per network, per hour) with a prefix.
-  if (await hitPublicLimit('forgot_password', `send:${parsed.email}`, clientAddress(req.headers))) {
-    return NextResponse.json({ ok: false, error: 'busy' }, { status: 429 });
-  }
-  try {
-    await resolveEmailProvider().send({ to, ...formatOwnerMessage(parsed) });
-  } catch {
-    return NextResponse.json({ ok: false, error: 'unavailable' }, { status: 503 });
-  }
-  return NextResponse.json({ ok: true });
+  const body = parse(await req.json().catch(() => null));
+  if (!body) return NextResponse.json({ kind: 'invalid' }, { status: 400 });
+  const out = await sendCockpitAnswers(await getSession(), body.answers, body.locale, body.slug);
+  return NextResponse.json(out, { status: STATUS[out.kind] });
 }

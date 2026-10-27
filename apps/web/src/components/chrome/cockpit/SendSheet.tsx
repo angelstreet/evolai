@@ -1,111 +1,145 @@
 'use client';
 
-import { useRef, useState, type FormEvent } from 'react';
+import { useEffect, useState } from 'react';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
-import TextField from '@mui/material/TextField';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Radio from '@mui/material/Radio';
+import RadioGroup from '@mui/material/RadioGroup';
 import Typography from '@mui/material/Typography';
 import { useI18n } from '@/components/I18nProvider';
 import PrimaryButton from './PrimaryButton';
 
-type Phase = 'form' | 'sending' | 'sent';
+/** What the send step answered (`/api/send`, ADR 0055). */
+export type SendOutcome =
+  | { readonly kind: 'ok' }
+  | { readonly kind: 'signin' | 'no_team' | 'read_only' | 'closed' | 'unavailable' }
+  | { readonly kind: 'choose'; readonly teams: readonly { slug: string; name: string }[] };
+
+type Phase = 'ready' | 'sending' | 'sent' | 'error';
 
 /**
- * The last step (ADR 0051): one email field. Nothing else on the page asks for it. `onSend`
- * resolves to an error key or null.
+ * The last step (ADR 0051, 0055). Signed out: the answers stay in this browser and the one action
+ * is Sign in, which comes back here. Signed in: Send files them for the referent's team, without
+ * the person's name.
  */
 export default function SendSheet({
   open,
+  signedIn,
   answered,
   onClose,
   onSend,
 }: {
   open: boolean;
+  signedIn: boolean;
   answered: number;
   onClose: () => void;
-  onSend: (email: string) => Promise<'invalid' | 'busy' | 'unavailable' | null>;
+  onSend: (slug: string | null) => Promise<SendOutcome>;
 }) {
   const { t } = useI18n();
-  const [email, setEmail] = useState('');
-  const [phase, setPhase] = useState<Phase>('form');
+  const [phase, setPhase] = useState<Phase>('ready');
   const [error, setError] = useState<string | null>(null);
-  const field = useRef<HTMLInputElement>(null);
+  const [teams, setTeams] = useState<readonly { slug: string; name: string }[]>([]);
+  const [slug, setSlug] = useState<string | null>(null);
 
-  const submit = async (e: FormEvent) => {
-    e.preventDefault();
+  useEffect(() => {
+    if (open && phase !== 'sent') setPhase('ready');
+  }, [open, phase]);
+
+  const send = async () => {
     setPhase('sending');
-    const err = await onSend(email.trim());
-    if (err) {
-      setError(
-        err === 'invalid'
-          ? t('cockpit.sheet.errEmail')
-          : err === 'busy'
-            ? t('cockpit.sheet.errBusy')
-            : t('cockpit.sheet.errUnavailable'),
-      );
-      setPhase('form');
-      // The disabled button lost focus: put it back on the field the message is about.
-      setTimeout(() => field.current?.focus(), 0);
-    } else {
-      setError(null);
-      setPhase('sent');
+    const out = await onSend(slug);
+    if (out.kind === 'ok') return setPhase('sent');
+    if (out.kind === 'choose') {
+      setTeams(out.teams);
+      setSlug(out.teams[0]?.slug ?? null);
+      return setPhase('ready');
     }
+    setError(
+      out.kind === 'no_team'
+        ? t('cockpit.sheet.errNoTeam')
+        : out.kind === 'closed'
+          ? t('cockpit.sheet.errClosed')
+          : out.kind === 'read_only'
+            ? t('cockpit.sheet.errReadOnly')
+            : t('cockpit.sheet.errUnavailable'),
+    );
+    setPhase('error');
   };
+
+  const signIn = `/login?next=${encodeURIComponent('/?send=1')}`;
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs" aria-labelledby="ck-sheet-title">
-      {phase === 'sent' ? (
-        <>
-          <DialogTitle id="ck-sheet-title" component="h2">
-            {t('cockpit.sheet.inboxTitle')}
-          </DialogTitle>
-          <DialogContent>
-            <Typography sx={{ fontWeight: 600 }}>{t('cockpit.sheet.sentTo', { email })}</Typography>
-            <Typography color="text.secondary" sx={{ mt: 1 }}>
-              {t('cockpit.sheet.sentBody')}
-            </Typography>
-          </DialogContent>
-          <DialogActions>
-            <PrimaryButton onClick={onClose}>{t('cockpit.sheet.close')}</PrimaryButton>
-          </DialogActions>
-        </>
-      ) : (
-        <form onSubmit={submit} noValidate>
-          <DialogTitle id="ck-sheet-title" component="h2">
-            {t('cockpit.sheet.title')}
-          </DialogTitle>
-          <DialogContent>
+      <DialogTitle id="ck-sheet-title" component="h2">
+        {phase === 'sent'
+          ? t('cockpit.sheet.sentTitle')
+          : signedIn
+            ? t('cockpit.sheet.sendTitle')
+            : t('cockpit.sheet.signInTitle')}
+      </DialogTitle>
+      <DialogContent>
+        {phase === 'sent' ? (
+          <Typography color="text.secondary">{t('cockpit.sheet.sentBody')}</Typography>
+        ) : (
+          <>
             <Typography color="text.secondary">
-              {t('cockpit.sheet.body', { n: answered })}
+              {signedIn
+                ? t('cockpit.sheet.sendBody', { n: answered })
+                : t('cockpit.sheet.signInBody', { n: answered })}
             </Typography>
-            <TextField
-              autoFocus
-              inputRef={field}
-              fullWidth
-              required
-              type="email"
-              autoComplete="email"
-              label={t('cockpit.sheet.emailLabel')}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              error={error !== null}
-              helperText={error ?? ' '}
-              sx={{ mt: 2 }}
-            />
-          </DialogContent>
-          <DialogActions>
+            {signedIn && teams.length > 1 && (
+              <RadioGroup
+                aria-label={t('cockpit.sheet.teamLabel')}
+                value={slug ?? ''}
+                onChange={(e) => setSlug(e.target.value)}
+                sx={{ mt: 2 }}
+              >
+                {teams.map((tm) => (
+                  <FormControlLabel
+                    key={tm.slug}
+                    value={tm.slug}
+                    control={<Radio />}
+                    label={tm.name}
+                  />
+                ))}
+              </RadioGroup>
+            )}
+            {phase === 'error' && error && (
+              <Typography color="error" sx={{ mt: 2 }} role="alert">
+                {error}
+              </Typography>
+            )}
+          </>
+        )}
+      </DialogContent>
+      <DialogActions>
+        {phase === 'sent' ? (
+          <PrimaryButton onClick={onClose}>{t('cockpit.sheet.close')}</PrimaryButton>
+        ) : (
+          <>
             <Button variant="text" onClick={onClose} sx={{ minHeight: 44 }}>
               {t('cockpit.sheet.notNow')}
             </Button>
-            <PrimaryButton type="submit" disabled={phase === 'sending'}>
-              {phase === 'sending' ? t('cockpit.sheet.sending') : t('cockpit.sheet.submit')}
-            </PrimaryButton>
-          </DialogActions>
-        </form>
-      )}
+            {signedIn ? (
+              <PrimaryButton
+                onClick={send}
+                disabled={phase === 'sending'}
+                data-testid="ck-send-now"
+              >
+                {phase === 'sending' ? t('cockpit.sheet.sending') : t('cockpit.sheet.submit')}
+              </PrimaryButton>
+            ) : (
+              <PrimaryButton href={signIn} data-testid="ck-sign-in">
+                {t('cockpit.sheet.signIn')}
+              </PrimaryButton>
+            )}
+          </>
+        )}
+      </DialogActions>
     </Dialog>
   );
 }

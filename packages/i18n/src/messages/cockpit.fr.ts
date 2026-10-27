@@ -85,7 +85,6 @@ export const cockpitFr = {
     lede: 'Dix questions, anonymes. Répondez ici ou dans À vous.',
     answered: 'Répondu',
     todo: 'À faire',
-    send: 'Envoyer et lancer votre audit',
   },
   tryIt: {
     title: 'À vous',
@@ -137,21 +136,23 @@ export const cockpitFr = {
     privacy: 'Confidentialité',
   },
   sheet: {
-    lastStep: 'Dernière étape',
-    title: 'Envoyer et lancer votre audit',
-    body: 'Vos {n} réponses seront envoyées. Nous vous contactons à cette adresse pour ouvrir votre espace : une adresse de questionnaire par équipe, prête à partager.',
-    emailLabel: 'E-mail professionnel',
+    signInTitle: 'Connectez-vous pour envoyer',
+    signInBody:
+      'Vos {n} réponses restent dans ce navigateur. Connectez-vous pour les envoyer à votre équipe.',
+    signIn: 'Se connecter',
+    sendTitle: 'Envoyer à votre équipe',
+    sendBody: 'Vos {n} réponses vont à votre équipe, sans votre nom.',
+    teamLabel: 'Votre équipe',
     notNow: 'Pas maintenant',
     submit: 'Envoyer mes réponses',
     sending: 'Envoi en cours',
-    inboxTitle: 'Demande reçue',
-    sentTo: 'Nous vous écrirons à {email}',
-    sentBody:
-      'Vous recevez un e-mail avec le lien pour ouvrir votre espace. Votre audit commence là.',
+    sentTitle: 'Réponses envoyées',
+    sentBody: 'Merci. Elles comptent dans les résultats de votre équipe.',
     close: 'Fermer',
-    errEmail: 'Saisissez un e-mail professionnel valide.',
-    errBusy: 'Trop d’essais. Attendez quelques minutes, puis renvoyez.',
-    errUnavailable:
-      'L’envoi n’est pas disponible pour le moment. Vos réponses restent dans ce navigateur ; réessayez plus tard.',
+    errNoTeam:
+      'Votre compte n’a pas de questionnaire d’équipe. Vos réponses restent dans ce navigateur.',
+    errClosed: 'Ce questionnaire est clos. Vos réponses restent dans ce navigateur.',
+    errReadOnly: 'Vue client : rien n’est envoyé.',
+    errUnavailable: 'L’envoi n’est pas disponible pour le moment. Réessayez plus tard.',
   },
 };

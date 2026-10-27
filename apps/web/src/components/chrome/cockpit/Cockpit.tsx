@@ -38,7 +38,7 @@ import {
   VIDEO_ART,
 } from './icons';
 import PrimaryButton from './PrimaryButton';
-import SendSheet from './SendSheet';
+import SendSheet, { type SendOutcome } from './SendSheet';
 
 export interface CockpitQuestion {
   readonly code: string;
@@ -187,27 +187,31 @@ export default function Cockpit({
     open('survey');
   };
 
-  const send = async (email: string) => {
+  const send = async (slug: string | null): Promise<SendOutcome> => {
     try {
       const res = await fetch('/api/send', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ email, locale, answers }),
+        body: JSON.stringify({ answers, locale, slug }),
       });
-      if (res.ok) {
-        setSent(true);
-        return null;
-      }
-      const body = (await res.json().catch(() => null)) as { error?: string } | null;
-      return body?.error === 'invalid'
-        ? 'invalid'
-        : body?.error === 'busy'
-          ? 'busy'
-          : 'unavailable';
+      const out = (await res.json().catch(() => null)) as SendOutcome | null;
+      if (!out || !('kind' in out)) return { kind: 'unavailable' };
+      if (out.kind === 'ok') setSent(true);
+      return out;
     } catch {
-      return 'unavailable';
+      return { kind: 'unavailable' };
     }
   };
+
+  // Back from sign-in (`/?send=1`): the answers are still in this browser; reopen the last step.
+  useEffect(() => {
+    if (!loaded) return;
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('send') !== '1') return;
+    url.searchParams.delete('send');
+    window.history.replaceState(null, '', url.pathname + url.search);
+    if (!sent) setSheet(true);
+  }, [loaded, sent]);
 
   const hasAnswer = (code: string) => {
     const v = answers[code];
@@ -495,15 +499,24 @@ export default function Cockpit({
               <p className="ck-q" data-testid="ck-try-done">
                 {t('cockpit.tryIt.complete', { n: answered })}
               </p>
-              <p className="ck-muted ck-small">{t('cockpit.tryIt.stays')}</p>
-              <PrimaryButton
-                fullWidth
-                onClick={() => setSheet(true)}
-                sx={{ mt: 3 }}
-                data-testid="ck-send"
-              >
-                {t('cockpit.survey.send')}
-              </PrimaryButton>
+              {sent ? (
+                <p className="ck-status done ck-mt" data-testid="ck-sent">
+                  {CHECK}
+                  {t('cockpit.sheet.sentTitle')}
+                </p>
+              ) : (
+                <>
+                  <p className="ck-muted ck-small">{t('cockpit.tryIt.stays')}</p>
+                  <PrimaryButton
+                    fullWidth
+                    onClick={() => setSheet(true)}
+                    sx={{ mt: 3 }}
+                    data-testid="ck-send"
+                  >
+                    {signed ? t('cockpit.sheet.submit') : t('cockpit.sheet.signIn')}
+                  </PrimaryButton>
+                </>
+              )}
               <div className="ck-try-nav">
                 <Button
                   variant="text"
@@ -738,7 +751,13 @@ export default function Cockpit({
           </span>
         </footer>
       </div>
-      <SendSheet open={sheet} answered={answered} onClose={() => setSheet(false)} onSend={send} />
+      <SendSheet
+        open={sheet}
+        signedIn={signed}
+        answered={answered}
+        onClose={() => setSheet(false)}
+        onSend={send}
+      />
     </div>
   );
 }

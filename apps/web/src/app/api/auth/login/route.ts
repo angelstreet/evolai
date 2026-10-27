@@ -20,9 +20,18 @@ const redirectTo = (path: string) =>
 const safeNext = (raw: string | null): string =>
   raw && /^\/(admin|board)(\/[A-Za-z0-9_\-./?=&%]*)?$/.test(raw) ? raw : '/admin/engagements';
 
+/** The front page's send step (ADR 0055): back to the answers kept in this browser. */
+const FRONT_SEND = '/?send=1';
+
 /** A team referent lands on the client surface; staff keep their `next` (TASK-P). */
 const landing = (staff: boolean, raw: string | null): string =>
-  staff ? safeNext(raw) : raw && /^\/client(\/[A-Za-z0-9_\-./?=&%]*)?$/.test(raw) ? raw : '/client';
+  raw === FRONT_SEND
+    ? FRONT_SEND
+    : staff
+      ? safeNext(raw)
+      : raw && /^\/client(\/[A-Za-z0-9_\-./?=&%]*)?$/.test(raw)
+        ? raw
+        : '/client';
 
 const back = (error: string) => redirectTo(`/login?error=${error}`);
 
