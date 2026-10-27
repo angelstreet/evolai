@@ -35,7 +35,7 @@ export const cockpitEn = {
     title: 'Ask for an audit',
     body: 'Leave your work email. No account needed.',
     label: 'Work email',
-    submit: 'Send request',
+    submit: 'Send',
     sentTitle: 'Request sent',
     sentBody: 'We reply by email. You can ask again any time.',
     err: {

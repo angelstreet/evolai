@@ -31,7 +31,7 @@ export const cockpitFr = {
     title: 'Demander un audit',
     body: 'Laissez votre e-mail professionnel. Aucun compte requis.',
     label: 'E-mail professionnel',
-    submit: 'Envoyer la demande',
+    submit: 'Envoyer',
     sentTitle: 'Demande envoyée',
     sentBody: 'Nous répondons par e-mail. Vous pouvez redemander à tout moment.',
     err: {
