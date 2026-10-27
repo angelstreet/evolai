@@ -94,7 +94,9 @@ test.describe('front page and sign-in content', () => {
   }) => {
     await page.goto('/');
     await expect(page.getByTestId('cockpit')).toBeVisible();
-    await expect(page.locator('.ck-st-b .MuiButton-contained')).toHaveCount(1);
+    await expect(
+      page.locator('[data-testid=ck-main] .MuiButton-contained, .ck-try .MuiButton-contained'),
+    ).toHaveCount(1);
     await expect(page.getByTestId('front-sign-in')).toHaveAttribute('href', '/login');
     await expect(page.locator('footer a[href="/login"]')).toHaveCount(1);
     await expect(page.locator('a[href="/intake"]')).toHaveCount(0);

@@ -16,7 +16,7 @@ import { AccountMenu, LanguageToggle, ThemeToggle, type Identity } from './Heade
 const KNOWN_ROLES = new Set(['platform_owner', 'auditor', 'sponsor', 'viewer']);
 
 /** The signed-in person, their role and current organisation, for the account menu (§11). */
-const loadIdentity = async (): Promise<Identity | null> => {
+export const loadIdentity = async (): Promise<Identity | null> => {
   const session = await getSession();
   if (!session) return null;
   const { t } = getT();
