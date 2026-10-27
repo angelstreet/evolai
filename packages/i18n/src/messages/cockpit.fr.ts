@@ -5,7 +5,7 @@ export const cockpitFr = {
     home: 'Accueil',
     learn: 'Cours',
     videos: 'Vidéos',
-    survey: 'Questions',
+    survey: 'Questionnaire',
     report: 'Rapport',
     note: 'Tout est ouvert. Connexion seulement pour envoyer.',
   },
@@ -19,7 +19,7 @@ export const cockpitFr = {
   skip: 'Passer',
   home: {
     title: 'Un audit IA qui commence par vos équipes.',
-    lede: 'Open source. Lisez tout, répondez au questionnaire, connectez-vous seulement pour l’envoyer.',
+    lede: 'Lisez tout. Connectez-vous seulement pour envoyer.',
     start: 'Commencer',
     understand: { title: 'Comprendre', line: 'Chaque équipe répond à dix questions.' },
     adapt: { title: 'Adapter', line: 'Nous rencontrons les équipes sur place.' },
@@ -32,14 +32,14 @@ export const cockpitFr = {
     toSurvey: 'Répondre',
     why: {
       title: 'Pourquoi un audit IA ?',
-      lede: 'Vos équipes utilisent déjà l’IA. L’audit montre où elle aide vraiment.',
+      lede: 'Vos équipes utilisent déjà l’IA. Voyez où elle aide.',
       p1: { title: 'Voir', line: 'Ce que chaque équipe fait déjà.' },
       p2: { title: 'Choisir', line: 'Les gains les plus rapides.' },
       p3: { title: 'Avancer', line: 'Un plan sur 90 jours.' },
     },
     how: {
       title: 'Comment ça marche',
-      lede: 'Trois étapes, du questionnaire au rapport. Vous voyez des totaux, jamais des noms.',
+      lede: 'Questionnaire, visite, rapport. Jamais de noms.',
       p1: { title: 'Questionnaire', line: 'Dix questions, environ 7 minutes.' },
       p2: { title: 'Visite', line: 'Nous venons après la clôture.' },
       p3: { title: 'Rapport', line: 'Il suit la visite.' },
@@ -53,14 +53,14 @@ export const cockpitFr = {
     },
     results: {
       title: 'Le résultat',
-      lede: 'Un rapport dans votre espace, avec un PDF pour votre direction.',
+      lede: 'Un rapport dans votre espace, avec un PDF.',
       p1: { title: 'Score', line: 'Où en sont vos équipes aujourd’hui.' },
       p2: { title: 'Actions', line: 'Trois, sur 30, 60 et 90 jours.' },
       p3: { title: 'Classement', line: 'Les pistes par impact et effort.' },
     },
     videos: {
       title: 'Vidéos',
-      lede: 'Dix courtes vidéos, de deux à quatre minutes. Elles arrivent une par une.',
+      lede: 'Dix courtes vidéos de deux à quatre minutes.',
       p1: { title: 'Courtes', line: 'Deux à quatre minutes.' },
       p2: { title: 'Pratiques', line: 'Des exemples du travail réel.' },
       p3: { title: 'Une par une', line: 'De nouvelles arrivent au fil du temps.' },
@@ -84,7 +84,7 @@ export const cockpitFr = {
   },
   survey: {
     title: 'Le questionnaire',
-    lede: 'Dix questions. Anonyme. Répondez ici ou dans la carte À vous.',
+    lede: 'Dix questions, anonymes. Répondez ici ou dans À vous.',
     answered: 'Répondu',
     todo: 'À faire',
     send: 'Envoyer et lancer votre audit',
@@ -120,8 +120,7 @@ export const cockpitFr = {
   report: {
     sample: 'Exemple',
     score: 'Score de maturité',
-    summary:
-      'Les équipes utilisent l’IA, mais les règles sur les données clients sont floues et le travail répétitif n’est pas cartographié.',
+    summary: 'L’IA est utilisée, mais les règles de données sont floues.',
     actions: 'Trois actions',
     days: '{n} j',
     client: 'Demo Client',

@@ -200,6 +200,74 @@ for (const size of SIZES) {
         }
       }
 
+      test('every card description is two lines or fewer', async ({ page, baseURL }) => {
+        for (const locale of ['en', 'fr'] as const) {
+          await setLocale(page, locale, baseURL as string);
+          await page.goto('/');
+          const tooLong: string[] = [];
+          const measure = async (label: string) => {
+            const bad = await page.evaluate(() =>
+              [...document.querySelectorAll<HTMLElement>('.ck-lesson .ck-lede')]
+                .filter(
+                  (el) =>
+                    el.getBoundingClientRect().height >
+                    2 * parseFloat(getComputedStyle(el).lineHeight) + 1,
+                )
+                .map((el) => el.textContent),
+            );
+            tooLong.push(...bad.map((b) => `${locale} ${label}: ${b}`));
+          };
+          for (const key of MENU) {
+            await menu(page, key).click();
+            if (key === 'learn') {
+              for (let i = 0; i < 5; i++) {
+                await measure(`lesson ${i + 1}`);
+                const nextLesson = page.locator('.ck-foot-row .MuiButton-outlined');
+                if (i < 4) await nextLesson.click();
+              }
+            } else await measure(key);
+          }
+          expect(tooLong).toEqual([]);
+        }
+      });
+
+      test('the disabled Next question keeps a readable label in both themes', async ({
+        page,
+        baseURL,
+      }) => {
+        await setLocale(page, 'en', baseURL as string);
+        for (const scheme of ['light', 'dark'] as const) {
+          await page.emulateMedia({ colorScheme: scheme });
+          await page.goto('/');
+          const ratio = await page.getByTestId('ck-next').evaluate((el) => {
+            const lum = (css: string) => {
+              const [r, g, b] = (css.match(/[\d.]+/g) ?? []).slice(0, 3).map((v) => {
+                const c = Number(v) / 255;
+                return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+              }) as [number, number, number];
+              return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+            };
+            const cs = getComputedStyle(el);
+            const [a, b] = [lum(cs.color), lum(cs.backgroundColor)].sort((x, y) => y - x);
+            return ((a as number) + 0.05) / ((b as number) + 0.05);
+          });
+          expect(ratio, scheme).toBeGreaterThanOrEqual(3);
+        }
+      });
+
+      test('with no saved choice the page follows the system theme', async ({ page }) => {
+        const bg = async () => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+        await page.emulateMedia({ colorScheme: 'dark' });
+        await page.goto('/');
+        await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+        const dark = await bg();
+        await page.emulateMedia({ colorScheme: 'light' });
+        await page.context().clearCookies();
+        await page.goto('/');
+        await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+        expect(await bg()).not.toBe(dark);
+      });
+
       test('French copy and the language control', async ({ page, baseURL }) => {
         await setLocale(page, 'fr', baseURL as string);
         await page.goto('/');
@@ -208,6 +276,7 @@ for (const size of SIZES) {
         );
         await expect(page.getByTestId('ck-next')).toHaveText('Question suivante');
         await expect(page.getByTestId('ck-try-count')).toHaveText('1 sur 10');
+        await expect(menu(page, 'survey')).toContainText('Questionnaire');
         await page.getByTestId('switch-en').click();
         await expect(page.locator('html')).toHaveAttribute('lang', 'en');
         await expect(page.getByTestId('ck-next')).toHaveText('Next question');

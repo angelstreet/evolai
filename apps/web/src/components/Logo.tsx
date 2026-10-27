@@ -15,7 +15,7 @@ import type { CSSProperties } from 'react';
  */
 
 interface LogoProps {
-  size?: 'default' | 'hero';
+  size?: 'default' | 'menu' | 'hero';
   /**
    * If `true`, render only the icon (no wordmark). Useful for favicons or compact
    * navigation in the future.
@@ -27,11 +27,13 @@ interface LogoProps {
 
 const ICON_SIZES = {
   default: 28,
+  menu: 32,
   hero: 64,
 } as const;
 
 const WORDMARK_SIZES = {
   default: '--text-lg',
+  menu: '--text-xl',
   hero: '--text-2xl',
 } as const;
 

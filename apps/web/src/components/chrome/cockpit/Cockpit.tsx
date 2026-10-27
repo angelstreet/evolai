@@ -683,7 +683,7 @@ export default function Cockpit({
       <div className="ck-content">
         <header className="ck-top">
           <div className="ck-brand">
-            <Logo />
+            <Logo size="menu" />
           </div>
           <div className="ck-crumb" data-testid="ck-crumb">
             <span>{tk(`cockpit.menu.${section}`)}</span>

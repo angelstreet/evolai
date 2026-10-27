@@ -23,7 +23,7 @@ export const cockpitEn = {
   skip: 'Skip',
   home: {
     title: 'An AI audit that starts with your teams.',
-    lede: 'Open source. Read everything, answer the survey, sign in only to send it.',
+    lede: 'Read it all. Sign in only to send.',
     start: 'Start learning',
     understand: { title: 'Understand', line: 'Each team answers ten questions.' },
     adapt: { title: 'Adapt', line: 'We meet the teams on site.' },
@@ -36,35 +36,35 @@ export const cockpitEn = {
     toSurvey: 'Answer the survey',
     why: {
       title: 'Why an AI audit?',
-      lede: 'Your teams already use AI. The audit shows where it really helps.',
+      lede: 'Your teams already use AI. See where it helps.',
       p1: { title: 'See', line: 'What each team already does.' },
       p2: { title: 'Choose', line: 'The quickest wins first.' },
       p3: { title: 'Act', line: 'A plan over 90 days.' },
     },
     how: {
       title: 'How it works',
-      lede: 'Three steps, from a survey to a report. You see counts, never names.',
+      lede: 'Survey, visit, report. You see counts, never names.',
       p1: { title: 'Survey', line: 'Ten questions, about 7 minutes.' },
       p2: { title: 'Visit', line: 'We come on site after it closes.' },
       p3: { title: 'Report', line: 'Follows the visit.' },
     },
     questions: {
       title: 'The questions',
-      lede: 'Ten questions, word for word. Every one can be skipped.',
+      lede: 'Ten questions, word for word. Skip any.',
       p1: { title: 'Anonymous', line: 'No name, no email.' },
       p2: { title: 'Private', line: 'Names in free text are hidden.' },
       p3: { title: 'Groups of 5', line: 'Smaller groups are never shown.' },
     },
     results: {
       title: 'What you get',
-      lede: 'One report in your space, with a PDF for your management.',
+      lede: 'One report in your space, with a PDF.',
       p1: { title: 'Score', line: 'Where your teams stand today.' },
       p2: { title: 'Actions', line: 'Three, over 30, 60 and 90 days.' },
       p3: { title: 'Ranking', line: 'Opportunities by impact and effort.' },
     },
     videos: {
       title: 'Videos',
-      lede: 'Ten short videos, two to four minutes each. They arrive one by one.',
+      lede: 'Ten short videos, two to four minutes each.',
       p1: { title: 'Short', line: 'Two to four minutes.' },
       p2: { title: 'Practical', line: 'Examples from real work.' },
       p3: { title: 'One by one', line: 'New ones arrive over time.' },
@@ -72,7 +72,7 @@ export const cockpitEn = {
   },
   videos: {
     title: 'Videos',
-    lede: 'Two to four minutes each, coming one by one.',
+    lede: 'Two to four minutes each, one by one.',
     video: 'Video {n}',
     soon: 'Coming soon',
     v1: 'Why most AI roll-outs stall',
@@ -88,7 +88,7 @@ export const cockpitEn = {
   },
   survey: {
     title: 'The survey',
-    lede: 'Ten questions. Anonymous. Answer here or in the Try it card.',
+    lede: 'Ten questions, anonymous. Answer here or in Try it.',
     answered: 'Answered',
     todo: 'To do',
     send: 'Send and start your audit',
@@ -124,8 +124,7 @@ export const cockpitEn = {
   report: {
     sample: 'Sample',
     score: 'Readiness score',
-    summary:
-      'Teams use AI, but rules on client data are unclear and repetitive work is not mapped.',
+    summary: 'Teams use AI, but client-data rules are unclear.',
     actions: 'Three actions',
     days: '{n} days',
     client: 'Demo Client',

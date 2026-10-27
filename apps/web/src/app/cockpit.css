@@ -89,7 +89,7 @@
 }
 .ck-side::before {
   content: '';
-  height: 28px;
+  height: 32px;
   flex: none;
 }
 .ck-menu {
@@ -141,6 +141,13 @@
   margin-top: var(--space-3);
   font-size: var(--text-sm);
   color: var(--color-muted);
+}
+
+/* a disabled primary stays readable: muted label on a raised fill, 3:1 or better in both themes */
+.ck .MuiButton-root.MuiButton-contained.Mui-disabled {
+  background: var(--color-raised);
+  color: var(--color-muted);
+  border: 1px solid var(--color-control-edge);
 }
 
 /* header */
@@ -712,13 +719,12 @@
     gap: 0;
   }
   .ck-menu button {
-    flex: 1 1 0;
-    min-width: 0;
+    flex: 1 1 auto;
     flex-direction: column;
     justify-content: center;
     gap: var(--space-1);
     min-height: 56px;
-    padding: var(--space-1) 0;
+    padding: var(--space-1) 2px;
     font-size: var(--text-sm);
   }
   .ck-label {
@@ -761,5 +767,9 @@
   }
   .ck-vgrid {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .ck-score {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
