@@ -139,18 +139,6 @@ export const firstUnanswered = (answers: SurveyState['answers'], total: number):
   return total;
 };
 
-/**
- * The one date shown to a respondent as "open until": the engagement closing date or this link's
- * own expiry, whichever comes first, because that is the moment answering really stops (TASK-Z1).
- */
-export const answerDeadline = (
-  closesAt: string | null,
-  linkExpiresAt: string | null,
-): string | null => {
-  if (closesAt && linkExpiresAt) return closesAt < linkExpiresAt ? closesAt : linkExpiresAt;
-  return closesAt ?? linkExpiresAt;
-};
-
 export interface TeamProgress {
   readonly answered: number;
   readonly invited: number;
@@ -194,7 +182,9 @@ export const teamProgress = async (invite: InvitationRecord): Promise<TeamProgre
       invited: counts.rows[0]?.invited ?? 0,
       answered: counts.rows[0]?.answered ?? 0,
       engagementStatus: engagement.rows[0]?.status ?? 'in_field',
-      closesAt: answerDeadline(closes ? new Date(closes).toISOString() : null, invite.expiresAt),
+      // After answering, the person's own link no longer matters: the date is the mission's closing
+      // date, the same one the referent sees in their space, or none (TASK-AI walkthrough).
+      closesAt: closes ? new Date(closes).toISOString() : null,
       teamTier: badge.rows[0]?.dominant_tier ?? null,
       contact: engagement.rows[0]?.contact?.trim() || null,
     };

@@ -31,3 +31,19 @@ Migration `0028_account_progress.sql`: one row per user (`lessons_seen` as a sma
 `sent_at`), service-account RLS only, no tenant data, no answers. `GET/PUT /api/progress` (session only):
 PUT merges, never removes. Until 0028 is applied the route answers `unavailable` and the page keeps the
 browser state. ADR 0056.
+
+## Follow-ups (owner, 2026-10-27)
+
+| #   | Item                         | Done when                                                                                                                                                                                        | State             |
+| --- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------- |
+| F1  | Survey welcome and thanks    | `/s/<token>` and its done page are one Workbench card each (title band, sections), like the question card                                                                                        | done (2026-10-27) |
+| F2  | Cards inside the space       | `/client` home cards are Workbench cards with a title band (Survey, Your answers, Learn, each team, Report); the other outlined cards in `/client` and `/admin` take the card look               | done (2026-10-27) |
+| F3  | Organisation switcher        | Staff with several organisations switch from the account menu in the admin header; the header and the side menu keep the new organisation (`admin-switcher.spec.ts`)                             | done (2026-10-27) |
+| F4  | Own report on the front page | A signed-in referent's Report section shows their published report (score, summary, next actions, Open the full report) instead of the Demo Client sample; drafts never                          | done (2026-10-27) |
+| F5  | Client walkthrough           | `client-walkthrough.spec.ts` runs the whole audit as a client (visitor, referent, five members, own answers, auditor publishes, referent reads), with a screenshot per step (`WALK_SHOTS=<dir>`) | done (2026-10-27) |
+
+What the walkthrough found and fixed: the thank-you page said "open until" the person's own link expiry while the
+referent's space said there was no closing date (it now uses the mission's closing date, or none); Results stayed
+"Nothing published yet" next to a published report (it now points to the report); the welcome copy still described
+one-tap saving. Not a bug: the analysis pipeline is parked (AUDITOR_GUIDE step 6), so findings come from the auditor
+and Results stays empty until analyses are approved.

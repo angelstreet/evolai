@@ -1,13 +1,14 @@
 import { headers } from 'next/headers';
 import QRCode from 'qrcode';
 import Button from '@mui/material/Button';
-import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import type { TenantId } from '@evolai/contracts';
 import type { Translator } from '@evolai/i18n';
-import { AppIcon, EmptyState, IconTile, PageTitle, StatusText } from '@evolai/ui';
+import { AppIcon, EmptyState, PageTitle, StatusText } from '@evolai/ui';
 import TeamCard from '@/components/client/TeamCard';
+import WorkCard from '@/components/chrome/WorkCard';
+import { MENU_ICONS } from '@/components/chrome/cockpit/icons';
 import { requireClientContext } from '@/lib/clientContext';
 import {
   anyAnswerSubmitted,
@@ -164,7 +165,11 @@ export default async function ClientHome() {
     <section aria-labelledby="client-title">
       {header}
       <Stack spacing={4}>
-        <Paper variant="outlined" sx={{ p: 4, borderRadius: 3 }} data-testid="client-survey">
+        <WorkCard
+          icon={MENU_ICONS['survey']}
+          title={t('client.nav.survey')}
+          data-testid="client-survey"
+        >
           <Typography variant="body1" sx={{ m: 0 }} data-testid="client-status">
             <StatusText
               status={
@@ -192,12 +197,16 @@ export default async function ClientHome() {
                   : `${t('client.home.closes', { date: longDate(locale, closeDay) })} · ${t('client.home.daysLeft', { count: left })}`}
             </Typography>
           </Stack>
-        </Paper>
+        </WorkCard>
 
         {/* The referent's own answers (TASK-AI L5): sent from the front page, or not yet. Only a
             yes/no from the account's progress; never which response is theirs (ADR 0055, 0056). */}
         {own.kind === 'ok' ? (
-          <Paper variant="outlined" sx={{ p: 4, borderRadius: 3 }} data-testid="client-own">
+          <WorkCard
+            icon={MENU_ICONS['learn']}
+            title={t('client.space.ownTitle')}
+            data-testid="client-own"
+          >
             <Typography variant="body1" sx={{ m: 0 }} data-testid="client-own-state">
               <StatusText status={own.progress.sent ? 'success' : 'pending'}>
                 {own.progress.sent ? t('client.space.ownSent') : t('client.space.ownNotYet')}
@@ -214,22 +223,18 @@ export default async function ClientHome() {
                 {t('client.space.ownCta')}
               </Button>
             )}
-          </Paper>
+          </WorkCard>
         ) : null}
 
         {noAnswersYet ? (
-          <Paper variant="outlined" sx={{ p: 4, borderRadius: 3 }} data-testid="client-learn">
-            <Stack direction="row" spacing={3} sx={{ alignItems: 'flex-start' }}>
-              <IconTile name="info" />
-              <div>
-                <Typography variant="cardTitle" component="h2" sx={{ m: 0 }}>
-                  {t('client.space.learnTitle')}
-                </Typography>
-                <Typography variant="body1" color="text.secondary" sx={{ m: 0, mt: 1 }}>
-                  {t('client.space.learnNudge')}
-                </Typography>
-              </div>
-            </Stack>
+          <WorkCard
+            icon={MENU_ICONS['learn']}
+            title={t('client.space.learnTitle')}
+            data-testid="client-learn"
+          >
+            <Typography variant="body1" color="text.secondary" sx={{ m: 0 }}>
+              {t('client.space.learnNudge')}
+            </Typography>
             <Button
               variant="outlined"
               href="/?learn=1"
@@ -239,15 +244,16 @@ export default async function ClientHome() {
             >
               {t('client.space.learnCta')}
             </Button>
-          </Paper>
+          </WorkCard>
         ) : null}
 
         {cards}
 
-        <Paper variant="outlined" sx={{ p: 4, borderRadius: 3 }} data-testid="client-report">
-          <Typography variant="sectionTitle" component="h2" sx={{ m: 0, mb: 2 }}>
-            {t('client.home.reportLabel')}
-          </Typography>
+        <WorkCard
+          icon={MENU_ICONS['report']}
+          title={t('client.home.reportLabel')}
+          data-testid="client-report"
+        >
           <Typography variant="body1" sx={{ m: 0 }} data-testid="client-report-state">
             <StatusText status={hasResults ? 'success' : 'pending'}>
               {hasResults ? t('client.home.reportReady') : t('client.home.reportPending')}
@@ -264,7 +270,7 @@ export default async function ClientHome() {
               {t('client.home.reportOpen')}
             </Button>
           ) : null}
-        </Paper>
+        </WorkCard>
       </Stack>
     </section>
   );

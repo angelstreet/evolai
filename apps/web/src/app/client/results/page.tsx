@@ -6,7 +6,10 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { EmptyState, PageTitle, StatusText } from '@evolai/ui';
 import { requireClientContext } from '@/lib/clientContext';
+import Button from '@mui/material/Button';
+import type { TenantId } from '@evolai/contracts';
 import { loadClientSurvey, loadPublishedResults } from '@/lib/clientData';
+import { loadPublishedReport } from '@/lib/reportData';
 import { enumLabelOf } from '@/lib/enumLabel';
 import { getT } from '@/lib/i18n';
 import { MIN_GROUP_SIZE } from '@/lib/invitationTracking';
@@ -28,6 +31,11 @@ export default async function ClientResults() {
     ? await loadPublishedResults(ctx.tenantId, survey.engagementId)
     : { themes: [], opportunities: [] };
   const empty = results.themes.length === 0 && results.opportunities.length === 0;
+  // With no approved findings yet the report may still be published: point to it (TASK-AI walkthrough).
+  const report =
+    empty && survey
+      ? await loadPublishedReport(ctx.tenantId as TenantId, survey.engagementId)
+      : null;
   return (
     <section aria-labelledby="client-results-title">
       <PageTitle
@@ -36,7 +44,19 @@ export default async function ClientResults() {
         subtitle={t('client.results.subtitle')}
       />
       {empty ? (
-        <EmptyState icon="pending" title={t('client.results.empty')} />
+        report ? (
+          <EmptyState
+            icon="report"
+            title={t('client.results.inReport')}
+            action={
+              <Button variant="outlined" href="/client/report" data-testid="client-results-report">
+                {t('client.home.reportOpen')}
+              </Button>
+            }
+          />
+        ) : (
+          <EmptyState icon="pending" title={t('client.results.empty')} />
+        )
       ) : (
         <Stack spacing={4}>
           {results.themes.length > 0 ? (

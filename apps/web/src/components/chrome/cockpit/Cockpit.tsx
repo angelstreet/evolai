@@ -52,6 +52,20 @@ export interface CockpitVideo {
   readonly youtubeId: string | null;
   readonly title: string;
 }
+/** A referent's own published report, cut down for the front page card (TASK-AI). */
+export interface OwnReport {
+  readonly title: string;
+  readonly publishedAt: string;
+  readonly score: number | null;
+  readonly summary: string;
+  /** First plan line per horizon (30, 60, 90 days), or the first accepted steps. */
+  readonly actions: readonly {
+    readonly when: string;
+    readonly text: string;
+    readonly owner: string;
+  }[];
+}
+
 export type Viewer =
   | { readonly kind: 'anon' }
   | { readonly kind: 'referent'; readonly name: string; readonly teams: readonly string[] }
@@ -64,6 +78,8 @@ interface Props {
   readonly videos: readonly CockpitVideo[];
   readonly viewer: Viewer;
   readonly identity: Identity | null;
+  /** Signed-in referent with a published report: shown instead of the Demo Client sample. */
+  readonly ownReport?: OwnReport | null;
 }
 
 type Section = 'home' | 'learn' | 'videos' | 'survey' | 'report';
@@ -93,6 +109,7 @@ export default function Cockpit({
   videos,
   viewer,
   identity,
+  ownReport = null,
 }: Props) {
   const { t, locale } = useI18n();
   const tk = useCallback(
@@ -494,28 +511,76 @@ export default function Cockpit({
       </svg>
     );
   };
-  const reportCard = () => (
-    <>
-      <h1>{t('cockpit.report.client')}</h1>
+  const ownReportCard = (r: OwnReport) => (
+    <div data-testid="ck-own-report">
+      <h1>{r.title}</h1>
+      <p className="ck-muted ck-small ck-mt">
+        {t('cockpit.report.published', {
+          date: new Date(r.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-GB', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+          }),
+        })}
+      </p>
       <div className="ck-score">
-        {dial(62)}
+        {r.score === null ? null : dial(r.score)}
         <div>
-          <b>{t('cockpit.report.score')}</b>
-          <p className="ck-lede">{t('cockpit.report.summary')}</p>
+          <b>{r.score === null ? t('cockpit.report.noScore') : t('cockpit.report.score')}</b>
+          <p className="ck-lede">{r.summary}</p>
         </div>
       </div>
-      <h2 className="ck-h2">{t('cockpit.report.actions')}</h2>
-      <div className="ck-acts">
-        {(['30', '60', '90'] as const).map((d) => (
-          <div className="ck-act" key={d}>
-            <span className="d">{t('cockpit.report.days', { n: d })}</span>
-            <b>{tk(`cockpit.report.a${d}`)}</b>
-            <span className="ck-muted">{tk(`cockpit.report.o${d}`)}</span>
+      {r.actions.length > 0 && (
+        <>
+          <h2 className="ck-h2">{t('cockpit.report.yourActions')}</h2>
+          <div className="ck-acts">
+            {r.actions.map((a, i) => (
+              <div className="ck-act" key={i}>
+                <span className="d">{a.when}</span>
+                <b>{a.text}</b>
+                {a.owner && (
+                  <span className="ck-muted">{t('cockpit.report.owner', { owner: a.owner })}</span>
+                )}
+              </div>
+            ))}
           </div>
-        ))}
+        </>
+      )}
+      <div className="ck-foot-row">
+        <span />
+        <Button variant="outlined" href="/client/report" sx={{ minHeight: 44 }}>
+          {t('cockpit.report.open')}
+          {ARROW_RIGHT}
+        </Button>
       </div>
-    </>
+    </div>
   );
+
+  const reportCard = () =>
+    ownReport ? (
+      ownReportCard(ownReport)
+    ) : (
+      <>
+        <h1>{t('cockpit.report.client')}</h1>
+        <div className="ck-score">
+          {dial(62)}
+          <div>
+            <b>{t('cockpit.report.score')}</b>
+            <p className="ck-lede">{t('cockpit.report.summary')}</p>
+          </div>
+        </div>
+        <h2 className="ck-h2">{t('cockpit.report.actions')}</h2>
+        <div className="ck-acts">
+          {(['30', '60', '90'] as const).map((d) => (
+            <div className="ck-act" key={d}>
+              <span className="d">{t('cockpit.report.days', { n: d })}</span>
+              <b>{tk(`cockpit.report.a${d}`)}</b>
+              <span className="ck-muted">{tk(`cockpit.report.o${d}`)}</span>
+            </div>
+          ))}
+        </div>
+      </>
+    );
 
   const card = () => {
     switch (section) {

@@ -10,12 +10,13 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import LinearProgress from '@mui/material/LinearProgress';
-import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { AppIcon, SegmentedToggle, StatusText } from '@evolai/ui';
 import { useI18n } from '@/components/I18nProvider';
+import WorkCard from '@/components/chrome/WorkCard';
+import { MENU_ICONS } from '@/components/chrome/cockpit/icons';
 import { useLinkActions } from '@/components/LinkActions';
 import { whatsappHref } from '@/lib/referentView';
 import { setTeamSizeAction, type TeamSizeState } from '@/app/client/actions';
@@ -185,10 +186,7 @@ export default function TeamCard(p: TeamCardProps) {
   const { t } = useI18n();
   const [dialog, setDialog] = useState<'share' | 'remind' | null>(null);
   return (
-    <Paper variant="outlined" sx={{ p: 4, borderRadius: 3 }} data-testid="client-team-card">
-      <Typography variant="sectionTitle" component="h2" sx={{ m: 0, mb: 3 }}>
-        {p.teamName}
-      </Typography>
+    <WorkCard icon={MENU_ICONS['team']} title={p.teamName} data-testid="client-team-card">
       <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ gap: 4, alignItems: { sm: 'center' } }}>
         <Box
           role="img"
@@ -316,6 +314,6 @@ export default function TeamCard(p: TeamCardProps) {
         defaultLang={p.defaultLang}
         testId="client-remind-dialog"
       />
-    </Paper>
+    </WorkCard>
   );
 }

@@ -26,15 +26,19 @@ export default async function DonePage({ params }: { params: Params }) {
     const missing = firstUnanswered(state.answers, total);
     if (missing < total) redirect(`/s/${params.token}/q/${missing}`);
     return (
-      <div className="stack">
-        <h1>{t('survey.oneMoreTitle')}</h1>
-        <p>{t('survey.oneMoreBody')}</p>
-        <FinishButton
-          token={params.token}
-          label={t('survey.finish')}
-          messages={{ failed: t('survey.finishFailed') }}
-        />
-      </div>
+      <section className="ck-card ck-try" aria-labelledby="one-more-title">
+        <div className="ck-try-body ck-status-body">
+          <h1 id="one-more-title" className="ck-q">
+            {t('survey.oneMoreTitle')}
+          </h1>
+          <p>{t('survey.oneMoreBody')}</p>
+          <FinishButton
+            token={params.token}
+            label={t('survey.finish')}
+            messages={{ failed: t('survey.finishFailed') }}
+          />
+        </div>
+      </section>
     );
   }
   const team = await teamProgress(invite);

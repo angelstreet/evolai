@@ -119,7 +119,7 @@ export const en = {
       'Free text is anonymised automatically before it is saved: names, emails and phone numbers are hidden.',
     privacyFull: 'Full privacy notice',
     howItWorks:
-      'Tap an answer or type a few words. Answers save as you go. You can skip any question.',
+      'Pick an answer or type a few words, then Next. Each answer is saved. Text questions can be skipped.',
     start: 'Start',
     resume: 'Continue where you left off',
     resumeProgress: '{done} of {n} answered',

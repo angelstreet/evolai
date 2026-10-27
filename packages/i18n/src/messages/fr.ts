@@ -122,7 +122,7 @@ export const fr: Messages = {
       'Un texte libre est anonymisé automatiquement avant l’enregistrement : noms, e-mails et numéros de téléphone sont masqués.',
     privacyFull: 'Notice de confidentialité complète',
     howItWorks:
-      'Touchez une réponse ou écrivez quelques mots. Vos réponses sont enregistrées au fur et à mesure. Vous pouvez passer une question.',
+      'Choisissez une réponse ou écrivez quelques mots, puis Suivant. Chaque réponse est enregistrée. Les questions à texte peuvent être passées.',
     start: 'Commencer',
     resume: 'Reprendre là où vous en étiez',
     resumeProgress: '{done} sur {n} répondues',

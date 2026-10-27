@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { answerDeadline, estimatedMinutes, firstUnanswered, gateFor } from './respondent';
+import { estimatedMinutes, firstUnanswered, gateFor } from './respondent';
 
 const now = new Date('2026-10-18T10:00:00Z');
 const future = '2026-10-25T10:00:00.000Z';
@@ -40,18 +40,3 @@ describe('estimatedMinutes', () => {
   });
 });
 
-describe('answerDeadline', () => {
-  it('shows the earlier of the closing date and the link expiry, one source of truth', () => {
-    expect(answerDeadline('2026-11-01T00:00:00.000Z', '2026-11-10T00:00:00.000Z')).toBe(
-      '2026-11-01T00:00:00.000Z',
-    );
-    expect(answerDeadline('2026-11-20T00:00:00.000Z', '2026-11-10T00:00:00.000Z')).toBe(
-      '2026-11-10T00:00:00.000Z',
-    );
-  });
-  it('falls back to whichever exists', () => {
-    expect(answerDeadline(null, '2026-11-10T00:00:00.000Z')).toBe('2026-11-10T00:00:00.000Z');
-    expect(answerDeadline('2026-11-01T00:00:00.000Z', null)).toBe('2026-11-01T00:00:00.000Z');
-    expect(answerDeadline(null, null)).toBeNull();
-  });
-});

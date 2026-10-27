@@ -83,7 +83,7 @@ export const addDays = (day: string, days: number): string =>
 /** Whole days from `today` to `day` (negative when past). */
 /**
  * The one date the referent is told ("answer before"): the closing day or the earliest day a
- * still-open link stops working, whichever comes first (same rule as `answerDeadline`, TASK-AB).
+ * still-open link stops working, whichever comes first (TASK-AB).
  */
 export const effectiveCloseDay = (
   closesOn: string | null,

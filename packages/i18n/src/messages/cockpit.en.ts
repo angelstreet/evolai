@@ -137,6 +137,11 @@ export const cockpitEn = {
     s7: 'Send',
   },
   report: {
+    published: 'Published {date}',
+    noScore: 'Too few answers for a score',
+    yourActions: 'Your next actions',
+    owner: 'Owner: {owner}',
+    open: 'Open the full report',
     score: 'Readiness score',
     summary: 'Teams use AI, but client-data rules are unclear.',
     actions: 'Three actions',

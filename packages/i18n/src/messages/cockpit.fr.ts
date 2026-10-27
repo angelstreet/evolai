@@ -133,6 +133,11 @@ export const cockpitFr = {
     s7: 'Envoyer',
   },
   report: {
+    published: 'Publié le {date}',
+    noScore: 'Trop peu de réponses pour un score',
+    yourActions: 'Vos prochaines actions',
+    owner: 'Responsable : {owner}',
+    open: 'Ouvrir le rapport complet',
     score: 'Score de maturité',
     summary: 'L’IA est utilisée, mais les règles de données sont floues.',
     actions: 'Trois actions',

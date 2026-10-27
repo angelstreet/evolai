@@ -1,9 +1,6 @@
 import { notFound, redirect } from 'next/navigation';
 import Button from '@mui/material/Button';
-import Paper from '@mui/material/Paper';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
-import { AppIcon } from '@evolai/ui';
+import { ARROW_RIGHT, EDIT } from '@/components/chrome/cockpit/icons';
 import LinkProblem from '@/components/respondent/LinkProblem';
 import PrivacyNotice from '@/components/respondent/PrivacyNotice';
 import RespondentStatus from '@/components/respondent/RespondentStatus';
@@ -62,53 +59,47 @@ export default async function WelcomePage({
   const answered = Object.keys(state.answers).length;
   const next = Math.min(firstUnanswered(state.answers, total), total - 1);
   return (
-    <Paper
-      component="section"
-      variant="outlined"
+    <section
+      className="ck-card ck-try"
       aria-labelledby="welcome-title"
-      sx={{ p: { xs: 5, sm: 8 }, borderRadius: 4 }}
+      data-testid="survey-welcome"
     >
-      <Typography id="welcome-title" variant="pageTitle" component="h1" sx={{ m: 0 }}>
-        {t('survey.title')}
-      </Typography>
-      <Typography variant="lede" component="p" color="text.secondary" sx={{ mt: 3, mb: 0 }}>
-        {t('survey.lede')}
-      </Typography>
-      {notice?.controller ? (
-        <Typography
-          variant="body2"
-          component="p"
-          color="text.secondary"
-          data-testid="who-is-asking"
-          sx={{ mt: 3, mb: 0 }}
-        >
-          {t('trust.entry.asking', { org: notice.controller })}{' '}
-          {notice.contact ? t('trust.entry.contact', { contact: notice.contact }) : null}{' '}
-          {t('trust.entry.why', { purpose: notice.purpose ?? t('trust.notice.defaultPurpose') })}
-        </Typography>
-      ) : null}
-      <Stack direction="row" sx={{ mt: 4, gap: 2, alignItems: 'center', color: 'text.secondary' }}>
-        <AppIcon name="time" />
-        <Typography variant="body2" component="p" sx={{ m: 0 }}>
+      <div className="ck-try-head">
+        <h2>
+          {EDIT}
+          <span>{t('cockpit.menu.survey')}</span>
+        </h2>
+        <span className="ck-count">
           {answered > 0
             ? t('survey.resumeProgress', { done: answered, n: total })
             : t('survey.duration', { n: total, m: surveyEstimatedMinutes() })}
-        </Typography>
-      </Stack>
-      <Button
-        variant="contained"
-        size="large"
-        fullWidth
-        href={`/s/${params.token}/q/${next}`}
-        endIcon={<AppIcon name="forward" />}
-        sx={{ mt: 6 }}
-      >
-        {answered > 0 ? t('survey.resume') : t('survey.start')}
-      </Button>
-      <Typography variant="body2" component="p" color="text.secondary" sx={{ mt: 4, mb: 4 }}>
-        {t('survey.howItWorks')}
-      </Typography>
-      <PrivacyNotice t={t} engagementId={invite.engagementId} />
-    </Paper>
+        </span>
+      </div>
+      <div className="ck-try-body ck-status-body">
+        <h1 id="welcome-title" className="ck-q">
+          {t('survey.title')}
+        </h1>
+        <p className="ck-lede">{t('survey.lede')}</p>
+        {notice?.controller ? (
+          <p className="ck-muted ck-small" data-testid="who-is-asking">
+            {t('trust.entry.asking', { org: notice.controller })}{' '}
+            {notice.contact ? t('trust.entry.contact', { contact: notice.contact }) : null}{' '}
+            {t('trust.entry.why', { purpose: notice.purpose ?? t('trust.notice.defaultPurpose') })}
+          </p>
+        ) : null}
+        <Button
+          variant="contained"
+          size="large"
+          fullWidth
+          href={`/s/${params.token}/q/${next}`}
+          sx={{ minHeight: 48 }}
+        >
+          {answered > 0 ? t('survey.resume') : t('survey.start')}
+          {ARROW_RIGHT}
+        </Button>
+        <p className="ck-muted ck-small">{t('survey.howItWorks')}</p>
+        <PrivacyNotice t={t} engagementId={invite.engagementId} />
+      </div>
+    </section>
   );
 }

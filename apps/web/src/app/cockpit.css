@@ -905,3 +905,68 @@ html:has(.ck) {
   height: 44px;
   margin: -20px 0;
 }
+
+/* Survey welcome and thank-you cards (TASK-AI): one column of sections inside the card body */
+.ck-status-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.ck-status-body > h1.ck-q {
+  font-size: calc(var(--text-xl) * 1.1);
+  line-height: var(--leading-tight);
+}
+.ck-sub {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+.ck-sub-h {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--ck-17);
+  font-weight: var(--weight-bold);
+}
+.ck-sub-strong {
+  font-weight: var(--weight-bold);
+}
+.ck-next-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.ck-next-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+.ck-next-list li svg {
+  color: var(--color-accent-ink);
+  margin-top: 2px;
+}
+.ck-tip {
+  padding: var(--space-4);
+  border: 0;
+  border-radius: var(--ck-r);
+  background: var(--color-raised);
+}
+
+/* Referent space and admin (TASK-AI): the pages' own outlined cards take the Workbench card look */
+.ck-space .MuiPaper-outlined {
+  border-color: var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: none;
+}
+.ck-work .ck-try-body > * + * {
+  margin-top: var(--space-3);
+}
+/* On the raised title band the success green is under 4.5:1: the word takes the accent ink there */
+.ck-try-head .ck-status.done {
+  color: var(--color-accent-ink);
+}
