@@ -5,6 +5,7 @@
 export const learnEn = {
   nav: 'Learn the audit, page by page',
   progress: 'Page {n} of {total}',
+  cockpit: 'Back to the cockpit',
   back: 'Back',
   next: 'Next',
   watch: 'Watch',

@@ -1,5 +1,6 @@
 import { adminEn } from './admin.en.js';
 import { clientEn } from './client.en.js';
+import { cockpitEn } from './cockpit.en.js';
 import { learnEn } from './learn.en.js';
 import { trustEn } from './trust.en.js';
 import { reportEn } from './report.en.js';
@@ -289,6 +290,7 @@ export const en = {
   admin: adminEn,
   client: clientEn,
   learn: learnEn,
+  cockpit: cockpitEn,
   trust: trustEn,
   report: reportEn,
   auth: {

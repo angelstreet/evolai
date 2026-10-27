@@ -89,17 +89,15 @@ for (const theme of ['light', 'dark'] as const) {
 }
 
 test.describe('front page and sign-in content', () => {
-  test('front page: three steps, one primary action, survey line, no intake button', async ({
+  test('front page: the cockpit, one primary action, auditor sign-in only in the footer, no intake button', async ({
     page,
   }) => {
     await page.goto('/');
-    await expect(page.locator('main ol li')).toHaveCount(3);
-    await expect(page.locator('main a.MuiButton-contained')).toHaveCount(1);
-    await expect(page.getByTestId('contact-us')).toBeVisible();
+    await expect(page.getByTestId('cockpit')).toBeVisible();
+    await expect(page.locator('.ck-st-b .MuiButton-contained')).toHaveCount(1);
     await expect(page.getByTestId('front-sign-in')).toHaveAttribute('href', '/login');
-    await expect(page.getByTestId('survey-line')).toBeVisible();
+    await expect(page.locator('footer a[href="/login"]')).toHaveCount(1);
     await expect(page.locator('a[href="/intake"]')).toHaveCount(0);
-    await expect(page.locator('main img, main svg[role=img]')).toHaveCount(0);
   });
 
   test('sign-in: left-aligned card, no logo inside, no help sentence, survey line under it', async ({
@@ -135,10 +133,10 @@ test.describe('FR | EN toggle', () => {
     const toggle = page.getByTestId('language-toggle');
     await expect(toggle).toHaveAttribute('aria-label', /.+/);
     await expect(page.getByTestId('switch-fr')).toHaveAttribute('aria-pressed', 'true');
-    await expect(page.getByRole('heading', { level: 1 })).toContainText('Voyez comment');
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('commence par vos équipes');
     await page.getByTestId('switch-en').click();
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
-    await expect(page.getByRole('heading', { level: 1 })).toContainText('See how your teams');
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('starts with your teams');
     await page.goto('/login');
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
     await expect(page.getByTestId('switch-en')).toHaveAttribute('aria-pressed', 'true');

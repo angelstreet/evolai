@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import type { Metadata } from 'next';
 import './globals.css';
 import AppProviders from '@/components/chrome/AppProviders';
+import ChromeGate from '@/components/chrome/ChromeGate';
 import SiteFooter from '@/components/chrome/SiteFooter';
 import SiteHeader from '@/components/chrome/SiteHeader';
 import ViewAsBanner from '@/components/chrome/ViewAsBanner';
@@ -63,12 +64,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               {t('common.skipToContent')}
             </a>
             <RouteFocus />
-            <SiteHeader />
-            <ViewAsBanner />
-            <main id="main" tabIndex={-1} className="container">
+            <ChromeGate header={<SiteHeader />} banner={<ViewAsBanner />} footer={<SiteFooter />}>
               {children}
-            </main>
-            <SiteFooter />
+            </ChromeGate>
           </I18nProvider>
         </AppProviders>
       </body>
