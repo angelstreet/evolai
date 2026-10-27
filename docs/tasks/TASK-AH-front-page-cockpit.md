@@ -28,6 +28,14 @@ point: reuse `Cockpit.tsx`, `cockpitModel.ts`, `SendSheet.tsx`, the cockpit mess
 | W7  | Checks     | `front-page.spec.ts` updated: every menu item, Try it to Next question, the path checklist, survey to the send sheet, FR/EN, light/dark at 390×844 and 1280×800; a new assertion that no nav or step label has `scrollWidth > clientWidth` and the page has no horizontal scroll; axe clean; `pnpm style-guard` passes                                                                                                    | done (2026-10-27)                                                                                                                                                        |
 | W8  | Token cost | Sonnet codes it in one worktree from the committed mockup; no new dependency; the round-1 CSS that is no longer used is deleted                                                                                                                                                                                                                                                                                           | done (2026-10-27)                                                                                                                                                        |
 
+Mockup fidelity pass (2026-10-27, owner review "a bit different from the mockup"): headline back to
+the mockup's 28-40 px and lede and question to 18 px; Home card carries the video art like the
+lesson; the disabled Next question is the soft teal of the mockup (label still 3:1); no Back / Skip
+row under Try it (Skip only on free-text questions, choice questions have "I don't know"); FR | EN
+selected state tinted like the current menu item; the chevron no longer touches its button label;
+path steps flush with their bar. The real first question stays: it is longer than the mockup's
+sample.
+
 Carried over from round 1 and still open: goal 3 (the send step creates no account yet, ADR 0053) and
 the Lighthouse mobile ≥ 90 measure of goal 7.
 

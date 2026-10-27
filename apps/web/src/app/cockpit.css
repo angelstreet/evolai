@@ -25,6 +25,7 @@
   color: inherit;
   background: none;
   border: 0;
+  padding: 0;
   cursor: pointer;
   text-align: left;
 }
@@ -147,11 +148,16 @@
   color: var(--color-muted);
 }
 
-/* a disabled primary stays readable: muted label on a raised fill, 3:1 or better in both themes */
+/* a disabled primary keeps the mockup's soft teal, with a label at 3:1 or better in both themes */
 .ck .MuiButton-root.MuiButton-contained.Mui-disabled {
-  background: var(--color-raised);
-  color: var(--color-muted);
-  border: 1px solid var(--color-control-edge);
+  background: var(--ck-soft);
+  color: var(--color-accent-ink);
+}
+/* FR | EN: the selected language is tinted like the current menu item */
+.ck .MuiToggleButton-root.Mui-selected,
+.ck .MuiToggleButton-root.Mui-selected:hover {
+  background: var(--ck-soft);
+  color: var(--color-accent-ink);
 }
 
 /* header */
@@ -229,7 +235,8 @@
 .ck-lesson h1 {
   margin-top: var(--space-2);
   max-width: 20ch;
-  font-size: var(--text-2xl);
+  /* the mockup's 28-40 px headline */
+  font-size: clamp(var(--text-xl), 3vw, calc(var(--text-2xl) * 1.25));
   font-weight: var(--weight-bold);
   letter-spacing: -0.02em;
   line-height: var(--leading-tight);
@@ -238,7 +245,7 @@
 .ck-lede {
   margin-top: var(--space-3);
   max-width: 52ch;
-  font-size: var(--text-lg);
+  font-size: calc(var(--text-base) * 1.125);
   color: var(--color-muted);
 }
 .ck-h2 {
@@ -338,8 +345,8 @@
   padding-top: var(--space-4);
   border-top: 1px solid var(--color-border);
 }
-.ck-foot-row .MuiButton-root svg {
-  margin: 0 calc(-1 * var(--space-1));
+.ck-foot-row .MuiButton-root {
+  gap: var(--space-2);
 }
 .ck-vgrid {
   display: grid;
@@ -487,7 +494,7 @@
   background: var(--color-teal);
 }
 .ck-q {
-  font-size: var(--text-lg);
+  font-size: calc(var(--text-base) * 1.125);
   font-weight: var(--weight-bold);
   line-height: var(--leading-tight);
 }
@@ -553,7 +560,7 @@
 }
 .ck-try-nav {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   margin-top: var(--space-1);
 }
 

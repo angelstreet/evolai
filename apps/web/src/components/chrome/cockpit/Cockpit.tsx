@@ -245,6 +245,7 @@ export default function Cockpit({
           ),
         )}
       </div>
+      {videoSlot(0, 'home-video')}
       <div className="ck-foot-row">
         <span />
         <Button variant="outlined" onClick={() => open('learn')} sx={{ minHeight: 44 }}>
@@ -565,19 +566,14 @@ export default function Cockpit({
                 {SHIELD}
                 <span>{ready ? t('cockpit.tryIt.kept') : t('cockpit.tryIt.pick')}</span>
               </p>
-              <div className="ck-try-nav">
-                <Button
-                  variant="text"
-                  color="inherit"
-                  onClick={() => setQi((n) => Math.max(0, n - 1))}
-                  sx={{ minHeight: 44, visibility: qi === 0 ? 'hidden' : 'visible' }}
-                >
-                  {t('cockpit.back')}
-                </Button>
-                <Button variant="text" color="inherit" onClick={skip} sx={{ minHeight: 44 }}>
-                  {t('cockpit.skip')}
-                </Button>
-              </div>
+              {/* choice questions offer "I don't know"; only free text can be left empty */}
+              {q.kind === 'text' && (
+                <div className="ck-try-nav">
+                  <Button variant="text" color="inherit" onClick={skip} sx={{ minHeight: 44 }}>
+                    {t('cockpit.skip')}
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </div>
