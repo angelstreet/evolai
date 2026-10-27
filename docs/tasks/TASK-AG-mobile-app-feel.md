@@ -11,7 +11,7 @@ card strip with a checkmark circle, bottom tabs Home / Lessons / Reference / Set
 EvolAI keeps its own brand kit (ADR 0048) and MUI; this task copies the **structure and motion**,
 not the colours.
 
-Runs after TASK-AF (same files). Sonnet codes it; one worktree; no new library beyond what the
+Runs after TASK-AF (same files). Front page superseded by TASK-AH on 2026-10-27: this task now covers only /learn and /client. Sonnet codes it; one worktree; no new library beyond what the
 repo already has (MUI, no three.js, no animation library — CSS transitions and MUI `Fade`/`Slide`).
 
 | # | Goal | Done when | State |
