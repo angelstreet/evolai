@@ -39,4 +39,3 @@ describe('estimatedMinutes', () => {
     expect(estimatedMinutes(7)).toBe(3);
   });
 });
-
