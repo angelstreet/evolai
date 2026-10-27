@@ -94,7 +94,7 @@ export const cockpitFr = {
     count: '{n} sur 10',
     next: 'Question suivante',
     finish: 'Terminer',
-    pick: 'Choisissez une réponse pour continuer.',
+    pick: 'Choisissez une réponse. Anonyme.',
     write: 'Écrivez quelques mots pour continuer.',
     kept: 'Réponse gardée sur cet appareil.',
     placeholder: 'Votre réponse, en quelques mots',

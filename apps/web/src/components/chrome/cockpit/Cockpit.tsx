@@ -486,7 +486,7 @@ export default function Cockpit({
         <div className="ck-try-body">
           <div className="ck-qbar" aria-hidden="true">
             {questions.map((c, i) => (
-              <i key={c.code} className={i < qi || (finished && i < total) ? 'on' : undefined} />
+              <i key={c.code} className={i <= qi ? 'on' : undefined} />
             ))}
           </div>
           {finished || !q ? (

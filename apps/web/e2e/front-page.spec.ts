@@ -241,8 +241,10 @@ for (const size of SIZES) {
           await page.goto('/');
           const ratio = await page.getByTestId('ck-next').evaluate((el) => {
             const lum = (css: string) => {
+              // rgb() is 0-255; color-mix() computes to color(srgb …) in 0-1
+              const scale = css.startsWith('color(') ? 1 : 255;
               const [r, g, b] = (css.match(/[\d.]+/g) ?? []).slice(0, 3).map((v) => {
-                const c = Number(v) / 255;
+                const c = Number(v) / scale;
                 return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
               }) as [number, number, number];
               return 0.2126 * r + 0.7152 * g + 0.0722 * b;

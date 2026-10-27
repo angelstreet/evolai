@@ -98,7 +98,7 @@ export const cockpitEn = {
     count: '{n} of 10',
     next: 'Next question',
     finish: 'Finish',
-    pick: 'Pick one answer to continue.',
+    pick: 'Pick one answer. Anonymous.',
     write: 'Write a few words to continue.',
     kept: 'Answer kept on this device.',
     placeholder: 'Your answer, in a few words',
