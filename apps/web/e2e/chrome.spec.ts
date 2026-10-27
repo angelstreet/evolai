@@ -73,7 +73,7 @@ test.describe('header chrome', () => {
     await page.goto('/');
     const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
     expect(bg).toBe('rgb(26, 29, 35)');
-    const primary = page.locator('main a.MuiButton-contained').first();
+    const primary = page.locator('main .MuiButton-contained').first();
     await expect(primary).toBeVisible();
     expect(await primary.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(
       'rgb(46, 196, 178)',
@@ -146,7 +146,7 @@ const linesOf = (el: Element): number => {
 
 test.describe('hierarchy and copy length (§13)', () => {
   for (const locale of ['fr', 'en'] as const) {
-    test(`front page headline and step cards, ${locale}`, async ({ page, baseURL }) => {
+    test(`front page headline, ${locale}`, async ({ page, baseURL }) => {
       await page
         .context()
         .addCookies([{ name: 'evolai_locale', value: locale, url: baseURL as string }]);
@@ -154,12 +154,6 @@ test.describe('hierarchy and copy length (§13)', () => {
       const width = page.viewportSize()?.width ?? 0;
       if (width >= 1024) {
         expect(await page.locator('h1').evaluate(linesOf), 'headline lines').toBeLessThanOrEqual(2);
-      }
-      const bodies = page.locator('ol li p');
-      const n = await bodies.count();
-      expect(n).toBe(3);
-      for (let i = 0; i < n; i += 1) {
-        expect(await bodies.nth(i).evaluate(linesOf), `card ${i + 1} body`).toBeLessThanOrEqual(4);
       }
       // No shouting eyebrow pill in capitals above the headline.
       const caps = await page

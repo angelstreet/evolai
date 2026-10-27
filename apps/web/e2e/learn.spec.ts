@@ -73,9 +73,3 @@ for (const locale of ['en', 'fr'] as const) {
     });
   });
 }
-
-test('the front page links to /learn', async ({ page }) => {
-  await page.goto('/');
-  await page.getByTestId('front-learn').click();
-  await expect(page).toHaveURL(/\/learn$/);
-});

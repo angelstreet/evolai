@@ -62,6 +62,15 @@ export default function LearnPage({
       className="wide"
       sx={{ pt: { xs: 4, md: 8 } }}
     >
+      <Button
+        variant="text"
+        href="/"
+        startIcon={<AppIcon name="back" size={16} />}
+        data-testid="learn-cockpit"
+        sx={{ minHeight: 44, mb: 2, ml: -2 }}
+      >
+        {t('learn.cockpit')}
+      </Button>
       <Typography
         variant="body2"
         color="text.secondary"

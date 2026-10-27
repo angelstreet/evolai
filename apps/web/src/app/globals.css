@@ -3,6 +3,7 @@
  * Mobile first: one column, 44px tap targets, WCAG 2.2 AA contrast.
  */
 @import '../../../../packages/ui/src/tokens.css';
+@import './cockpit.css';
 
 * {
   box-sizing: border-box;

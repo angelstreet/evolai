@@ -2,6 +2,7 @@
 export const learnFr = {
   nav: 'Comprendre l’audit, page par page',
   progress: 'Page {n} sur {total}',
+  cockpit: 'Retour au cockpit',
   back: 'Retour',
   next: 'Suivant',
   watch: 'Regarder',
