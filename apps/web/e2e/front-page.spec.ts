@@ -257,6 +257,20 @@ for (const size of SIZES) {
         }
       });
 
+      test('text keeps the mockup size when the browser font is larger (ADR 0054)', async ({
+        page,
+      }) => {
+        await page.goto('/');
+        // a larger base font, as a browser font setting gives
+        await page.addStyleTag({ content: 'html { font-size: 20px; }' });
+        const sizes = await page.evaluate(() =>
+          ['.ck-lede', '.ck-q', '.ck-opt', '[data-testid=ck-next]'].map(
+            (sel) => getComputedStyle(document.querySelector(sel) as Element).fontSize,
+          ),
+        );
+        expect(sizes).toEqual(['18px', '18px', '16px', '16px']);
+      });
+
       test('with no saved choice the page follows the system theme', async ({ page }) => {
         const bg = async () => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
         await page.emulateMedia({ colorScheme: 'dark' });

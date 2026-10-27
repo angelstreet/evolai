@@ -1,5 +1,12 @@
 /* Front page cockpit, Workbench look (TASK-AH, docs/mockups/glowup-c-workbench.html), on the design
  * tokens: no literal colour or font size here (style-guard). Scoped under .ck. */
+/* The front page renders at the mockup's exact pixel sizes in every browser (ADR 0054): its rem
+ * base is pinned to 16 px, so a larger browser font setting does not scale it. Browser zoom still
+ * enlarges everything (WCAG 1.4.4). Other pages keep following the browser's font setting. */
+html:has(.ck) {
+  --ck-root: 16px;
+  font-size: var(--ck-root);
+}
 .ck {
   --ck-side: 232px;
   --ck-soft: color-mix(in srgb, var(--color-teal) 10%, var(--color-surface));
