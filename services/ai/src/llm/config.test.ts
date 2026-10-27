@@ -137,17 +137,13 @@ describe('OpenRouter model allowlist', () => {
     EVOLAI_AI_API_KEY: 'test-key',
   });
 
-  it.each([
-    'openai/o4-mini',
-    'openai/o4-mini-high',
-    'openai/o4-mini-high',
-    'qwen/qwen3-vl-8b-instruct',
-    'typesafe/jev-1.13',
-  ])('allows %s', (m) => {
+  it.each(['qwen/qwen3-vl-8b-instruct', 'typesafe/jev-1.13'])('allows %s', (m) => {
     expect(resolveRoute(via(m), env(m)).id).toBe(`openai-compatible/${m}`);
   });
 
   it.each([
+    'openai/o4-mini',
+    'openai/o4-mini-high',
     'anthropic/claude-sonnet-5.5',
     'minimax/minimax-m3',
     'openai/gpt-4.1-mini',
