@@ -76,6 +76,8 @@ const TILE_SETS = [
 
 const STORE = 'evolai-cockpit-v1';
 
+type AccountProgressView = { lessons: number[]; surveyDone: boolean; sent: boolean };
+
 interface Stored {
   answers: Record<string, number | string>;
   seen: number[];
@@ -161,9 +163,52 @@ export default function Cockpit({
     );
   }, [locale]);
 
+  // Signed in, Your path also follows the account (ADR 0056): load once, merge, save on change.
+  // The answers themselves never leave the browser here.
+  const [synced, setSynced] = useState(false);
+  const [surveyDoneElsewhere, setSurveyDoneElsewhere] = useState(false);
+  useEffect(() => {
+    if (!loaded || !signed) return;
+    let live = true;
+    fetch('/api/progress')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((out: { kind: string; progress?: AccountProgressView } | null) => {
+        if (!live) return;
+        const p = out?.kind === 'ok' ? out.progress : undefined;
+        if (p) {
+          setSeen((s) => new Set([...s, ...p.lessons.filter((n) => Number.isInteger(n))]));
+          if (p.sent) setSent(true);
+          if (p.surveyDone) setSurveyDoneElsewhere(true);
+        }
+        setSynced(true);
+      })
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, [loaded, signed]);
+  const surveyDone = qi >= total || surveyDoneElsewhere;
+  useEffect(() => {
+    if (!synced) return;
+    const timer = setTimeout(() => {
+      fetch('/api/progress', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ lessons: [...seen], surveyDone, sent }),
+      }).catch(() => undefined);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [synced, seen, surveyDone, sent]);
+
   const progress: Progress = useMemo(
-    () => ({ lessonsSeen: seen, questionIndex: qi, questionCount: total, sent }),
-    [seen, qi, total, sent],
+    () => ({
+      lessonsSeen: seen,
+      questionIndex: qi,
+      questionCount: total,
+      sent,
+      surveyDone: surveyDoneElsewhere,
+    }),
+    [seen, qi, total, sent, surveyDoneElsewhere],
   );
   const done = stepsDone(progress);
   const answered = answeredCount(answers);
