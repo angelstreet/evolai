@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 /**
- * TASK-AF (ADR 0051): "Open my space" tokens are `space` tokens, single use, expiring, hashed at
+ * TASK-AF (ADR 0052): "Open my space" tokens are `space` tokens, single use, expiring, hashed at
  * rest, and a set-password or reset token can never open a session. The in-memory client answers
  * the statements with the same conditions as the SQL.
  */

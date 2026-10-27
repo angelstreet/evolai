@@ -98,14 +98,14 @@ view writes a `view_as.request` row with your own user id. "Back to my view" (ba
 or the 8-hour session expiry ends it too. Trail: `SELECT created_at, action, payload_json FROM audit_log WHERE
 action LIKE 'view_as.%' ORDER BY created_at DESC LIMIT 50;` (as the service account).
 
-### Referent self-service (TASK-AF, ADR 0051)
+### Referent self-service (TASK-AF, ADR 0052)
 
 Before the referent shares the survey, set the mission's **closing date** (Settings) and the **contact person**
 (Team tab). Both appear in the referent's ready-made message and on their space; the reminder days are computed
 from the closing date (7 and 2 days before). The referent's space shows one survey address per team with a QR code,
 "Share with the team" (prefilled message, Copy, WhatsApp; nothing is sent by the platform) and one generic reminder
 message. The referent never sees who answered; if a client asks "who has not answered?", the answer is no, by
-design (ADR 0039, ADR 0051).
+design (ADR 0039, ADR 0052).
 
 ## Produce the audit result for a client (TASK-V, ADRs 0041-0043)
 
@@ -184,7 +184,7 @@ saved so the survey can be finished). After editing French, ask a native speaker
    prompts; do not paste the password into a shared place), update `DATABASE_APP_PASSWORD` in `$ENV_FILE` and
    Vercel, redeploy. Check `/api/health`.
 
-## Survey addresses and reminders (FR-03, ADR 0033, ADR 0051)
+## Survey addresses and reminders (FR-03, ADR 0033, ADR 0052)
 
 Each team has one survey address, `/s/<slug>`, made when the Team tab or the referent's space is first opened (the
 auditor can change its ending there). A browser that opens it gets its own anonymous invitation. There is no link

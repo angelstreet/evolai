@@ -16,7 +16,7 @@ const redirectTo = (path: string) =>
   new NextResponse(null, { status: 303, headers: { location: path } });
 
 /**
- * "Open my space" (TASK-AF, ADR 0051): `/client?open=<token>` lands here. A valid single-use
+ * "Open my space" (TASK-AF, ADR 0052): `/client?open=<token>` lands here. A valid single-use
  * `space` token becomes the normal client session cookie; anything else goes to sign-in. The
  * token is only ever accepted for a team referent, never for staff.
  */

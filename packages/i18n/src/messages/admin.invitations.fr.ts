@@ -1,4 +1,4 @@
-/** Onglet Équipe d’une mission (TASK-AF, ADR 0051). Miroir de `admin.invitations.en.ts`. */
+/** Onglet Équipe d’une mission (TASK-AF, ADR 0052). Miroir de `admin.invitations.en.ts`. */
 export const invitationsFr = {
   title: 'Équipe',
   subtitle:

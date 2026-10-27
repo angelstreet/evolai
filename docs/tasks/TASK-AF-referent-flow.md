@@ -76,7 +76,7 @@ slug UNIQUE, expected_size INT NULL, created_at)`. The slug is `<engagement-shor
 | Reminder cron (`api/cron/reminders`)                                      | Unchanged: it only emails referents / staff, never respondents.                                                                                                                                |
 | i18n                                                                      | New keys in `packages/i18n/src/messages` FR + EN; `client.home.noLinks` and every "link" string the referent can see is reworded ("address").                                                  |
 | `docs/AUDITOR_GUIDE.md`                                                   | Rewritten to the five mission tabs Overview / Team / Answers / Report / Settings and the referent flow above (it still lists nine tabs).                                                       |
-| ADR                                                                       | `docs/adr/0051-one-address-per-team.md`: supersedes the per-person link part of ADR 0039 and 0047.                                                                                             |
+| ADR                                                                       | `docs/adr/0052-one-address-per-team.md`: supersedes the per-person link part of ADR 0039 and 0047.                                                                                             |
 
 ## Ground rules
 

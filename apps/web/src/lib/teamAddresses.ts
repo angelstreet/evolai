@@ -5,7 +5,7 @@ import { withServiceAccount, withTenant } from './db';
 import { signInviteToken, verifyInviteToken, InvalidInviteToken } from './invitationToken';
 
 /**
- * One survey address per team (TASK-AF, ADR 0051). The address `/s/<slug>` is public to whoever
+ * One survey address per team (TASK-AF, ADR 0052). The address `/s/<slug>` is public to whoever
  * the referent forwards it to; opening it in a browser without the cookie creates one anonymous
  * invitation (a visitor *is* an invitation), so answers, progress and the minimum group rule are
  * the ones that already exist. Nothing here stores a name, an address or a per-person state.

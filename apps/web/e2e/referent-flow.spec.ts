@@ -3,7 +3,7 @@ import { expect, test, type BrowserContext, type Page } from '@playwright/test';
 import { answerCurrent, dbQuery } from './helpers';
 
 /**
- * TASK-AF (ADR 0051): the referent flow on the synthetic client C, screens 3 to 6. One address per
+ * TASK-AF (ADR 0052): the referent flow on the synthetic client C, screens 3 to 6. One address per
  * team with a QR code, Share with the team (prefilled message, Copy, WhatsApp, team size), two
  * fresh browsers answering the same address and counted as two, and the answers line. fr and en,
  * 360 and 1280, axe. The tablet project is skipped (phone and desktop only).

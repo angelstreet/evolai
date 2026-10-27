@@ -127,7 +127,8 @@ write a new one that supersedes it.
 | 0048 | [Brand kit tokens and the teal contrast rule](adr/0048-brand-kit-tokens-and-contrast-rule.md)                            | TASK-AC2                         | Accepted |
 | 0049 | [Missions home, mission tabs, two nav entries, parked pipeline](adr/0049-missions-home-and-parked-pipeline.md)           | TASK-AD2                         | Accepted |
 | 0050 | [Public "learn the audit" pages](adr/0050-learn-the-audit-pages.md)                                                      | TASK-AE                          | Accepted |
-| 0051 | [One survey address per team, "Open my space"](adr/0051-one-address-per-team.md)                                         | TASK-AF                          | Accepted |
+| 0051 | [Open by default: sign-in is the last step](adr/0051-open-by-default-sign-in-last.md)                                    | Owner decision                   | Accepted |
+| 0052 | [One survey address per team, "Open my space"](adr/0052-one-address-per-team.md)                                         | TASK-AF                          | Accepted |
 
 ## 4. The gates map (PRD §25.4)
 
@@ -191,7 +192,7 @@ Manual URLs (ports come from the `READY` line):
 - **RLS** — Every tenant-scoped table has a four-policy RLS pattern
   (`SELECT`, `INSERT`, `UPDATE`, `DELETE`) plus a `SET LOCAL
 app.tenant_id` / `app.is_service_account` switch. See ADR 0003.
-- **ADR numbering** — Next free is `0052`. One decision per ADR; never
+- **ADR numbering** — Next free is `0053`. One decision per ADR; never
   amend an old one.
 - **ROADMAP updates** — The State column flips and the README Status
   block updates in the same PR (or the immediately-following commit
@@ -302,7 +303,8 @@ docs/
    ├── 0048-brand-kit-tokens-and-contrast-rule.md
    ├── 0049-missions-home-and-parked-pipeline.md
    ├── 0050-learn-the-audit-pages.md
-   └── 0051-one-address-per-team.md
+   ├── 0051-open-by-default-sign-in-last.md
+   └── 0052-one-address-per-team.md
 ```
 
 The contract map of every Zod schema and TS type in `@evolai/contracts`
