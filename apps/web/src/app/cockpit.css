@@ -589,6 +589,12 @@ html:has(.ck) {
   width: 16px;
   height: 16px;
 }
+.ck-try-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
 .ck-try-nav {
   display: flex;
   justify-content: space-between;

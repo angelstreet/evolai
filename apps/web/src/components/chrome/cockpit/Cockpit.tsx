@@ -76,8 +76,6 @@ const TILE_SETS = [
 
 const STORE = 'evolai-cockpit-v1';
 
-type AccountProgressView = { lessons: number[]; surveyDone: boolean; sent: boolean };
-
 interface Stored {
   answers: Record<string, number | string>;
   seen: number[];
@@ -163,52 +161,9 @@ export default function Cockpit({
     );
   }, [locale]);
 
-  // Signed in, Your path also follows the account (ADR 0056): load once, merge, save on change.
-  // The answers themselves never leave the browser here.
-  const [synced, setSynced] = useState(false);
-  const [surveyDoneElsewhere, setSurveyDoneElsewhere] = useState(false);
-  useEffect(() => {
-    if (!loaded || !signed) return;
-    let live = true;
-    fetch('/api/progress')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((out: { kind: string; progress?: AccountProgressView } | null) => {
-        if (!live) return;
-        const p = out?.kind === 'ok' ? out.progress : undefined;
-        if (p) {
-          setSeen((s) => new Set([...s, ...p.lessons.filter((n) => Number.isInteger(n))]));
-          if (p.sent) setSent(true);
-          if (p.surveyDone) setSurveyDoneElsewhere(true);
-        }
-        setSynced(true);
-      })
-      .catch(() => undefined);
-    return () => {
-      live = false;
-    };
-  }, [loaded, signed]);
-  const surveyDone = qi >= total || surveyDoneElsewhere;
-  useEffect(() => {
-    if (!synced) return;
-    const timer = setTimeout(() => {
-      fetch('/api/progress', {
-        method: 'PUT',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ lessons: [...seen], surveyDone, sent }),
-      }).catch(() => undefined);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [synced, seen, surveyDone, sent]);
-
   const progress: Progress = useMemo(
-    () => ({
-      lessonsSeen: seen,
-      questionIndex: qi,
-      questionCount: total,
-      sent,
-      surveyDone: surveyDoneElsewhere,
-    }),
-    [seen, qi, total, sent, surveyDoneElsewhere],
+    () => ({ lessonsSeen: seen, questionIndex: qi, questionCount: total, sent }),
+    [seen, qi, total, sent],
   );
   const done = stepsDone(progress);
   const answered = answeredCount(answers);
@@ -611,45 +566,39 @@ export default function Cockpit({
                   <p className="ck-muted ck-small ck-mt">{freeTextHint}</p>
                 </>
               )}
-              <PrimaryButton
-                fullWidth
-                disabled={!ready}
-                onClick={() => setQi((n) => Math.min(n + 1, total))}
-                sx={{ mt: 3 }}
-                data-testid="ck-next"
-              >
-                {qi === total - 1 ? t('cockpit.tryIt.finish') : t('cockpit.tryIt.next')}
-                {ARROW_RIGHT}
-              </PrimaryButton>
+              <div className="ck-try-row">
+                {qi > 0 && (
+                  <Button
+                    variant="outlined"
+                    color="inherit"
+                    onClick={() => setQi((n) => Math.max(0, n - 1))}
+                    sx={{ minHeight: 44 }}
+                    data-testid="ck-prev"
+                  >
+                    {ARROW_LEFT}
+                    {t('cockpit.back')}
+                  </Button>
+                )}
+                <PrimaryButton
+                  disabled={!ready}
+                  onClick={() => setQi((n) => Math.min(n + 1, total))}
+                  sx={{ ml: 'auto' }}
+                  data-testid="ck-next"
+                >
+                  {qi === total - 1 ? t('cockpit.tryIt.finish') : t('cockpit.tryIt.next')}
+                  {ARROW_RIGHT}
+                </PrimaryButton>
+              </div>
               <p className="ck-hint" data-testid="ck-hint">
                 {SHIELD}
                 <span>{ready ? t('cockpit.tryIt.kept') : t('cockpit.tryIt.pick')}</span>
               </p>
               {/* choice questions offer "I don't know"; only free text can be left empty */}
-              {(qi > 0 || q.kind === 'text') && (
+              {q.kind === 'text' && (
                 <div className="ck-try-nav">
-                  {qi > 0 && (
-                    <Button
-                      variant="text"
-                      color="inherit"
-                      onClick={() => setQi((n) => Math.max(0, n - 1))}
-                      sx={{ minHeight: 44 }}
-                      data-testid="ck-prev"
-                    >
-                      {ARROW_LEFT}
-                      {t('cockpit.back')}
-                    </Button>
-                  )}
-                  {q.kind === 'text' && (
-                    <Button
-                      variant="text"
-                      color="inherit"
-                      onClick={skip}
-                      sx={{ minHeight: 44, ml: 'auto' }}
-                    >
-                      {t('cockpit.skip')}
-                    </Button>
-                  )}
+                  <Button variant="text" color="inherit" onClick={skip} sx={{ minHeight: 44, ml: 'auto' }}>
+                    {t('cockpit.skip')}
+                  </Button>
                 </div>
               )}
             </div>
