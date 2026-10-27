@@ -43,6 +43,7 @@ const configSchema = z
       .array(z.string().min(1))
       .default([
         'openai/o4-mini',
+        'openai/o4-mini-high',
         'o4-mini',
         'qwen/qwen3-vl-8b-instruct',
         'typesafe/jev-1.13',

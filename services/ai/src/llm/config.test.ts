@@ -140,6 +140,7 @@ describe('OpenRouter model allowlist', () => {
   it.each([
     'openai/o4-mini',
     'openai/o4-mini-high',
+    'openai/o4-mini-high',
     'qwen/qwen3-vl-8b-instruct',
     'typesafe/jev-1.13',
   ])('allows %s', (m) => {
