@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EvolAI Workbench</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* Mockup C, "Workbench": a wide side menu (icon + word on one line, never cut). Bold element =
+   "Try it": you answer a real question right inside the lesson, like the reference's code panel.
+   Progress is a checklist with icon + word, not a strip of cards. */
+:root{
+  --bg:#F4F7FA;--surface:#FFFFFF;--raised:#EEF3F7;--fg:#172B3A;--muted:#536575;--line:#DCE3EA;--edge:#B9C5D0;
+  --accent:#0F7A6E;--on-accent:#FFFFFF;--accent-ink:#0F7A6E;--soft:#E3F4F1;--success:#15803D;
+  --teal:#19A999;--blue:#4A7FE8;--amber:#FFB86A;--focus:#4A7FE8;--r:12px;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#1A1D23;--surface:#262A33;--raised:#2F3440;--fg:#E8EBF0;--muted:#A0A8B5;--line:#363C48;--edge:#4A5262;
+  --accent:#2EC4B2;--on-accent:#172B3A;--accent-ink:#5AD1C2;--soft:#21403F;--success:#4ADE80;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#1A1D23;--surface:#262A33;--raised:#2F3440;--fg:#E8EBF0;--muted:#A0A8B5;--line:#363C48;--edge:#4A5262;
+  --accent:#2EC4B2;--on-accent:#172B3A;--accent-ink:#5AD1C2;--soft:#21403F;--success:#4ADE80;color-scheme:dark}
+*{box-sizing:border-box}
+html{overflow-x:clip}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:clip}
+h1,h2,h3,p{margin:0}
+button,a{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer;text-align:left}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:8px}
+svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.num{font-variant-numeric:tabular-nums}
+.app{display:grid;grid-template-columns:232px 1fr;min-height:100vh}
+
+/* Side menu: icon + word on one row */
+.side{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:24px;padding:24px 16px;border-right:1px solid var(--line);background:var(--surface)}
+.brand{display:flex;align-items:center;gap:10px;padding:0 8px;font-size:22px;font-weight:600;letter-spacing:-.02em;text-decoration:none}
+.brand svg{width:32px;height:32px}
+.menu{display:flex;flex-direction:column;gap:4px}
+.menu a{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 12px;border-radius:10px;text-decoration:none;font-weight:600;color:var(--muted)}
+.menu a:hover{background:var(--raised);color:var(--fg)}
+.menu a[aria-current="page"]{background:var(--soft);color:var(--accent-ink)}
+.menu a .count{margin-left:auto;font-size:13px;font-weight:600;color:var(--muted)}
+.side .spacer{flex:1}
+.illus{border-radius:var(--r);background:var(--raised);padding:16px}
+.illus svg{width:100%;height:auto;display:block}
+.illus p{font-size:14px;color:var(--muted);margin-top:10px}
+
+/* Content */
+.content{min-width:0;padding:0 32px 32px}
+.top{display:flex;align-items:center;gap:16px;min-height:80px}
+.crumb{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--muted)}
+.crumb b{color:var(--fg);font-weight:600}
+.utils{margin-left:auto;display:flex;align-items:center;gap:8px}
+.date{font-size:14px;color:var(--muted);padding:0 12px;white-space:nowrap}
+.seg{display:inline-flex;border:1px solid var(--edge);border-radius:10px;overflow:hidden}
+.seg button{min-width:44px;height:40px;font-size:14px;font-weight:600;color:var(--muted);text-align:center}
+.seg button[aria-pressed="true"]{background:var(--soft);color:var(--accent-ink)}
+.icon-btn{display:grid;place-items:center;width:44px;height:44px;border-radius:10px;color:var(--muted)}
+.icon-btn:hover{background:var(--raised);color:var(--fg)}
+
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:24px;align-items:start}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.lesson{padding:32px}
+.kicker{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--muted)}
+h1{font-size:clamp(28px,3vw,40px);font-weight:600;letter-spacing:-.02em;line-height:1.15;margin-top:8px;max-width:20ch;text-wrap:balance}
+.lede{font-size:18px;color:var(--muted);margin-top:12px;max-width:52ch}
+.points{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:28px}
+.point{padding:20px;border-radius:var(--r);background:var(--raised)}
+.point .tile{display:grid;place-items:center;width:44px;height:44px;border-radius:12px;background:var(--surface);color:var(--fg)}
+.point b{display:block;margin-top:14px;font-size:17px}
+.point span{display:block;margin-top:4px;color:var(--muted);font-size:15px}
+.video{position:relative;margin-top:24px;aspect-ratio:16/7;border-radius:var(--r);overflow:hidden;background:var(--raised);display:grid;place-items:center}
+.video svg.bg{position:absolute;inset:0;width:100%;height:100%}
+.video .play{position:relative;display:flex;align-items:center;gap:12px;padding:10px 18px 10px 10px;border-radius:99px;background:var(--surface);border:1px solid var(--line);font-weight:600}
+.video .play i{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--raised)}
+.video .play span.s{color:var(--muted);font-weight:400}
+.lfoot{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:28px;padding-top:20px;border-top:1px solid var(--line)}
+.secondary{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border:1px solid var(--edge);border-radius:10px;font-weight:600}
+.secondary:hover{background:var(--raised)}
+.text-btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 8px;color:var(--muted);font-weight:600}
+
+/* Try it: the memorable element */
+.try{overflow:hidden}
+.try-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line);background:var(--raised)}
+.try-head h2{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:600}
+.try-head .n{font-size:14px;color:var(--muted)}
+.try-body{padding:20px}
+.qbar{display:flex;gap:4px;margin-bottom:16px}
+.qbar i{flex:1;height:4px;border-radius:99px;background:var(--line)}
+.qbar i.on{background:var(--teal)}
+.q{font-size:18px;font-weight:600;line-height:1.35}
+.opts{display:flex;flex-direction:column;gap:8px;margin-top:16px}
+.opt{display:flex;align-items:center;gap:12px;min-height:52px;padding:0 14px;border:1px solid var(--edge);border-radius:10px;font-weight:600}
+.opt:hover{background:var(--raised)}
+.opt .box{width:22px;height:22px;border-radius:50%;border:2px solid var(--edge);display:grid;place-items:center;flex:none}
+.opt[aria-checked="true"]{border-color:var(--accent-ink);box-shadow:inset 0 0 0 1px var(--accent-ink)}
+.opt[aria-checked="true"] .box{border-color:var(--accent-ink);background:var(--accent-ink);color:var(--surface)}
+.opt[aria-checked="true"] .box svg{opacity:1}
+.opt .box svg{width:14px;height:14px;opacity:0;stroke-width:3}
+.primary{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:48px;margin-top:24px;border-radius:10px;background:var(--accent);color:var(--on-accent);font-weight:600}
+.primary:disabled{opacity:.45;cursor:not-allowed}
+.hint{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;font-size:14px;color:var(--muted);min-height:21px}
+
+/* Checklist */
+.checklist{padding:20px}
+.checklist h2{display:flex;align-items:center;justify-content:space-between;font-size:18px;font-weight:600}
+.checklist h2 span{font-size:14px;color:var(--muted);font-weight:600}
+.cbar{height:6px;border-radius:99px;background:var(--raised);margin:12px 0 8px;overflow:hidden}
+.cbar i{display:block;height:100%;background:var(--teal)}
+.checklist ol{list-style:none;margin:0;padding:0}
+.checklist li{display:flex;align-items:center;gap:12px;min-height:44px;border-bottom:1px solid var(--line);font-size:15px}
+.checklist li:last-child{border-bottom:0}
+.checklist li .st{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:14px;color:var(--muted);white-space:nowrap}
+.checklist li.done .st{color:var(--success)}
+.checklist li.now{font-weight:600}
+.checklist li.now .st{color:var(--accent-ink)}
+.foot{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:24px 0 0;margin-top:32px;border-top:1px solid var(--line);font-size:14px;color:var(--muted)}
+.foot nav{display:flex;gap:20px}
+.foot a{color:var(--accent-ink)}
+.stack{display:flex;flex-direction:column;gap:16px}
+
+@media (max-width:1180px){.grid{grid-template-columns:1fr}.points{grid-template-columns:1fr}}
+@media (max-width:860px){
+  .app{grid-template-columns:1fr}
+  .side{position:fixed;top:auto;bottom:0;left:0;right:0;height:auto;flex-direction:row;padding:6px 8px calc(6px + env(safe-area-inset-bottom));border-right:0;border-top:1px solid var(--line);z-index:5}
+  .side .brand,.side .spacer,.illus{display:none}
+  .menu{flex-direction:row;flex:1;justify-content:space-around}
+  .menu a{flex:1;flex-direction:column;gap:4px;min-height:56px;padding:6px 2px;justify-content:center;font-size:13px}
+  .menu a .count{display:none}
+  .content{padding:0 16px 96px}
+  .top{flex-wrap:wrap;padding:12px 0;min-height:auto}
+  .date{display:none}
+  .lesson{padding:20px}
+  .point{display:grid;grid-template-columns:44px 1fr;column-gap:14px;align-items:center;padding:16px}
+  .point .tile{grid-row:span 2}
+  .point b{margin-top:0}
+  .point span{margin-top:0}
+}
+@media (prefers-reduced-motion:no-preference){.opt,.menu a{transition:background .15s,border-color .15s}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <a class="brand" href="#"><svg viewBox="0 0 30 30" aria-hidden="true"><rect x="2" y="18" width="7" height="9" rx="1.5" fill="#FFB86A"/><rect x="11.5" y="11" width="7" height="16" rx="1.5" fill="#4A7FE8"/><rect x="21" y="3" width="7" height="24" rx="1.5" fill="#19A999"/></svg>EvolAI</a>
+    <nav class="menu" aria-label="Sections" id="menu"></nav>
+    <div class="spacer"></div>
+    <div class="illus" aria-hidden="false">
+      <svg viewBox="0 0 200 90" fill="none" aria-hidden="true" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="160" cy="24" r="12" fill="var(--amber)"/>
+        <path d="M0 86 L40 58 L70 76 L110 34 L150 70 L200 50" stroke="var(--teal)" stroke-width="2.5"/>
+        <path d="M110 34 V14 l12 5 -12 5" stroke="var(--teal)" stroke-width="2.5"/>
+        <g fill="var(--edge)"><circle cx="16" cy="16" r="2"/><circle cx="28" cy="16" r="2"/><circle cx="40" cy="16" r="2"/><circle cx="16" cy="28" r="2"/><circle cx="28" cy="28" r="2"/><circle cx="40" cy="28" r="2"/></g>
+      </svg>
+      <p data-fr="Tout est ouvert. Connexion seulement pour envoyer.">Everything is open. Sign in only to send.</p>
+    </div>
+  </aside>
+
+  <div class="content">
+    <header class="top">
+      <div class="crumb"><span data-fr="Cours">Learn</span><svg class="i" style="width:16px;height:16px"><use href="#i-right"/></svg><b data-fr="Leçon 1 sur 5">Lesson 1 of 5</b></div>
+      <div class="utils">
+        <span class="date num" id="clock">Tue 27 Oct</span>
+        <div class="seg" role="group" aria-label="Language"><button aria-pressed="false" data-lang="fr">FR</button><button aria-pressed="true" data-lang="en">EN</button></div>
+        <button class="icon-btn" id="theme" aria-label="Switch theme" title="Switch theme"><svg class="i"><use href="#i-moon"/></svg></button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <article class="card lesson">
+        <p class="kicker"><svg class="i" style="width:16px;height:16px"><use href="#i-clock"/></svg><span data-fr="2 min de lecture">2 min read</span></p>
+        <h1 data-fr="Pourquoi un audit IA ?">Why an AI audit?</h1>
+        <p class="lede" data-fr="Vos équipes utilisent déjà l'IA. L'audit montre où elle aide vraiment.">Your teams already use AI. The audit shows where it really helps.</p>
+        <div class="points">
+          <div class="point"><span class="tile" style="background:color-mix(in srgb,var(--amber) 30%,var(--surface))"><svg class="i"><use href="#i-eye"/></svg></span><b data-fr="Voir">See</b><span data-fr="Ce que chaque équipe fait déjà.">What each team already does.</span></div>
+          <div class="point"><span class="tile" style="background:color-mix(in srgb,var(--blue) 25%,var(--surface))"><svg class="i"><use href="#i-target"/></svg></span><b data-fr="Choisir">Choose</b><span data-fr="Les gains les plus rapides.">The quickest wins first.</span></div>
+          <div class="point"><span class="tile" style="background:color-mix(in srgb,var(--teal) 28%,var(--surface))"><svg class="i"><use href="#i-route"/></svg></span><b data-fr="Avancer">Act</b><span data-fr="Un plan sur 90 jours.">A plan over 90 days.</span></div>
+        </div>
+        <div class="video">
+          <svg class="bg" viewBox="0 0 700 300" preserveAspectRatio="xMidYMid slice" fill="none" aria-hidden="true"><circle cx="590" cy="70" r="34" fill="var(--amber)" opacity=".5"/><path d="M0 260 L120 190 L220 240 L360 120 L470 220 L560 170 L700 250" stroke="var(--teal)" stroke-width="3" opacity=".5"/><path d="M0 290 L160 240 L300 280 L460 210 L700 290" stroke="var(--blue)" stroke-width="3" opacity=".35"/></svg>
+          <span class="play"><i><svg class="i"><use href="#i-play"/></svg></i><span><span data-fr="Vidéo 1">Video 1</span> <span class="s" data-fr="à venir">coming soon</span></span></span>
+        </div>
+        <div class="lfoot">
+          <button class="text-btn" disabled><svg class="i"><use href="#i-left"/></svg><span data-fr="Précédent">Previous</span></button>
+          <button class="secondary"><span data-fr="Leçon suivante">Next lesson</span><svg class="i"><use href="#i-right"/></svg></button>
+        </div>
+      </article>
+
+      <div class="stack">
+        <section class="card try" aria-labelledby="try-h">
+          <div class="try-head"><h2 id="try-h"><svg class="i"><use href="#i-edit"/></svg><span data-fr="À vous">Try it</span></h2><span class="n num" data-fr="1 sur 10">1 of 10</span></div>
+          <div class="try-body">
+            <div class="qbar" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <p class="q" data-fr="Utilisez-vous déjà l'IA au travail ?">Do you already use AI at work?</p>
+            <div class="opts" role="radiogroup" id="opts"></div>
+            <button class="primary" id="next" disabled><span data-fr="Question suivante">Next question</span><svg class="i"><use href="#i-right"/></svg></button>
+            <p class="hint" id="hint"><svg class="i" style="width:16px;height:16px"><use href="#i-shield"/></svg><span data-fr="Choisissez une réponse. Anonyme.">Pick one answer. Anonymous.</span></p>
+          </div>
+        </section>
+
+        <section class="card checklist" aria-labelledby="cl-h">
+          <h2 id="cl-h"><span style="font-size:18px;color:var(--fg)" data-fr="Votre parcours">Your path</span><span class="num" id="cl-n">1 / 7</span></h2>
+          <div class="cbar"><i style="width:14%"></i></div>
+          <ol id="cl"></ol>
+        </section>
+      </div>
+    </div>
+
+    <footer class="foot"><span data-fr="Open source. Pensé pour les équipes.">Open source. Made for teams.</span><nav><a href="#" data-fr="Vie privée">Privacy</a><a href="#" data-fr="Code source">Source</a><a href="#" data-fr="Connexion équipe EvolAI">EvolAI team sign-in</a></nav></footer>
+  </div>
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M3 5a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v15a2 2 0 0 0-2-2H3zM21 5a2 2 0 0 0-2-2h-5a2 2 0 0 0-2 2v15a2 2 0 0 1 2-2h7z"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></symbol>
+  <symbol id="i-report" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 17v-3M12 17v-6M15 17v-4"/></symbol>
+  <symbol id="i-video" viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+  <symbol id="i-left" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol>
+  <symbol id="i-right" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></symbol>
+  <symbol id="i-route" viewBox="0 0 24 24"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h8a3 3 0 0 0 0-6H8a3 3 0 0 1 0-6h8"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l4 4 10-10"/></symbol>
+  <symbol id="i-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></symbol>
+  <symbol id="i-dot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3" fill="currentColor"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+</svg>
+
+<script>
+const MENU=[['i-home','Home','Accueil',''],['i-book','Learn','Cours','5'],['i-video','Videos','Vidéos','10'],['i-list','Survey','Questionnaire','10'],['i-report','Report','Rapport','']];
+const OPTS=[['Every day','Tous les jours'],['Sometimes','Parfois'],['Not yet','Pas encore'],['I don\'t know','Je ne sais pas']];
+const STEPS=[['Why audit','Pourquoi','now'],['How it works','Comment','todo'],['The questions','Les questions','todo'],['What you get','Le résultat','todo'],['Videos','Vidéos','todo'],['Answer','Répondre','todo'],['Send','Envoyer','lock']];
+const ST={done:['i-check','Done','Fait'],now:['i-dot','Now','En cours'],todo:['i-circle','To do','À faire'],lock:['i-lock','Sign in','Connexion']};
+let lang='en',pick=-1;const fr=()=>lang==='fr';
+function render(){
+  menu.innerHTML=MENU.map((m,k)=>`<a href="#" ${k===1?'aria-current="page"':''}><svg class="i"><use href="#${m[0]}"/></svg><span>${fr()?m[2]:m[1]}</span>${m[3]?`<span class="count num">${m[3]}</span>`:''}</a>`).join('');
+  opts.innerHTML=OPTS.map((o,k)=>`<button class="opt" role="radio" aria-checked="${k===pick}" data-k="${k}"><span class="box"><svg class="i"><use href="#i-check"/></svg></span>${fr()?o[1]:o[0]}</button>`).join('');
+  cl.innerHTML=STEPS.map(s=>{const t=ST[s[2]];return `<li class="${s[2]}"><span>${fr()?s[1]:s[0]}</span><span class="st"><svg class="i" style="width:16px;height:16px"><use href="#${t[0]}"/></svg>${fr()?t[2]:t[1]}</span></li>`}).join('');
+  menu.querySelectorAll('a').forEach(a=>a.onclick=e=>{e.preventDefault();menu.querySelectorAll('a').forEach(x=>x.removeAttribute('aria-current'));a.setAttribute('aria-current','page')});
+  opts.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{pick=+b.dataset.k;next.disabled=false;hint.lastElementChild.textContent=fr()?'Réponse gardée sur cet appareil.':'Answer kept on this device.';render()});
+}
+document.querySelectorAll('[data-fr]').forEach(el=>el.dataset.en=el.textContent);
+document.querySelectorAll('[data-lang]').forEach(b=>b.onclick=()=>{lang=b.dataset.lang;document.documentElement.lang=lang;
+  document.querySelectorAll('[data-lang]').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  document.querySelectorAll('[data-fr]').forEach(el=>el.textContent=el.dataset[lang]);render();tick()});
+theme.onclick=()=>{const r=document.documentElement;const dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;r.dataset.theme=dark?'light':'dark';theme.querySelector('use').setAttribute('href',dark?'#i-moon':'#i-sun')};
+function tick(){clock.textContent=new Date().toLocaleDateString(fr()?'fr-FR':'en-GB',{weekday:'short',day:'numeric',month:'short'})}
+render();tick();
+</script>
+</body>
+</html>
