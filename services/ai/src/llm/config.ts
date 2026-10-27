@@ -38,6 +38,10 @@ const configSchema = z
   .object({
     $comment: z.string().optional(),
     approvedRoutes: z.array(routeSchema),
+    /** The only models that may go through OpenRouter (owner, 2026-10-27). Lowercase ids. */
+    openRouterModels: z
+      .array(z.string().min(1))
+      .default(['openai/o4-mini', 'o4-mini', 'qwen/qwen3-vl-8b-instruct', 'typesafe/jev-1.13', 'typesafe/jev-router']),
     caps: z
       .object({
         currency: z.string().length(3),
@@ -80,6 +84,19 @@ export const loadAiConfig = (env: NodeJS.ProcessEnv = process.env): AiConfig => 
   return parseAiConfig(JSON.parse(text));
 };
 
+const isOpenRouter = (baseUrl: string | null): boolean => (baseUrl ?? '').toLowerCase().includes('openrouter.ai');
+
+/** A route whose base URL is OpenRouter may name only an allowlisted model; every other model fails closed. */
+export const assertOpenRouterModel = (config: AiConfig, route: ApprovedRoute): void => {
+  if (!isOpenRouter(route.baseUrl)) return;
+  const model = route.model.trim().toLowerCase();
+  if (!config.openRouterModels.some((m) => m.toLowerCase() === model)) {
+    throw new RouteNotApprovedError(
+      `model "${route.model}" is not allowed on OpenRouter (allowed: ${config.openRouterModels.join(', ')})`,
+    );
+  }
+};
+
 const DEFAULTS: Record<'rule-based' | 'mock', { model: string; region: string }> = {
   'rule-based': { model: 'v1', region: 'local' },
   mock: { model: 'fixture-v1', region: 'local' },
@@ -115,6 +132,7 @@ export const resolveRoute = (
       `route ${provider}/${model} in region ${region} is not in the approved allowlist`,
     );
   }
+  assertOpenRouterModel(config, match);
   const needsKey = provider === 'openai-compatible' || provider === 'anthropic';
   // EVOLAI_AI_API_KEY wins; for Anthropic the owner's dedicated ANTHROPIC_EVOLAI_API_KEY
   // (kept in a gitignored .env) is read when it is not set.
@@ -142,4 +160,5 @@ export const assertApproved = (config: AiConfig, route: ApprovedRoute): void => 
       `route ${route.provider}/${route.model} in region ${route.region} is not in the approved allowlist`,
     );
   }
+  assertOpenRouterModel(config, route);
 };
