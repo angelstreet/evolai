@@ -313,6 +313,9 @@ test.describe('desktop layout', () => {
     expect(card!.x).toBeGreaterThan(side!.width - 1);
     expect(card!.width).toBeGreaterThan(520);
     expect(Math.round(tryIt!.width)).toBe(380);
+    // The logo keeps its own size (32 px mark), not the 20 px line-icon size.
+    const mark = await page.locator('.ck-brand svg').boundingBox();
+    expect(Math.round(mark!.height)).toBe(32);
     expect(tryIt!.x).toBeGreaterThan(card!.x + card!.width - 1);
     expect(path!.y).toBeGreaterThan(tryIt!.y + tryIt!.height - 1);
   });

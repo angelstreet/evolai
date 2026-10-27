@@ -36,9 +36,12 @@
   border-radius: var(--radius);
 }
 .ck svg {
+  flex: none;
+}
+/* line icons only: the logo and the dial carry their own width and height */
+.ck svg:where(:not([width])) {
   width: 20px;
   height: 20px;
-  flex: none;
 }
 .ck-muted {
   color: var(--color-muted);
