@@ -165,6 +165,9 @@
   border-radius: var(--ck-r);
   gap: 10px;
 }
+.ck-try .MuiButton-root.MuiButton-contained {
+  margin-top: var(--space-5);
+}
 /* FR | EN: the selected language is tinted like the current menu item */
 .ck .MuiToggleButton-root.Mui-selected,
 .ck .MuiToggleButton-root.Mui-selected:hover {
