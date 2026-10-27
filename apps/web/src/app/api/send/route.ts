@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { getSession } from '@/lib/authServer';
+import { saveProgress } from '@/lib/accountProgress';
 import { sendCockpitAnswers, type BrowserAnswers } from '@/lib/cockpitSend';
 
 export const dynamic = 'force-dynamic';
@@ -29,6 +30,9 @@ const parse = (raw: unknown) => {
 export async function POST(req: NextRequest) {
   const body = parse(await req.json().catch(() => null));
   if (!body) return NextResponse.json({ kind: 'invalid' }, { status: 400 });
-  const out = await sendCockpitAnswers(await getSession(), body.answers, body.locale, body.slug);
+  const session = await getSession();
+  const out = await sendCockpitAnswers(session, body.answers, body.locale, body.slug);
+  // Your path (ADR 0056): the account only learns that it sent, never which response is its own.
+  if (out.kind === 'ok') await saveProgress(session, { lessons: [], surveyDone: true, sent: true });
   return NextResponse.json(out, { status: STATUS[out.kind] });
 }

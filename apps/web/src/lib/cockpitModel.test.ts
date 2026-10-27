@@ -29,6 +29,11 @@ describe('cockpit steps', () => {
     expect(stepsDone({ ...p, sent: true })).toBe(7);
     expect(nextStep({ ...p, sent: true })).toBeUndefined();
   });
+  it('counts a survey finished on another device without moving the question', () => {
+    const p: Progress = { ...base, surveyDone: true };
+    expect(stepList(p)[5]?.done).toBe(true);
+    expect(stepsDone(p)).toBe(1);
+  });
   it('wraps the stage control both ways', () => {
     expect(wrapStage(-1)).toBe(4);
     expect(wrapStage(5)).toBe(0);

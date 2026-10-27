@@ -24,6 +24,8 @@ export interface Progress {
   readonly questionIndex: number;
   readonly questionCount: number;
   readonly sent: boolean;
+  /** Finished on another device (the account's progress, ADR 0056); the answers stay there. */
+  readonly surveyDone?: boolean;
 }
 
 export const stepList = (p: Progress): Step[] => [
@@ -31,7 +33,7 @@ export const stepList = (p: Progress): Step[] => [
     target: { kind: 'lesson', index } as const,
     done: p.lessonsSeen.has(index),
   })),
-  { target: { kind: 'survey' }, done: p.questionIndex >= p.questionCount },
+  { target: { kind: 'survey' }, done: p.questionIndex >= p.questionCount || p.surveyDone === true },
   { target: { kind: 'send' }, done: p.sent },
 ];
 

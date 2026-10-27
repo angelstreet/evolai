@@ -61,6 +61,10 @@
       "access": "invitation",
       "reason": "Verifies the invitation token before any write."
     },
+    "/api/progress": {
+      "access": "session",
+      "reason": "Your path of the signed-in account (ADR 0056): the handler checks the session itself; signed out gets 401; it stores lesson and step flags only, never an answer."
+    },
     "/api/send": {
       "access": "session",
       "reason": "Front-page send step (ADR 0055): the handler checks the session itself; signed out gets 401 and nothing is written; the team comes from the session only."
