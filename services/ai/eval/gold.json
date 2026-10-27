@@ -111,21 +111,21 @@
           "id": "fr-commandes-1",
           "code": "v1_repeat_task",
           "axis": "practice",
-          "question": "Pensez à votre dernière semaine de travail. Quelle tâche répétitive vous a pris le plus de temps ?",
+          "question": "La semaine dernière, quelle tâche répétitive a pris le plus de temps ?",
           "text": "Je recopie chaque semaine les commandes du mail vers le tableur, à la main. Environ 4 heures."
         },
         {
           "id": "fr-commandes-2",
           "code": "v1_missing_tool",
           "axis": "readiness",
-          "question": "Quel outil ou quelle information vous a manqué cette semaine pour bien faire votre travail ?",
+          "question": "Qu’est-ce qui vous a manqué cette semaine pour bien travailler ?",
           "text": "Il me manque un accès direct à la base des stocks ; je demande toujours à un collègue."
         },
         {
           "id": "fr-commandes-3",
           "code": "v1_assistant_wish",
           "axis": "opportunity",
-          "question": "Si un assistant pouvait vous aider sur une seule chose, ce serait quoi ?",
+          "question": "Si un assistant faisait une seule chose pour vous, laquelle ?",
           "text": "Un assistant qui rédige le brouillon du compte rendu de réunion."
         }
       ],
@@ -139,21 +139,21 @@
           "id": "fr-planning-1",
           "code": "v1_repeat_task",
           "axis": "practice",
-          "question": "Pensez à votre dernière semaine de travail. Quelle tâche répétitive vous a pris le plus de temps ?",
+          "question": "La semaine dernière, quelle tâche répétitive a pris le plus de temps ?",
           "text": "La mise à jour du planning des équipes, chaque lundi, en copiant les mêmes lignes de trois fichiers."
         },
         {
           "id": "fr-planning-2",
           "code": "v1_missing_tool",
           "axis": "readiness",
-          "question": "Quel outil ou quelle information vous a manqué cette semaine pour bien faire votre travail ?",
+          "question": "Qu’est-ce qui vous a manqué cette semaine pour bien travailler ?",
           "text": "Un outil pour voir les absences de tout le monde au même endroit."
         },
         {
           "id": "fr-planning-3",
           "code": "v1_assistant_wish",
           "axis": "opportunity",
-          "question": "Si un assistant pouvait vous aider sur une seule chose, ce serait quoi ?",
+          "question": "Si un assistant faisait une seule chose pour vous, laquelle ?",
           "text": "Un assistant qui retrouve le bon document quand je le cherche."
         }
       ],
@@ -167,21 +167,21 @@
           "id": "fr-factures-v1-1",
           "code": "v1_repeat_task",
           "axis": "practice",
-          "question": "Pensez à votre dernière semaine de travail. Quelle tâche répétitive vous a pris le plus de temps ?",
+          "question": "La semaine dernière, quelle tâche répétitive a pris le plus de temps ?",
           "text": "Ressaisir les factures fournisseurs dans le logiciel de compta. Presque une journée par semaine."
         },
         {
           "id": "fr-factures-v1-2",
           "code": "v1_missing_tool",
           "axis": "readiness",
-          "question": "Quel outil ou quelle information vous a manqué cette semaine pour bien faire votre travail ?",
+          "question": "Qu’est-ce qui vous a manqué cette semaine pour bien travailler ?",
           "text": "Il me manque les modèles de courrier à jour : j’écris souvent la même lettre."
         },
         {
           "id": "fr-factures-v1-3",
           "code": "v1_assistant_wish",
           "axis": "opportunity",
-          "question": "Si un assistant pouvait vous aider sur une seule chose, ce serait quoi ?",
+          "question": "Si un assistant faisait une seule chose pour vous, laquelle ?",
           "text": "Pré-remplir les factures récurrentes."
         }
       ],
@@ -195,21 +195,21 @@
           "id": "fr-donnees-v1-1",
           "code": "v1_repeat_task",
           "axis": "practice",
-          "question": "Pensez à votre dernière semaine de travail. Quelle tâche répétitive vous a pris le plus de temps ?",
+          "question": "La semaine dernière, quelle tâche répétitive a pris le plus de temps ?",
           "text": "Je vérifie à la main les chiffres envoyés aux clients, deux fois par jour."
         },
         {
           "id": "fr-donnees-v1-2",
           "code": "v1_missing_tool",
           "axis": "readiness",
-          "question": "Quel outil ou quelle information vous a manqué cette semaine pour bien faire votre travail ?",
+          "question": "Qu’est-ce qui vous a manqué cette semaine pour bien travailler ?",
           "text": "Je ne sais pas quelles données clients je peux utiliser dans un outil d’IA."
         },
         {
           "id": "fr-donnees-v1-3",
           "code": "v1_assistant_wish",
           "axis": "opportunity",
-          "question": "Si un assistant pouvait vous aider sur une seule chose, ce serait quoi ?",
+          "question": "Si un assistant faisait une seule chose pour vous, laquelle ?",
           "text": "Une formation courte avec des exemples de notre équipe."
         }
       ],
@@ -223,21 +223,21 @@
           "id": "fr-accueil-1",
           "code": "v1_repeat_task",
           "axis": "practice",
-          "question": "Pensez à votre dernière semaine de travail. Quelle tâche répétitive vous a pris le plus de temps ?",
+          "question": "La semaine dernière, quelle tâche répétitive a pris le plus de temps ?",
           "text": "Répondre aux mêmes questions de clients par mail, plusieurs fois par jour. Je copie souvent les mêmes réponses."
         },
         {
           "id": "fr-accueil-2",
           "code": "v1_missing_tool",
           "axis": "readiness",
-          "question": "Quel outil ou quelle information vous a manqué cette semaine pour bien faire votre travail ?",
+          "question": "Qu’est-ce qui vous a manqué cette semaine pour bien travailler ?",
           "text": "Il me manque une liste de réponses types facile à retrouver."
         },
         {
           "id": "fr-accueil-3",
           "code": "v1_assistant_wish",
           "axis": "opportunity",
-          "question": "Si un assistant pouvait vous aider sur une seule chose, ce serait quoi ?",
+          "question": "Si un assistant faisait une seule chose pour vous, laquelle ?",
           "text": "Un assistant qui propose une réponse que je relis avant d’envoyer."
         }
       ],
@@ -251,14 +251,14 @@
           "id": "fr-court-1",
           "code": "v1_repeat_task",
           "axis": "practice",
-          "question": "Pensez à votre dernière semaine de travail. Quelle tâche répétitive vous a pris le plus de temps ?",
+          "question": "La semaine dernière, quelle tâche répétitive a pris le plus de temps ?",
           "text": "Le suivi des demandes d’achat, rempli à la main dans deux fichiers."
         },
         {
           "id": "fr-court-2",
           "code": "v1_missing_tool",
           "axis": "readiness",
-          "question": "Quel outil ou quelle information vous a manqué cette semaine pour bien faire votre travail ?",
+          "question": "Qu’est-ce qui vous a manqué cette semaine pour bien travailler ?",
           "text": "Rien de particulier cette semaine."
         }
       ],
@@ -272,21 +272,21 @@
           "id": "en-orders-1",
           "code": "v1_repeat_task",
           "axis": "practice",
-          "question": "Think about your last week at work. Which repetitive task took you the most time?",
+          "question": "Last week, which repeated task took the most time?",
           "text": "Every Monday I copy order lines from emails into the spreadsheet by hand. About 3 hours."
         },
         {
           "id": "en-orders-2",
           "code": "v1_missing_tool",
           "axis": "readiness",
-          "question": "What tool or piece of information were you missing this week to do your job well?",
+          "question": "What did you miss this week to work well?",
           "text": "I was missing access to the stock database, so I ask a colleague each time."
         },
         {
           "id": "en-orders-3",
           "code": "v1_assistant_wish",
           "axis": "opportunity",
-          "question": "If an assistant could help you with just one thing, what would it be?",
+          "question": "If an assistant did one thing for you, what would it be?",
           "text": "An assistant that writes the first draft of the meeting minutes."
         }
       ],
@@ -300,21 +300,21 @@
           "id": "en-reports-1",
           "code": "v1_repeat_task",
           "axis": "practice",
-          "question": "Think about your last week at work. Which repetitive task took you the most time?",
+          "question": "Last week, which repeated task took the most time?",
           "text": "Building the weekly report: the same figures pasted from four tools."
         },
         {
           "id": "en-reports-2",
           "code": "v1_missing_tool",
           "axis": "readiness",
-          "question": "What tool or piece of information were you missing this week to do your job well?",
+          "question": "What did you miss this week to work well?",
           "text": "A tool that shows all four sources in one place."
         },
         {
           "id": "en-reports-3",
           "code": "v1_assistant_wish",
           "axis": "opportunity",
-          "question": "If an assistant could help you with just one thing, what would it be?",
+          "question": "If an assistant did one thing for you, what would it be?",
           "text": "An assistant to summarise customer feedback for me."
         }
       ],
@@ -328,21 +328,21 @@
           "id": "en-invoices-v1-1",
           "code": "v1_repeat_task",
           "axis": "practice",
-          "question": "Think about your last week at work. Which repetitive task took you the most time?",
+          "question": "Last week, which repeated task took the most time?",
           "text": "Re-typing supplier invoices into the accounting software. Nearly a day each week."
         },
         {
           "id": "en-invoices-v1-2",
           "code": "v1_missing_tool",
           "axis": "readiness",
-          "question": "What tool or piece of information were you missing this week to do your job well?",
+          "question": "What did you miss this week to work well?",
           "text": "Up-to-date letter templates: I rewrite the same letter often."
         },
         {
           "id": "en-invoices-v1-3",
           "code": "v1_assistant_wish",
           "axis": "opportunity",
-          "question": "If an assistant could help you with just one thing, what would it be?",
+          "question": "If an assistant did one thing for you, what would it be?",
           "text": "Fill in the recurring invoices for me."
         }
       ],
@@ -356,21 +356,21 @@
           "id": "en-data-v1-1",
           "code": "v1_repeat_task",
           "axis": "practice",
-          "question": "Think about your last week at work. Which repetitive task took you the most time?",
+          "question": "Last week, which repeated task took the most time?",
           "text": "I check by hand the figures we send to clients, twice a day."
         },
         {
           "id": "en-data-v1-2",
           "code": "v1_missing_tool",
           "axis": "readiness",
-          "question": "What tool or piece of information were you missing this week to do your job well?",
+          "question": "What did you miss this week to work well?",
           "text": "I am not sure which client data I may use in an AI tool."
         },
         {
           "id": "en-data-v1-3",
           "code": "v1_assistant_wish",
           "axis": "opportunity",
-          "question": "If an assistant could help you with just one thing, what would it be?",
+          "question": "If an assistant did one thing for you, what would it be?",
           "text": "A short training with real examples from our team."
         }
       ],
@@ -384,21 +384,21 @@
           "id": "en-support-1",
           "code": "v1_repeat_task",
           "axis": "practice",
-          "question": "Think about your last week at work. Which repetitive task took you the most time?",
+          "question": "Last week, which repeated task took the most time?",
           "text": "Answering the same customer questions by email many times a day. I paste the same replies."
         },
         {
           "id": "en-support-2",
           "code": "v1_missing_tool",
           "axis": "readiness",
-          "question": "What tool or piece of information were you missing this week to do your job well?",
+          "question": "What did you miss this week to work well?",
           "text": "I lack a list of standard replies that is easy to find."
         },
         {
           "id": "en-support-3",
           "code": "v1_assistant_wish",
           "axis": "opportunity",
-          "question": "If an assistant could help you with just one thing, what would it be?",
+          "question": "If an assistant did one thing for you, what would it be?",
           "text": "An assistant that suggests a reply, which I review before sending."
         }
       ],
@@ -412,14 +412,14 @@
           "id": "en-short-1",
           "code": "v1_repeat_task",
           "axis": "practice",
-          "question": "Think about your last week at work. Which repetitive task took you the most time?",
+          "question": "Last week, which repeated task took the most time?",
           "text": "Tracking purchase requests, filled in by hand in two files."
         },
         {
           "id": "en-short-3",
           "code": "v1_assistant_wish",
           "axis": "opportunity",
-          "question": "If an assistant could help you with just one thing, what would it be?",
+          "question": "If an assistant did one thing for you, what would it be?",
           "text": "Find the right document when I search for it."
         }
       ],
@@ -433,21 +433,21 @@
           "id": "en-contact-1",
           "code": "v1_repeat_task",
           "axis": "practice",
-          "question": "Think about your last week at work. Which repetitive task took you the most time?",
+          "question": "Last week, which repeated task took the most time?",
           "text": "I copy the same customer details into the CRM each time. Ask Pat Demo (pat.demo@synthetic.invalid) how it works."
         },
         {
           "id": "en-contact-2",
           "code": "v1_missing_tool",
           "axis": "readiness",
-          "question": "What tool or piece of information were you missing this week to do your job well?",
+          "question": "What did you miss this week to work well?",
           "text": "Nothing missing this week."
         },
         {
           "id": "en-contact-3",
           "code": "v1_assistant_wish",
           "axis": "opportunity",
-          "question": "If an assistant could help you with just one thing, what would it be?",
+          "question": "If an assistant did one thing for you, what would it be?",
           "text": "Help writing the weekly summary."
         }
       ],

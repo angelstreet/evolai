@@ -46,9 +46,7 @@ describe('pilot questionnaire v1', () => {
         expect(o.label.en).not.toBe('');
       }
     }
-    expect(q.freeTextHint.fr).toBe(
-      'Pas de noms, ni e-mails, ni numéros : nous les masquons automatiquement.',
-    );
+    expect(q.freeTextHint.fr).toBe('Pas de noms, ni e-mails, ni numéros. Nous les masquons.');
     expect(q.freeTextMaxLength).toBe(400);
   });
 

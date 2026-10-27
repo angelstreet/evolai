@@ -16,10 +16,9 @@ export const cockpitEn = {
   header: {
     lesson: 'Lesson {n} of 5',
     question: 'Question {n} of 10',
-    sample: 'Sample',
     done: 'Done',
   },
-  back: 'Back',
+  back: 'Previous',
   skip: 'Skip',
   home: {
     title: 'An AI audit that starts with your teams.',
@@ -30,7 +29,6 @@ export const cockpitEn = {
     evolve: { title: 'Evolve', line: 'A score and a 90-day plan.' },
   },
   learn: {
-    readTime: '2 min read',
     previous: 'Previous',
     next: 'Next lesson',
     toSurvey: 'Answer the survey',
@@ -96,6 +94,7 @@ export const cockpitEn = {
   tryIt: {
     title: 'Try it',
     count: '{n} of 10',
+    goTo: 'Go to question {n}',
     next: 'Next question',
     finish: 'Finish',
     pick: 'Pick one answer. Anonymous.',
@@ -122,7 +121,6 @@ export const cockpitEn = {
     s7: 'Send',
   },
   report: {
-    sample: 'Sample',
     score: 'Readiness score',
     summary: 'Teams use AI, but client-data rules are unclear.',
     actions: 'Three actions',

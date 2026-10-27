@@ -20,7 +20,6 @@ import {
   stepsDone,
   type CockpitAnswers,
   type Progress,
-  type Step,
 } from '@/lib/cockpitModel';
 import {
   ARROW_LEFT,
@@ -28,7 +27,6 @@ import {
   CHECK,
   CHEVRON_RIGHT,
   CIRCLE,
-  CLOCK,
   DOT,
   EDIT,
   LOCK,
@@ -177,22 +175,16 @@ export default function Cockpit({
   };
   const open = (s: Section) => {
     setSection(s);
-    if (s === 'learn') markSeen(lesson);
     scrollToMain();
   };
-  const goStep = (s: Step) => {
-    if (s.target.kind === 'send') return setSheet(true);
-    if (s.target.kind === 'lesson') {
-      setLesson(s.target.index);
-      markSeen(s.target.index);
-      setSection('learn');
-    } else setSection('survey');
-    scrollToMain();
-  };
+  // A lesson counts as done when the person moves on from it, never on opening it or from the path.
   const pageLesson = (d: number) => {
-    const n = Math.max(0, Math.min(LESSON_KEYS.length - 1, lesson + d));
-    setLesson(n);
-    markSeen(n);
+    if (d > 0) markSeen(lesson);
+    setLesson(Math.max(0, Math.min(LESSON_KEYS.length - 1, lesson + d)));
+  };
+  const finishLessons = () => {
+    markSeen(lesson);
+    open('survey');
   };
 
   const send = async (email: string) => {
@@ -289,10 +281,6 @@ export default function Cockpit({
     const key = LESSON_KEYS[lesson] ?? 'why';
     return (
       <>
-        <p className="ck-kicker">
-          {CLOCK}
-          <span>{t('cockpit.learn.readTime')}</span>
-        </p>
         <h1>{tk(`cockpit.learn.${key}.title`)}</h1>
         <p className="ck-lede">{tk(`cockpit.learn.${key}.lede`)}</p>
         <div className="ck-points">
@@ -323,7 +311,7 @@ export default function Cockpit({
               {ARROW_RIGHT}
             </Button>
           ) : (
-            <Button variant="outlined" onClick={() => open('survey')} sx={{ minHeight: 44 }}>
+            <Button variant="outlined" onClick={finishLessons} sx={{ minHeight: 44 }}>
               {t('cockpit.learn.toSurvey')}
               {ARROW_RIGHT}
             </Button>
@@ -417,9 +405,6 @@ export default function Cockpit({
   };
   const reportCard = () => (
     <>
-      <p className="ck-kicker">
-        <span>{t('cockpit.report.sample')}</span>
-      </p>
       <h1>{t('cockpit.report.client')}</h1>
       <div className="ck-score">
         {dial(62)}
@@ -484,10 +469,26 @@ export default function Cockpit({
           </span>
         </div>
         <div className="ck-try-body">
-          <div className="ck-qbar" aria-hidden="true">
-            {questions.map((c, i) => (
-              <i key={c.code} className={i <= qi ? 'on' : undefined} />
-            ))}
+          {/* each segment jumps to its question: one before the current, answered, or right after an answered one */}
+          <div className="ck-qbar">
+            {questions.map((c, i) => {
+              const prev = questions[i - 1];
+              const reachable = i <= qi || hasAnswer(c.code) || (!!prev && hasAnswer(prev.code));
+              return (
+                <button
+                  key={c.code}
+                  type="button"
+                  className={i <= qi ? 'on' : undefined}
+                  disabled={!reachable}
+                  aria-current={i === qi ? 'step' : undefined}
+                  aria-label={t('cockpit.tryIt.goTo', { n: i + 1 })}
+                  onClick={() => setQi(i)}
+                  data-testid="ck-qbar-step"
+                >
+                  <i />
+                </button>
+              );
+            })}
           </div>
           {finished || !q ? (
             <>
@@ -567,11 +568,30 @@ export default function Cockpit({
                 <span>{ready ? t('cockpit.tryIt.kept') : t('cockpit.tryIt.pick')}</span>
               </p>
               {/* choice questions offer "I don't know"; only free text can be left empty */}
-              {q.kind === 'text' && (
+              {(qi > 0 || q.kind === 'text') && (
                 <div className="ck-try-nav">
-                  <Button variant="text" color="inherit" onClick={skip} sx={{ minHeight: 44 }}>
-                    {t('cockpit.skip')}
-                  </Button>
+                  {qi > 0 && (
+                    <Button
+                      variant="text"
+                      color="inherit"
+                      onClick={() => setQi((n) => Math.max(0, n - 1))}
+                      sx={{ minHeight: 44 }}
+                      data-testid="ck-prev"
+                    >
+                      {ARROW_LEFT}
+                      {t('cockpit.back')}
+                    </Button>
+                  )}
+                  {q.kind === 'text' && (
+                    <Button
+                      variant="text"
+                      color="inherit"
+                      onClick={skip}
+                      sx={{ minHeight: 44, ml: 'auto' }}
+                    >
+                      {t('cockpit.skip')}
+                    </Button>
+                  )}
                 </div>
               )}
             </div>
@@ -609,14 +629,13 @@ export default function Cockpit({
                   ? t('cockpit.path.now')
                   : t('cockpit.path.todo');
             return (
-              <li key={i} className={state}>
-                <button type="button" onClick={() => goStep(s)} data-testid="ck-path-step">
-                  <span className="ck-step-name">{stepName(i)}</span>
-                  <span className="ck-status">
-                    {s.done ? CHECK : lastLocked ? LOCK : state === 'now' ? DOT : CIRCLE}
-                    <span className="ck-word">{word}</span>
-                  </span>
-                </button>
+              // read-only: the status comes from the person's progress, not from a click
+              <li key={i} className={state} data-testid="ck-path-step">
+                <span className="ck-step-name">{stepName(i)}</span>
+                <span className="ck-status">
+                  {s.done ? CHECK : lastLocked ? LOCK : state === 'now' ? DOT : CIRCLE}
+                  <span className="ck-word">{word}</span>
+                </span>
               </li>
             );
           })}
@@ -633,9 +652,7 @@ export default function Cockpit({
         ? qi >= total
           ? t('cockpit.header.done')
           : t('cockpit.header.question', { n: qi + 1 })
-        : section === 'report'
-          ? t('cockpit.header.sample')
-          : null;
+        : null;
 
   return (
     <div className="ck" data-testid="cockpit">

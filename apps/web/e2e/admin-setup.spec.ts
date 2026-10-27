@@ -165,7 +165,7 @@ test.describe('audit set-up', () => {
         .click();
       await expect(page.getByRole('heading', { level: 2, name: c.previewHeading })).toBeVisible();
       const question =
-        locale === 'fr' ? /An AI tool gives you an answer/ : /Un outil d’IA vous donne une réponse/;
+        locale === 'fr' ? /An AI answer has no source/ : /Une réponse d’IA n’a pas de source/;
       await expect(page.getByText(question).first()).toBeVisible();
     });
   }

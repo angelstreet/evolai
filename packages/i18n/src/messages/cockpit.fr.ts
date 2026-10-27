@@ -12,10 +12,9 @@ export const cockpitFr = {
   header: {
     lesson: 'Leçon {n} sur 5',
     question: 'Question {n} sur 10',
-    sample: 'Exemple',
     done: 'Terminé',
   },
-  back: 'Retour',
+  back: 'Précédent',
   skip: 'Passer',
   home: {
     title: 'Un audit IA qui part de vos équipes.',
@@ -26,7 +25,6 @@ export const cockpitFr = {
     evolve: { title: 'Évoluer', line: 'Un score et un plan sur 90 jours.' },
   },
   learn: {
-    readTime: '2 min de lecture',
     previous: 'Précédent',
     next: 'Leçon suivante',
     toSurvey: 'Répondre',
@@ -92,6 +90,7 @@ export const cockpitFr = {
   tryIt: {
     title: 'À vous',
     count: '{n} sur 10',
+    goTo: 'Aller à la question {n}',
     next: 'Question suivante',
     finish: 'Terminer',
     pick: 'Choisissez une réponse. Anonyme.',
@@ -118,7 +117,6 @@ export const cockpitFr = {
     s7: 'Envoyer',
   },
   report: {
-    sample: 'Exemple',
     score: 'Score de maturité',
     summary: 'L’IA est utilisée, mais les règles de données sont floues.',
     actions: 'Trois actions',

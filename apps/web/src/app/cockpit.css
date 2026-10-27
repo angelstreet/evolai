@@ -245,19 +245,7 @@ html:has(.ck) {
 .ck-lesson {
   padding: var(--space-6);
 }
-.ck-kicker {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: var(--ck-15);
-  color: var(--color-muted);
-}
-.ck-kicker svg {
-  width: 16px;
-  height: 16px;
-}
 .ck-lesson h1 {
-  margin-top: var(--space-2);
   max-width: 20ch;
   /* the mockup's 28-40 px headline */
   font-size: clamp(var(--text-xl), 3vw, calc(var(--text-2xl) * 1.25));
@@ -514,14 +502,27 @@ html:has(.ck) {
   gap: var(--space-1);
   margin-bottom: var(--space-4);
 }
-.ck-qbar i {
+.ck-qbar button {
   flex: 1;
+  display: grid;
+  align-items: center;
+  /* a 24 px tall target around the 4 px segment */
+  height: 24px;
+  margin: -10px 0;
+}
+.ck-qbar button:disabled {
+  cursor: default;
+}
+.ck-qbar i {
   height: 4px;
   border-radius: var(--radius-pill);
   background: var(--color-border);
 }
-.ck-qbar i.on {
+.ck-qbar button.on i {
   background: var(--color-teal);
+}
+.ck-qbar button:not(:disabled):hover i {
+  background: var(--color-accent-ink);
 }
 .ck-q {
   font-size: var(--ck-18);
@@ -590,7 +591,7 @@ html:has(.ck) {
 }
 .ck-try-nav {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   margin-top: var(--space-1);
 }
 
@@ -623,18 +624,15 @@ html:has(.ck) {
   padding: 0;
 }
 .ck-path li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 44px;
+  font-size: var(--ck-15);
   border-bottom: 1px solid var(--color-border);
 }
 .ck-path li:last-child {
   border-bottom: 0;
-}
-.ck-path li button {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  width: 100%;
-  min-height: 44px;
-  font-size: var(--ck-15);
 }
 .ck-step-name {
   display: block;

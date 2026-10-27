@@ -62,12 +62,6 @@ export const EDIT = line(
   </>,
 );
 export const SHIELD = line(<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" />);
-export const CLOCK = line(
-  <>
-    <circle cx="12" cy="12" r="9" />
-    <path d="M12 7v5l3 2" />
-  </>,
-);
 export const CHECK = line(<path d="M5 12l4 4 10-10" />);
 export const CIRCLE = line(<circle cx="12" cy="12" r="8" />);
 export const DOT = line(

@@ -26,9 +26,11 @@ test.describe('questionnaire v1 on a phone', () => {
     await page.goto(`/s/${token}`);
     await expect(page.locator('main')).toContainText('10 questions · about 7 min');
     await page.goto(`/s/${token}/q/${FIRST_TEXT}`);
-    await expect(page.getByRole('heading', { level: 1 })).toContainText('last week at work');
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(
+      'repeated task took the most time',
+    );
     await expect(page.locator('#text-counter')).toHaveText(/\d+ of 400 characters/);
-    await expect(page.locator('main')).toContainText('we mask them automatically');
+    await expect(page.locator('main')).toContainText('We mask them.');
     await expect(page.locator('main')).toContainText('Optional');
     await page.goto(`/s/${token}/q/0`);
     await expect(page.locator('button.option-button').last()).toHaveText(
@@ -74,12 +76,12 @@ test.describe('questionnaire v1 on a phone', () => {
     // Free text 1: box, hint, counter, hard cap at 400.
     await expect(page).toHaveURL(new RegExp(`/q/${FIRST_TEXT}$`));
     await expect(page.getByRole('heading', { level: 1 })).toContainText(
-      'dernière semaine de travail',
+      'tâche répétitive a pris le plus de temps',
     );
     const box = page.locator('textarea.text-answer-input');
     await expect(box).toBeVisible();
     await expect(page.locator('main')).toContainText(
-      'Pas de noms, ni e-mails, ni numéros : nous les masquons automatiquement.',
+      'Pas de noms, ni e-mails, ni numéros. Nous les masquons.',
     );
     await expect(page.locator('main')).toContainText('Facultatif');
     await expect(page.locator('#text-counter')).toHaveText('0 sur 400 caractères');

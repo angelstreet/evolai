@@ -92,7 +92,7 @@ describe('answerPlainText', () => {
         choice: 'check_source',
         rationale: null,
       }),
-    ).toBe('Je la compare avec une autre source');
+    ).toBe('Je vérifie ailleurs');
     expect(answerPlainText(item('v1_source_check'), 'use_as_is')).toBe('Je l’utilise telle quelle');
     expect(
       answerPlainText(item('v1_source_check'), {

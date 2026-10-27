@@ -36,6 +36,12 @@ selected state tinted like the current menu item; the chevron no longer touches 
 path steps flush with their bar. The real first question stays: it is longer than the mockup's
 sample.
 
+Owner review 2 (2026-10-27): text base pinned to 16 px (ADR 0054); the ten questions, their options and
+the free-text hint reworded short in `pilot-v1.json` (same codes, same meaning); no "2 min read" and no
+"Sample" label anywhere; Try it has Previous and clickable progress segments (back to any question
+reached, answered, or right after an answered one); Your path is read-only, its status comes only from
+progress, and a lesson is done when the person moves on from it, not when it is opened.
+
 Carried over from round 1 and still open: goal 3 (the send step creates no account yet, ADR 0053) and
 the Lighthouse mobile ≥ 90 measure of goal 7.
 

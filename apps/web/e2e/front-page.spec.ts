@@ -82,7 +82,6 @@ for (const size of SIZES) {
         await expect(page.getByTestId('ck-question-row')).toHaveCount(10);
         await menu(page, 'report').click();
         await expect(main).toContainText('Demo Client');
-        await expect(main).toContainText('Sample');
         await expect(main).toContainText('Sales team');
         // Round 1 pieces are gone.
         await expect(
@@ -105,13 +104,25 @@ for (const size of SIZES) {
         await expect(page.getByTestId('ck-hint')).toContainText('kept on this device');
         await next.click();
         await expect(page.getByTestId('ck-try-count')).toHaveText('2 of 10');
+        // back by Previous, then forward again by the progress segment
+        const segs = page.getByTestId('ck-qbar-step');
+        await expect(segs.nth(5)).toBeDisabled();
+        await page.getByTestId('ck-prev').click();
+        await expect(page.getByTestId('ck-try-count')).toHaveText('1 of 10');
+        await expect(page.getByTestId('ck-prev')).toHaveCount(0);
+        await segs.nth(1).click();
+        await expect(page.getByTestId('ck-try-count')).toHaveText('2 of 10');
+        await segs.first().click();
+        await expect(page.getByTestId('ck-try-count')).toHaveText('1 of 10');
+        await expect(page.getByTestId('ck-option').first()).toHaveAttribute('aria-checked', 'true');
+        await segs.nth(1).click();
         await menu(page, 'survey').click();
         await expect(page.getByTestId('ck-question-row').first()).toContainText('Answered');
         await expect(page.getByTestId('ck-question-row').nth(1)).toContainText('To do');
         await expect(page.getByTestId('ck-path-count')).toHaveText('0 / 7');
       });
 
-      test('Your path: seven steps, status as icon plus word, a lesson opened ticks its step', async ({
+      test('Your path: seven read-only steps; a lesson is done once you move past it', async ({
         page,
         baseURL,
       }) => {
@@ -122,12 +133,14 @@ for (const size of SIZES) {
         await expect(steps.first()).toContainText('Now');
         await expect(steps.nth(1)).toContainText('To do');
         await expect(steps.last()).toContainText('Sign in');
+        await expect(page.locator('.ck-path button')).toHaveCount(0);
         await menu(page, 'learn').click();
+        await expect(page.getByTestId('ck-path-count')).toHaveText('0 / 7');
+        await page.locator('.ck-foot-row .MuiButton-outlined').click();
+        await expect(page.getByTestId('ck-crumb')).toContainText('Lesson 2 of 5');
         await expect(page.getByTestId('ck-path-count')).toHaveText('1 / 7');
         await expect(steps.first()).toContainText('Done');
         await expect(steps.nth(1)).toContainText('Now');
-        await steps.nth(3).click();
-        await expect(page.getByTestId('ck-crumb')).toContainText('Lesson 4 of 5');
       });
 
       test('survey: ten questions, answers kept in the browser, ends at the send sheet', async ({

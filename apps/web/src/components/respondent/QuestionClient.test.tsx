@@ -53,7 +53,7 @@ describe('QuestionClient, free-text question', () => {
     expect(html).toContain('maxLength="400"');
     expect(html).toContain('0 sur 400 caractères');
     expect(html).toContain('Pas de noms, ni e-mails, ni numéros');
-    expect(html).toContain('nous les masquons automatiquement.');
+    expect(html).toContain('Nous les masquons.');
     expect(html).toContain('Facultatif');
     expect(html).toContain('Suivant');
     expect(html).toContain('Passer');
@@ -63,7 +63,7 @@ describe('QuestionClient, free-text question', () => {
   it('English: matching copy', () => {
     const html = render('en', FIRST_TEXT);
     expect(html).toContain('0 of 400 characters');
-    expect(html).toContain('we mask them automatically');
+    expect(html).toContain('We mask them.');
     expect(html).toContain('Optional');
     expect(html).toContain('Next');
     expect(html).toContain('Skip');
@@ -80,7 +80,7 @@ describe('QuestionClient, free-text question', () => {
     expect(html).not.toContain('<textarea');
     expect(html.match(/option-button/g)?.length).toBeGreaterThanOrEqual(4);
     expect(html.lastIndexOf('Je ne sais pas / Ça dépend')).toBeGreaterThan(
-      html.lastIndexOf('Je la compare avec une autre source'),
+      html.lastIndexOf('Je vérifie ailleurs'),
     );
   });
 });
