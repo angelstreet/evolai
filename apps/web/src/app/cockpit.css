@@ -184,6 +184,11 @@
 
 /* main grid */
 .ck-grid {
+  /* undo the global `main` column (max-width, auto margins, padding) */
+  max-width: none;
+  width: auto;
+  margin: 0;
+  padding: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 380px;
   gap: var(--space-5);

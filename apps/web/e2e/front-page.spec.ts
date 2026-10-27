@@ -242,6 +242,8 @@ test.describe('desktop layout', () => {
     expect(side?.x).toBe(0);
     expect(Math.round(side!.width)).toBe(232);
     expect(card!.x).toBeGreaterThan(side!.width - 1);
+    expect(card!.width).toBeGreaterThan(520);
+    expect(Math.round(tryIt!.width)).toBe(380);
     expect(tryIt!.x).toBeGreaterThan(card!.x + card!.width - 1);
     expect(path!.y).toBeGreaterThan(tryIt!.y + tryIt!.height - 1);
   });
