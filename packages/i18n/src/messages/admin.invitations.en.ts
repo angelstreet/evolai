@@ -1,4 +1,4 @@
-/** Team tab of a mission (TASK-AF, ADR 0051). Mirrored by `admin.invitations.fr.ts`. */
+/** Team tab of a mission (TASK-AF, ADR 0052). Mirrored by `admin.invitations.fr.ts`. */
 export const invitationsEn = {
   title: 'Team',
   subtitle: 'Send the welcome email to the referent and check each team’s survey address.',

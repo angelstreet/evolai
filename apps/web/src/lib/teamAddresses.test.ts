@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { signInviteToken } from './invitationToken';
 
 /**
- * TASK-AF (ADR 0051): the slug rules and the address-to-invitation branch. A visitor is an
+ * TASK-AF (ADR 0052): the slug rules and the address-to-invitation branch. A visitor is an
  * invitation: no cookie gives a new anonymous row, the same browser keeps its own, and a token of
  * another team is never reused.
  */

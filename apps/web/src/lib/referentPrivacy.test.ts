@@ -3,7 +3,7 @@ import { join, relative } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 /**
- * TASK-S, ADR 0039, TASK-AF, ADR 0051: a team referent holds one address for the whole team, so no page, route or
+ * TASK-S, ADR 0039, TASK-AF, ADR 0052: a team referent holds one address for the whole team, so no page, route or
  * export they can reach may depend on a per-link status. This guard reads the source of every file
  * behind the team space and fails if one imports a per-link status listing or selects a status
  * column for a link. The Playwright spec `referent-share.spec.ts` checks the same rule end to end.

@@ -18,7 +18,7 @@ interface Props {
 }
 
 /**
- * Team tab of a mission (TASK-AF, ADR 0051): the referent's welcome email, the survey address of
+ * Team tab of a mission (TASK-AF, ADR 0052): the referent's welcome email, the survey address of
  * each team with its ending and size, and the contact line of the forwarded message. Counts are
  * aggregate and hidden under the minimum group (PRD §15, §25.1); no per-person link exists.
  */

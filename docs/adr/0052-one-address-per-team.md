@@ -1,4 +1,4 @@
-# 0051 — One survey address per team, and "Open my space" without a password
+# 0052 — One survey address per team, and "Open my space" without a password
 
 Status: accepted
 

@@ -64,7 +64,7 @@ const answersText = (t: Translator, p: Participation): { main: string; hint?: st
 };
 
 /**
- * "My space" (TASK-AF, ADR 0051): one card per team with the team address, its QR code, Share
+ * "My space" (TASK-AF, ADR 0052): one card per team with the team address, its QR code, Share
  * with the team, the questions, "N of M answered" and one reminder; then the report. No
  * per-person link and no password step: the referent opens this page from the welcome email.
  */

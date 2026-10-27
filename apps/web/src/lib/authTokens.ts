@@ -16,7 +16,7 @@ export type TokenKind = 'invite' | 'reset' | 'space';
 export const TOKEN_TTL_MINUTES: Record<TokenKind, number> = {
   invite: 72 * 60,
   reset: 60,
-  // "Open my space" (TASK-AF, ADR 0051): the referent's welcome email, single use.
+  // "Open my space" (TASK-AF, ADR 0052): the referent's welcome email, single use.
   space: 30 * 24 * 60,
 };
 

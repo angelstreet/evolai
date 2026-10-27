@@ -10,7 +10,7 @@ const redirectTo = (path: string) =>
   new NextResponse(null, { status: 303, headers: { location: path } });
 
 /**
- * A team address was opened (TASK-AF, ADR 0051). A browser without a cookie for this address gets
+ * A team address was opened (TASK-AF, ADR 0052). A browser without a cookie for this address gets
  * one new anonymous invitation; its signed token is kept in an httpOnly cookie scoped to `/s/`,
  * so the same browser lands on its own answers and a second browser gets its own.
  */

@@ -26,7 +26,7 @@ import { parseContact } from './referentView';
  *  - progress is computed from `invitations` only, never joined to submissions or answers;
  *  - the only per-invitation listing is "not yet completed", with a short opaque code, no status,
  *    and it is for the auditor only; a team referent has one address per team and no list of
- *    people at all (TASK-AF, ADR 0051).
+ *    people at all (TASK-AF, ADR 0052).
  */
 
 const SYSTEM_ACTOR = '00000000-0000-4000-8000-000000000000';
