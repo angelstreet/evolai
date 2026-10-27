@@ -299,12 +299,12 @@ for (const size of SIZES) {
         await setLocale(page, 'fr', baseURL as string);
         await page.goto('/');
         await expect(page.getByRole('heading', { level: 1 })).toContainText('part de vos équipes');
-        await expect(page.getByTestId('ck-next')).toHaveText('Question suivante');
+        await expect(page.getByTestId('ck-next')).toHaveText('Suivant');
         await expect(page.getByTestId('ck-try-count')).toHaveText('1 sur 10');
         await expect(menu(page, 'survey')).toContainText('Questionnaire');
         await page.getByTestId('switch-en').click();
         await expect(page.locator('html')).toHaveAttribute('lang', 'en');
-        await expect(page.getByTestId('ck-next')).toHaveText('Next question');
+        await expect(page.getByTestId('ck-next')).toHaveText('Next');
       });
     });
   });

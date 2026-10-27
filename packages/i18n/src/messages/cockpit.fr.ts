@@ -90,7 +90,7 @@ export const cockpitFr = {
     title: 'À vous',
     count: '{n} sur 10',
     goTo: 'Aller à la question {n}',
-    next: 'Question suivante',
+    next: 'Suivant',
     finish: 'Terminer',
     pick: 'Choisissez une réponse. Anonyme.',
     write: 'Écrivez quelques mots pour continuer.',

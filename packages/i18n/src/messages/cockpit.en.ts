@@ -94,7 +94,7 @@ export const cockpitEn = {
     title: 'Try it',
     count: '{n} of 10',
     goTo: 'Go to question {n}',
-    next: 'Next question',
+    next: 'Next',
     finish: 'Finish',
     pick: 'Pick one answer. Anonymous.',
     write: 'Write a few words to continue.',
