@@ -70,7 +70,8 @@ test.describe('header chrome', () => {
     baseURL,
   }) => {
     await visit(page, baseURL as string, 'en', 'dark');
-    await page.goto('/');
+    // The front page has its own cockpit header and a disabled primary; sign-in has the shared one.
+    await page.goto('/login');
     const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
     expect(bg).toBe('rgb(26, 29, 35)');
     const primary = page.locator('main .MuiButton-contained').first();
@@ -125,7 +126,8 @@ test.describe('header bounding box across locales and themes', () => {
             { name: 'evolai_locale', value: locale, url: baseURL as string },
             { name: 'evolai_theme', value: theme, url: baseURL as string },
           ]);
-          await page.goto(signedIn ? '/admin/engagements' : '/');
+          // The front page draws its own cockpit header (front-page.spec.ts); /privacy has the shared bar.
+          await page.goto(signedIn ? '/admin/engagements' : '/privacy');
           const row = await headerRow(page);
           const label = `${locale} ${theme}`;
           expect(row.height, label).toBeLessThanOrEqual(65);
