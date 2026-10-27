@@ -638,7 +638,6 @@ export default function Cockpit({
                 <PrimaryButton
                   disabled={!ready}
                   onClick={() => setQi((n) => Math.min(n + 1, total))}
-                  sx={{ ml: 'auto' }}
                   data-testid="ck-next"
                 >
                   {qi === total - 1 ? t('cockpit.tryIt.finish') : t('cockpit.tryIt.next')}
