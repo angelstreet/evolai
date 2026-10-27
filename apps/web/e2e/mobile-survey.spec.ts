@@ -58,8 +58,9 @@ test.describe('employee mobile survey @ 360 px', () => {
     const box1 = await option1.boundingBox();
     expect(box1).not.toBeNull();
     expect(box1?.width ?? 0).toBeLessThanOrEqual(page.viewportSize()?.width ?? 360);
-    // One tap: choosing an option saves it and moves on.
+    // Pick an option, then Next saves it and moves on (TASK-AI L3).
     await page.locator('button.option-button').nth(1).click();
+    await page.locator('button.text-next').click();
 
     // Q2 \u2014 URL changes to /q/1 once the answer is saved. We then measure the option button.
     await expect(page).toHaveURL(/\/q\/1$/);

@@ -66,11 +66,13 @@ test.describe('questionnaire v1 on a phone', () => {
       /bonne demande|pas toujours la bonne|bonne réponse/i,
     );
     await options.nth(1).click();
+    await page.locator('button.text-next').click();
     await expect(page).toHaveURL(/\/q\/1$/);
 
     for (let i = 1; i < FIRST_TEXT; i += 1) {
       await expect(page).toHaveURL(new RegExp(`/q/${i}$`));
       await page.locator('button.option-button').last().click();
+      await page.locator('button.text-next').click();
     }
 
     // Free text 1: box, hint, counter, hard cap at 400.
@@ -98,7 +100,7 @@ test.describe('questionnaire v1 on a phone', () => {
 
     // Free text 2: skipped with the Skip link, nothing is saved.
     await expect(page).toHaveURL(new RegExp(`/q/${FIRST_TEXT + 1}$`));
-    await page.locator('button.link-button').click();
+    await page.getByTestId('survey-skip').click();
 
     // Free text 3: empty box + Next is also a skip.
     await expect(page).toHaveURL(new RegExp(`/q/${FIRST_TEXT + 2}$`));
@@ -116,6 +118,7 @@ test.describe('questionnaire v1 on a phone', () => {
     await expect(page.locator('textarea')).toHaveCount(0);
     expect(await page.locator('button.option-button').count()).toBeLessThanOrEqual(8);
     await page.locator('button.option-button').last().click();
+    await page.locator('button.text-next').click();
     await page.waitForURL(/\/done$/);
 
     // What was stored: the typed words, two saved skips, a coarse role; no text for skips.

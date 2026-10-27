@@ -56,7 +56,7 @@ const state = async (reference: string) =>
   )[0];
 
 const position = async (page: Page): Promise<{ i: number; n: number }> => {
-  const text = (await page.locator('.step-bar .muted').innerText()).trim();
+  const text = (await page.getByTestId('survey-count').innerText()).trim();
   const [i, n] = (text.match(/\d+/g) ?? []).map(Number);
   return { i: i as number, n: n as number };
 };
@@ -90,8 +90,13 @@ test.describe('the survey is submitted by an explicit finish', () => {
             expect(submitCalls).toHaveLength(0);
           }
           const before = page.url();
-          if (flow === 'skip-then-last' && i === 1) {
-            await page.locator('button.link-button').click();
+          // Free-text questions carry Skip; choice questions offer "I don't know" instead.
+          if (
+            flow === 'skip-then-last' &&
+            !skipped &&
+            (await page.getByTestId('survey-skip').count())
+          ) {
+            await page.getByTestId('survey-skip').click();
             skipped = true;
           } else {
             await answerCurrent(page);

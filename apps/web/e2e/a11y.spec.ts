@@ -134,6 +134,9 @@ test.describe('respondent path, keyboard only, with axe on every page', () => {
           await tabTo(page, 'button.option-button');
           await expectFocusRing(page, `question ${i + 1} option`);
           await page.keyboard.press(i % 2 === 0 ? 'Enter' : 'Space');
+          await tabTo(page, 'button.text-next');
+          await expectFocusRing(page, `question ${i + 1} next`);
+          await page.keyboard.press('Enter');
         }
         await page.waitForURL((u) => u.toString() !== before);
         if (page.url().endsWith('/done')) break;

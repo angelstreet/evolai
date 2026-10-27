@@ -1,8 +1,11 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
-import { AppIcon } from '@evolai/ui';
+import Button from '@mui/material/Button';
+import { ARROW_LEFT, ARROW_RIGHT, CHECK, EDIT, SHIELD } from '@/components/chrome/cockpit/icons';
+import PrimaryButton from '@/components/chrome/cockpit/PrimaryButton';
 import { finishRequest } from './finishRequest';
 
 interface Option {
@@ -19,10 +22,24 @@ interface Props {
   /** Pre-selected value if the user resumed. */
   initialChoice: string | null;
   nextHref: string;
+  /** Previous question, or null on the first one. */
+  backHref: string | null;
+  /** One progress segment per question: a link when the person may go back to it (TASK-AI L3). */
+  segments: ReadonlyArray<{ readonly href: string | null; readonly on: boolean }>;
+  labels: {
+    title: string;
+    count: string;
+    progress: string;
+    previous: string;
+    next: string;
+    finish: string;
+    pick: string;
+    saved: string;
+    goTo: string;
+  };
   /** The last question: after its answer or skip is saved, the survey is finished explicitly. */
   isLast: boolean;
   skipLabel: string;
-  ariaQuestionLabel: string;
   messages: {
     saving: string;
     saveFailed: string;
@@ -36,16 +53,15 @@ interface Props {
     maxLength: number;
     hint: string;
     optionalLabel: string;
-    nextLabel: string;
     /** Counter text with a `{n}` placeholder for the current length. */
     counterTemplate: string;
   };
 }
 
 /**
- * Client island that renders one question. Tapping an option saves it via /api/answer and moves
- * on: one tap per question (PRD §5). A failed save keeps the person on the question with a plain
- * message; the option they tapped stays selected so tapping again retries.
+ * Client island that renders one question in the Workbench's question card (TASK-AI L3): pick an
+ * option, then Next saves it via /api/answer and moves on; Previous and the progress segments go
+ * back. A failed save keeps the person on the question with a plain message and the pick kept.
  */
 export default function QuestionClient(props: Props) {
   const [selected, setSelected] = useState<string | null>(props.initialChoice);
@@ -103,8 +119,8 @@ export default function QuestionClient(props: Props) {
 
   const choose = (choice: string) => {
     if (busy) return;
+    setFailed(null);
     setSelected(choice);
-    void saveAndContinue('/api/answer', { choice });
   };
 
   // An empty box is a skip: nothing is saved as an answer, the question is marked passed.
@@ -116,71 +132,150 @@ export default function QuestionClient(props: Props) {
       : saveAndContinue('/api/answer', { text }));
   };
 
+  const ready = props.text !== undefined || selected !== null;
+  const next = () => {
+    if (props.text) submitText();
+    else if (selected !== null) void saveAndContinue('/api/answer', { choice: selected });
+  };
+  const L = props.labels;
+
   return (
-    <section aria-labelledby="question-prompt" aria-busy={busy}>
-      <h1 id="question-prompt" className="prompt">
-        {props.prompt}
-      </h1>
-      {props.helper ? <p className="muted">{props.helper}</p> : null}
-      {props.text ? (
-        <div className="text-answer">
-          <textarea
-            className="text-answer-input"
-            aria-labelledby="question-prompt"
-            aria-describedby="text-hint text-counter"
-            rows={5}
-            maxLength={props.text.maxLength}
-            value={typed}
-            disabled={busy}
-            onChange={(e) => setTyped(e.target.value)}
-          />
-          <p id="text-hint" className="muted">
-            {props.text.optionalLabel} · {props.text.hint}
-          </p>
-          <p id="text-counter" className="muted text-counter">
-            {props.text.counterTemplate.replace('{n}', String(typed.length))}
-          </p>
-          <button type="button" className="text-next" disabled={busy} onClick={submitText}>
-            {props.text.nextLabel}
-          </button>
-        </div>
-      ) : (
-        <ul className="option-list" aria-label={props.ariaQuestionLabel}>
-          {props.options.map((option) => (
-            <li key={option.value}>
+    <section
+      className="ck-card ck-try"
+      aria-labelledby="question-prompt"
+      aria-busy={busy}
+      data-testid="survey-card"
+    >
+      <div className="ck-try-head">
+        <h2>
+          {EDIT}
+          <span>{L.title}</span>
+        </h2>
+        <span
+          className="ck-count"
+          role="progressbar"
+          aria-label={L.progress}
+          aria-valuemin={1}
+          aria-valuemax={props.segments.length}
+          aria-valuenow={props.index + 1}
+          aria-valuetext={L.count}
+          data-testid="survey-count"
+        >
+          {L.count}
+        </span>
+      </div>
+      <div className="ck-try-body">
+        <nav className="ck-qbar" aria-label={L.progress}>
+          {props.segments.map((seg, i) =>
+            seg.href && i !== props.index ? (
+              <Link
+                key={i}
+                href={seg.href}
+                className={seg.on ? 'on' : undefined}
+                aria-label={L.goTo.replace('{n}', String(i + 1))}
+                data-testid="survey-step"
+              >
+                <i />
+              </Link>
+            ) : (
+              <span
+                key={i}
+                className={seg.on ? 'on' : undefined}
+                aria-current={i === props.index ? 'step' : undefined}
+                data-testid="survey-step"
+              >
+                <i />
+              </span>
+            ),
+          )}
+        </nav>
+        <h1 id="question-prompt" className="ck-q prompt">
+          {props.prompt}
+        </h1>
+        {props.helper ? <p className="ck-muted ck-small">{props.helper}</p> : null}
+        {props.text ? (
+          <div className="text-answer">
+            <textarea
+              className="text-answer-input"
+              aria-labelledby="question-prompt"
+              aria-describedby="text-hint text-counter"
+              rows={5}
+              maxLength={props.text.maxLength}
+              value={typed}
+              disabled={busy}
+              onChange={(e) => setTyped(e.target.value)}
+            />
+            <p id="text-hint" className="ck-muted ck-small ck-mt">
+              {props.text.optionalLabel} · {props.text.hint}
+            </p>
+            <p id="text-counter" className="ck-muted ck-small text-counter">
+              {props.text.counterTemplate.replace('{n}', String(typed.length))}
+            </p>
+          </div>
+        ) : (
+          <div className="ck-opts" role="radiogroup" aria-labelledby="question-prompt">
+            {props.options.map((option) => (
               <button
+                key={option.value}
                 type="button"
-                className="option-button"
-                aria-label={option.label}
-                aria-pressed={selected === option.value}
+                className="ck-opt option-button"
+                role="radio"
+                aria-checked={selected === option.value}
                 disabled={busy}
                 onClick={() => choose(option.value)}
               >
+                <span className="box">{CHECK}</span>
                 <span>{option.label}</span>
-                <AppIcon name="success" className="option-check" />
               </button>
-            </li>
-          ))}
-        </ul>
-      )}
-      <p className="muted" aria-live="polite">
-        {busy ? props.messages.saving : ''}
-      </p>
-      {failed ? (
-        <p role="alert" className="alert">
-          {failed}
+            ))}
+          </div>
+        )}
+        <div className="ck-try-row">
+          {props.backHref && (
+            <Button
+              variant="outlined"
+              color="inherit"
+              href={props.backHref}
+              disabled={busy}
+              data-testid="survey-prev"
+            >
+              {ARROW_LEFT}
+              {L.previous}
+            </Button>
+          )}
+          <PrimaryButton
+            className="text-next"
+            disabled={!ready || busy}
+            onClick={next}
+            data-testid="survey-next"
+          >
+            {props.isLast ? L.finish : L.next}
+            {ARROW_RIGHT}
+          </PrimaryButton>
+        </div>
+        <p className="ck-hint" aria-live="polite">
+          {SHIELD}
+          <span>{busy ? props.messages.saving : ready ? L.saved : L.pick}</span>
         </p>
-      ) : null}
-      <div className="step-bar end">
-        <button
-          type="button"
-          className="link-button"
-          disabled={busy}
-          aria-label={props.skipLabel}
-          onClick={() => void saveAndContinue('/api/skip', {})}
-        >
-          {props.skipLabel} <span aria-hidden="true">→</span>
-        </button>
+        {failed ? (
+          <p role="alert" className="alert">
+            {failed}
+          </p>
+        ) : null}
+        {props.text ? (
+          <div className="ck-try-nav">
+            <Button
+              variant="text"
+              color="inherit"
+              disabled={busy}
+              onClick={() => void saveAndContinue('/api/skip', {})}
+              sx={{ minHeight: 44, ml: 'auto' }}
+              data-testid="survey-skip"
+            >
+              {props.skipLabel}
+            </Button>
+          </div>
+        ) : null}
       </div>
     </section>
   );

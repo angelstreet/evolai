@@ -186,6 +186,31 @@ html:has(.ck) {
   color: var(--color-accent-ink);
 }
 
+/* Team survey (TASK-AI L3): the same header and question card, one column, no side menu */
+.ck.ck-solo {
+  display: block;
+}
+.ck-solo .ck-content {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 var(--space-4) var(--space-6);
+}
+.ck-solo .ck-brand {
+  position: static;
+}
+.ck-solo .ck-solo-main {
+  max-width: none;
+  width: auto;
+  margin: 0;
+  padding: 0;
+}
+.ck-solo .ck-solo-main:focus {
+  outline: none;
+}
+.ck-solo .ck-q {
+  margin-top: 0;
+}
+
 /* header */
 .ck-content {
   min-width: 0;
@@ -505,7 +530,9 @@ html:has(.ck) {
   gap: var(--space-1);
   margin-bottom: var(--space-4);
 }
-.ck-qbar button {
+.ck-qbar button,
+.ck-qbar > a,
+.ck-qbar > span {
   flex: 1;
   display: grid;
   align-items: center;
@@ -521,10 +548,11 @@ html:has(.ck) {
   border-radius: var(--radius-pill);
   background: var(--color-border);
 }
-.ck-qbar button.on i {
+.ck-qbar .on i {
   background: var(--color-teal);
 }
-.ck-qbar button:not(:disabled):hover i {
+.ck-qbar button:not(:disabled):hover i,
+.ck-qbar > a:hover i {
   background: var(--color-accent-ink);
 }
 .ck-q {
@@ -832,4 +860,8 @@ html:has(.ck) {
     flex-direction: column;
     align-items: flex-start;
   }
+}
+.ck-solo .text-answer-input {
+  margin-top: var(--space-4);
+  border-radius: var(--ck-r);
 }

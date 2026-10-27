@@ -1,6 +1,4 @@
-import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import ProgressBar from '@/components/ProgressBar';
 import LinkProblem from '@/components/respondent/LinkProblem';
 import QuestionClient from '@/components/respondent/QuestionClient';
 import { loadRespondent } from '@/lib/respondent';
@@ -35,26 +33,20 @@ export default async function QuestionPage({ params }: { params: Params }) {
   const question = questionByIndex(index);
   const isLast = index === total - 1;
   const nextHref = isLast ? `/s/${params.token}/done` : `/s/${params.token}/q/${index + 1}`;
-  const backHref = index === 0 ? `/s/${params.token}` : `/s/${params.token}/q/${index - 1}`;
+  const backHref = index === 0 ? null : `/s/${params.token}/q/${index - 1}`;
+  // A segment links back to a question reached, answered, or right after an answered one.
+  const answered = (i: number) => state.answers[i] !== undefined;
+  const segments = Array.from({ length: total }, (_, i) => ({
+    href: i <= index || answered(i) || answered(i - 1) ? `/s/${params.token}/q/${i}` : null,
+    on: i <= index,
+  }));
   const saved = state.answers[index]?.value;
   const initialChoice =
     saved?.kind === 'scenario_choice' || saved?.kind === 'single_choice' ? saved.choice : null;
   const isText = question.kind === 'short_text';
 
   return (
-    <div className="stack">
-      <div className="step-bar">
-        <Link className="link-button" href={backHref}>
-          ← {t('survey.back')}
-        </Link>
-        <span className="muted">{t('survey.questionOf', { i: index + 1, n: total })}</span>
-      </div>
-      <ProgressBar
-        current={index + 1}
-        total={total}
-        ariaLabel={t('survey.progress')}
-        valueText={t('survey.questionOf', { i: index + 1, n: total })}
-      />
+    <>
       <QuestionClient
         token={params.token}
         index={index}
@@ -63,9 +55,21 @@ export default async function QuestionPage({ params }: { params: Params }) {
         options={question.options.map((o) => ({ value: o.value, label: o.label[locale] }))}
         initialChoice={initialChoice}
         nextHref={nextHref}
+        backHref={backHref}
+        segments={segments}
+        labels={{
+          title: t('survey.title'),
+          count: t('survey.questionOf', { i: index + 1, n: total }),
+          progress: t('survey.progress'),
+          previous: t('survey.previous'),
+          next: t('survey.next'),
+          finish: t('survey.finish'),
+          pick: t('survey.pick'),
+          saved: t('survey.savedHint'),
+          goTo: t('survey.goTo', { n: '{n}' }),
+        }}
         isLast={isLast}
         skipLabel={t('survey.skip')}
-        ariaQuestionLabel={t('survey.answerOptions')}
         messages={{
           saving: t('survey.saving'),
           saveFailed: t('survey.saveFailed'),
@@ -80,12 +84,11 @@ export default async function QuestionPage({ params }: { params: Params }) {
                 maxLength: FREE_TEXT_MAX_LENGTH,
                 hint: freeTextHint(locale),
                 optionalLabel: t('survey.optional'),
-                nextLabel: t('survey.next'),
                 counterTemplate: t('survey.textCounter', { n: '{n}', max: FREE_TEXT_MAX_LENGTH }),
               }
             : undefined
         }
       />
-    </div>
+    </>
   );
 }

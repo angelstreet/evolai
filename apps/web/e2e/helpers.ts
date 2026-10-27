@@ -18,7 +18,7 @@ export const signInAsAuditorA = async (
 
 /**
  * Answer the question on screen the way a person would: type a short sentence when it is a text
- * box and press Next, otherwise tap the last option (TASK-Z2: questionnaire v1 has both).
+ * box, otherwise pick the last option, then press Next (TASK-Z2, TASK-AI L3).
  */
 export const answerCurrent = async (
   page: Page,
@@ -31,6 +31,7 @@ export const answerCurrent = async (
     return;
   }
   await page.locator('button.option-button').last().click();
+  await page.locator('button.text-next').click();
 };
 
 /** Run a query on the database the Playwright server uses (written by e2e/serve.mjs). */

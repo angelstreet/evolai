@@ -18,7 +18,22 @@ const render = (locale: 'fr' | 'en', index: number, saved = '') => {
       options={q.options.map((o) => ({ value: o.value, label: o.label[locale] }))}
       initialChoice={null}
       nextHref="/next"
-      ariaQuestionLabel={t('survey.answerOptions')}
+      backHref={index === 0 ? null : '/prev'}
+      segments={Array.from({ length: 10 }, (_, i) => ({
+        href: i <= index ? `/q/${i}` : null,
+        on: i <= index,
+      }))}
+      labels={{
+        title: t('survey.title'),
+        count: t('survey.questionOf', { i: index + 1, n: 10 }),
+        progress: t('survey.progress'),
+        previous: t('survey.previous'),
+        next: t('survey.next'),
+        finish: t('survey.finish'),
+        pick: t('survey.pick'),
+        saved: t('survey.savedHint'),
+        goTo: t('survey.goTo', { n: '{n}' }),
+      }}
       isLast={false}
       skipLabel={t('survey.skip')}
       messages={{
@@ -35,7 +50,6 @@ const render = (locale: 'fr' | 'en', index: number, saved = '') => {
               maxLength: FREE_TEXT_MAX_LENGTH,
               hint: freeTextHint(locale),
               optionalLabel: t('survey.optional'),
-              nextLabel: t('survey.next'),
               counterTemplate: t('survey.textCounter', { n: '{n}', max: FREE_TEXT_MAX_LENGTH }),
             }
           : undefined
@@ -46,11 +60,21 @@ const render = (locale: 'fr' | 'en', index: number, saved = '') => {
 
 const FIRST_TEXT = 6;
 
+describe('QuestionClient, Workbench card (TASK-AI L3)', () => {
+  it('Previous and the reached segments link back; later ones are not links', () => {
+    const html = render('en', 2);
+    expect(html).toContain('href="/prev"');
+    expect(html).toContain('Previous');
+    expect(html).toContain('Question 3 of 10');
+    expect(html.match(/aria-label="Go to question \d+"/g)).toHaveLength(2);
+  });
+});
+
 describe('QuestionClient, free-text question', () => {
   it('French: text box capped at 400, counter, hint and a Suivant button', () => {
     const html = render('fr', FIRST_TEXT);
     expect(html).toContain('<textarea');
-    expect(html).toContain('maxLength="400"');
+    expect(html).toMatch(/maxLength="400"|maxlength="400"/);
     expect(html).toContain('0 sur 400 caractères');
     expect(html).toContain('Pas de noms, ni e-mails, ni numéros');
     expect(html).toContain('Nous les masquons.');
@@ -75,8 +99,12 @@ describe('QuestionClient, free-text question', () => {
     expect(html).toContain('23 sur 400 caractères');
   });
 
-  it('a choice question still renders option buttons, with "Je ne sais pas / Ça dépend" last', () => {
+  it('a choice question renders radio options, Next waits for a pick, no Previous on question 1', () => {
     const html = render('fr', 0);
+    expect(html).toContain('role="radiogroup"');
+    expect(html).toContain('Choisissez une réponse. Anonyme.');
+    expect(html).not.toContain('survey-prev');
+    expect(html).not.toContain('Passer');
     expect(html).not.toContain('<textarea');
     expect(html.match(/option-button/g)?.length).toBeGreaterThanOrEqual(4);
     expect(html.lastIndexOf('Je ne sais pas / Ça dépend')).toBeGreaterThan(
