@@ -231,7 +231,7 @@ export default function TeamCard(p: TeamCardProps) {
         </Button>
         <Button
           variant="outlined"
-          href="/learn/questions"
+          href="/?learn=3"
           startIcon={<AppIcon name="info" size={16} />}
           data-testid="client-questions"
           sx={{ minHeight: 44 }}

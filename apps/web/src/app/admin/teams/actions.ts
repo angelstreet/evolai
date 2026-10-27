@@ -55,7 +55,7 @@ export async function inviteReferentAction(
         await resolveEmailProvider().send({
           to: email,
           subject: tr('trust.email.inviteSubject'),
-          text: tr('trust.email.inviteBody', { link, learn: `${base}/learn` }),
+          text: tr('trust.email.inviteBody', { link, learn: `${base}/?learn=1` }),
         });
         emailed = true;
       } catch {

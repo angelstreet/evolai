@@ -399,13 +399,10 @@ test.describe('desktop layout', () => {
 });
 
 test.describe('old routes', () => {
-  test('/about and /welcome redirect to the cockpit; /learn links back', async ({ page }) => {
-    for (const old of ['/about', '/welcome']) {
+  test('/about, /welcome and /learn redirect to the cockpit', async ({ page }) => {
+    for (const old of ['/about', '/welcome', '/learn']) {
       await page.goto(old);
       await expect(page).toHaveURL(/\/$/);
     }
-    await page.goto('/learn');
-    await page.getByTestId('learn-cockpit').click();
-    await expect(page).toHaveURL(/\/$/);
   });
 });

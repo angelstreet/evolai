@@ -248,6 +248,17 @@ export default function Cockpit({
     }
   };
 
+  // Old /learn addresses and links from the referent space (`/?learn=n`): open lesson n of 5.
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const n = Number(url.searchParams.get('learn'));
+    if (!Number.isInteger(n) || n < 1 || n > LESSON_KEYS.length) return;
+    url.searchParams.delete('learn');
+    window.history.replaceState(null, '', url.pathname + url.search);
+    setLesson(n - 1);
+    setSection('learn');
+  }, []);
+
   // Back from sign-in (`/?send=1`): the answers are still in this browser; reopen the last step.
   useEffect(() => {
     if (!loaded) return;
@@ -641,7 +652,12 @@ export default function Cockpit({
               {/* choice questions offer "I don't know"; only free text can be left empty */}
               {q.kind === 'text' && (
                 <div className="ck-try-nav">
-                  <Button variant="text" color="inherit" onClick={skip} sx={{ minHeight: 44, ml: 'auto' }}>
+                  <Button
+                    variant="text"
+                    color="inherit"
+                    onClick={skip}
+                    sx={{ minHeight: 44, ml: 'auto' }}
+                  >
                     {t('cockpit.skip')}
                   </Button>
                 </div>

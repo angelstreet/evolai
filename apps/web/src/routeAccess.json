@@ -119,23 +119,23 @@
     },
     "/learn": {
       "access": "public",
-      "reason": "Static learning page: copy, the questionnaire file and video ids from the repo; reads nothing from the database."
+      "reason": "Redirect to the front page Learn (TASK-AI L2); no data."
     },
     "/learn/how": {
       "access": "public",
-      "reason": "Static learning page: copy, the questionnaire file and video ids from the repo; reads nothing from the database."
+      "reason": "Redirect to the front page Learn (TASK-AI L2); no data."
     },
     "/learn/questions": {
       "access": "public",
-      "reason": "Static learning page: copy, the questionnaire file and video ids from the repo; reads nothing from the database."
+      "reason": "Redirect to the front page Learn (TASK-AI L2); no data."
     },
     "/learn/results": {
       "access": "public",
-      "reason": "Static learning page: copy, the questionnaire file and video ids from the repo; reads only the session cookie (no database) to offer a way back to a referent's space."
+      "reason": "Redirect to the front page Learn (TASK-AI L2); no data."
     },
     "/learn/videos": {
       "access": "public",
-      "reason": "Static learning page: copy, the questionnaire file and video ids from the repo; reads nothing from the database."
+      "reason": "Redirect to the front page Learn (TASK-AI L2); no data."
     }
   }
 }

@@ -207,7 +207,7 @@ export default async function ClientHome() {
             </Stack>
             <Button
               variant="outlined"
-              href="/learn"
+              href="/?learn=1"
               endIcon={<AppIcon name="forward" size={16} />}
               data-testid="client-learn-cta"
               sx={{ mt: 4, minHeight: 44 }}

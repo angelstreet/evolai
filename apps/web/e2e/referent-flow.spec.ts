@@ -115,7 +115,7 @@ for (const locale of LOCALES) {
       await expect(page.getByTestId('client-qr').first().locator('svg')).toBeVisible();
       await expect(page.getByTestId('client-questions').first()).toHaveAttribute(
         'href',
-        '/learn/questions',
+        '/?learn=3',
       );
       const submittedBefore = Number(
         (
@@ -127,7 +127,7 @@ for (const locale of LOCALES) {
       );
       // The learn card shows while the team has no answer at all (the second language run has some).
       if (submittedBefore === 0) {
-        await expect(page.getByTestId('client-learn-cta')).toHaveAttribute('href', '/learn');
+        await expect(page.getByTestId('client-learn-cta')).toHaveAttribute('href', '/?learn=1');
       }
       await expect(page.getByTestId('client-team-answered').first()).toContainText(copy.answers);
       await axe(page, `${locale} my space`);
