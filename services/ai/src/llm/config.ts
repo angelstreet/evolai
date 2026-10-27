@@ -41,7 +41,13 @@ const configSchema = z
     /** The only models that may go through OpenRouter (owner, 2026-10-27). Lowercase ids. */
     openRouterModels: z
       .array(z.string().min(1))
-      .default(['openai/o4-mini', 'o4-mini', 'qwen/qwen3-vl-8b-instruct', 'typesafe/jev-1.13', 'typesafe/jev-router']),
+      .default([
+        'openai/o4-mini',
+        'o4-mini',
+        'qwen/qwen3-vl-8b-instruct',
+        'typesafe/jev-1.13',
+        'typesafe/jev-router',
+      ]),
     caps: z
       .object({
         currency: z.string().length(3),
@@ -84,7 +90,8 @@ export const loadAiConfig = (env: NodeJS.ProcessEnv = process.env): AiConfig => 
   return parseAiConfig(JSON.parse(text));
 };
 
-const isOpenRouter = (baseUrl: string | null): boolean => (baseUrl ?? '').toLowerCase().includes('openrouter.ai');
+const isOpenRouter = (baseUrl: string | null): boolean =>
+  (baseUrl ?? '').toLowerCase().includes('openrouter.ai');
 
 /** A route whose base URL is OpenRouter may name only an allowlisted model; every other model fails closed. */
 export const assertOpenRouterModel = (config: AiConfig, route: ApprovedRoute): void => {
