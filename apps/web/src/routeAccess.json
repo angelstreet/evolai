@@ -3,7 +3,7 @@
   "routes": {
     "/": {
       "access": "public",
-      "reason": "Static front page: copy and links, reads nothing from the database."
+      "reason": "Front page: copy and links; signed out it reads nothing from the database, a signed-in referent gets only their own team names, scoped by the session (TASK-AI L5)."
     },
     "/welcome": {
       "access": "public",
@@ -64,6 +64,10 @@
     "/api/progress": {
       "access": "session",
       "reason": "Your path of the signed-in account (ADR 0056): the handler checks the session itself; signed out gets 401; it stores lesson and step flags only, never an answer."
+    },
+    "/api/audit-request": {
+      "access": "public",
+      "reason": "Ask for an audit (TASK-AI L6): one email, checked for shape and a mail domain, rate limited, emailed to the owner; reads and stores no tenant data."
     },
     "/api/send": {
       "access": "session",

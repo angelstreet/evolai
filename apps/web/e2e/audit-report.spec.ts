@@ -199,7 +199,8 @@ const setLocale = (context: BrowserContext, baseURL: string | undefined, locale:
   context.addCookies([{ name: 'evolai_locale', value: locale, url: baseURL as string }]);
 
 const signIn = async (page: Page, who: { email: string; password: string }, expectPath: RegExp) => {
-  await page.goto('/login');
+  // A referent's sign-in lands on the front page (TASK-AI L5); these tests start in the space.
+  await page.goto(expectPath.source.includes('client') ? '/login?next=%2Fclient' : '/login');
   await page.fill('input[name=email]', who.email);
   await page.fill('input[name=password]', who.password);
   await page.click('button[type=submit]');

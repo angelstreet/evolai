@@ -154,6 +154,7 @@ export function AccountMenu({ identity }: { identity: Identity | null }) {
         {/* The name is the button's accessible name; on phones it is visually hidden, not removed. */}
         <Box
           component="span"
+          className="account-name"
           sx={(theme) => ({
             maxWidth: 160,
             overflow: 'hidden',

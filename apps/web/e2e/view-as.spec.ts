@@ -57,7 +57,8 @@ const setLocale = (context: BrowserContext, baseURL: string | undefined, locale:
   context.addCookies([{ name: 'evolai_locale', value: locale, url: baseURL as string }]);
 
 const signIn = async (page: Page, who: { email: string; password: string }, expectPath: RegExp) => {
-  await page.goto('/login');
+  // A referent's sign-in lands on the front page (TASK-AI L5); these tests start in the space.
+  await page.goto(expectPath.source.includes('client') ? '/login?next=%2Fclient' : '/login');
   await page.fill('input[name=email]', who.email);
   await page.fill('input[name=password]', who.password);
   await page.click('button[type=submit]');
@@ -112,7 +113,7 @@ for (const locale of LOCALES) {
     await expect(banner).toHaveCSS('position', 'sticky');
     await expect(page.getByTestId('account-button')).toContainText('SS');
     await expect(page.getByTestId('client-organisation')).toContainText('Synthetic client C');
-    await expect(page.locator('[data-testid^="client-tab-"]')).toHaveCount(3);
+    await expect(page.locator('[data-testid^="client-tab-"]')).toHaveCount(5);
     await expect(page.locator('main a[href^="/admin"], header a[href^="/admin"]')).toHaveCount(0);
     await expect(page.locator('h1:visible')).toHaveCount(1);
     await axe(page, `${locale} client home (view as)`);

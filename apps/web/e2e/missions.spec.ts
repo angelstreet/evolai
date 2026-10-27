@@ -37,11 +37,11 @@ test('sign-in lands on Missions with one primary action and the mission list', a
   await noHorizontalScroll(page, 'missions');
 });
 
-test('the top navigation is Missions and Settings, and it fits', async ({ page }) => {
+test('the side menu is Missions, Settings and the front page, and it fits', async ({ page }) => {
   await signInAsAuditorA(page);
-  const nav = page.getByRole('tablist').first();
-  await expect(nav.getByRole('tab')).toHaveCount(2);
-  await expect(nav.getByRole('tab', { name: 'Missions' })).toHaveAttribute('aria-selected', 'true');
+  const nav = page.locator('.ck-menu').first();
+  await expect(nav.getByRole('link')).toHaveCount(3);
+  await expect(nav.getByRole('link', { name: 'Missions' })).toHaveAttribute('aria-current', 'page');
   const [scroll, client] = await nav.evaluate((el) => [el.scrollWidth, el.clientWidth]);
   expect(scroll).toBeLessThanOrEqual(client);
   await noHorizontalScroll(page, 'nav');
@@ -115,7 +115,7 @@ test('the answers CSV follows the five-answer rule and carries no name column', 
 });
 
 test('a referent never reaches Answers, its CSV or the mission pages', async ({ page }) => {
-  await page.goto('/login');
+  await page.goto('/login?next=%2Fclient');
   await page.fill('input[name=email]', REFERENT.email);
   await page.fill('input[name=password]', REFERENT.password);
   await page.click('button[type=submit]');

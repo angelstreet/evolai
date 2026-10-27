@@ -115,7 +115,8 @@ html:has(.ck) {
   flex-direction: column;
   gap: var(--space-1);
 }
-.ck-menu button {
+.ck-menu :is(button, a) {
+  text-decoration: none;
   display: flex;
   align-items: center;
   gap: var(--space-3);
@@ -125,11 +126,11 @@ html:has(.ck) {
   font-weight: var(--weight-bold);
   color: var(--color-muted);
 }
-.ck-menu button:hover {
+.ck-menu :is(button, a):hover {
   background: var(--color-raised);
   color: var(--color-fg);
 }
-.ck-menu button[aria-current='page'] {
+.ck-menu :is(button, a)[aria-current='page'] {
   background: var(--ck-soft);
   color: var(--color-accent-ink);
 }
@@ -209,6 +210,27 @@ html:has(.ck) {
 }
 .ck-solo .ck-q {
   margin-top: 0;
+}
+
+/* Referent space (TASK-AI L4): the side menu and header; the pages keep their own cards */
+.ck-space .ck-space-main {
+  max-width: 1120px;
+  width: auto;
+  margin: 0;
+  padding: 0 0 var(--space-6);
+}
+.ck-space .ck-space-main:focus {
+  outline: none;
+}
+
+@media print {
+  .ck-space {
+    display: block;
+  }
+  .ck-space .ck-side,
+  .ck-space .ck-top {
+    display: none;
+  }
 }
 
 /* header */
@@ -721,6 +743,15 @@ html:has(.ck) {
   place-items: center;
   z-index: 1300;
   transition: opacity 0.2s;
+  /* leaves on a timer from first paint, not after the page's script loads: the headline shows at
+     about 1 s on a slow phone (Lighthouse LCP, TASK-AI L8); the script removes it afterwards */
+  animation: ck-splash-out 0.22s ease-out 0.8s forwards;
+}
+@keyframes ck-splash-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
 }
 .ck-splash .in {
   display: grid;
@@ -754,7 +785,7 @@ html:has(.ck) {
   }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .ck-menu button,
+  .ck-menu :is(button, a),
   .ck-opt {
     transition:
       background 0.15s,
@@ -801,7 +832,7 @@ html:has(.ck) {
     flex-direction: row;
     gap: var(--space-1);
   }
-  .ck-menu button {
+  .ck-menu :is(button, a) {
     flex: 1 1 auto;
     flex-direction: column;
     justify-content: center;
@@ -864,4 +895,13 @@ html:has(.ck) {
 .ck-solo .text-answer-input {
   margin-top: var(--space-4);
   border-radius: var(--ck-r);
+}
+.ck-team-line {
+  margin-bottom: var(--space-2);
+}
+/* team survey: each progress segment is a 44 px tall tap target around its 4 px line (UI_RULES §4) */
+.ck-solo .ck-qbar > a,
+.ck-solo .ck-qbar > span {
+  height: 44px;
+  margin: -20px 0;
 }

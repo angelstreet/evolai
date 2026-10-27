@@ -126,8 +126,9 @@ test.describe('header bounding box across locales and themes', () => {
             { name: 'evolai_locale', value: locale, url: baseURL as string },
             { name: 'evolai_theme', value: theme, url: baseURL as string },
           ]);
-          // The front page draws its own cockpit header (front-page.spec.ts); /privacy has the shared bar.
-          await page.goto(signedIn ? '/admin/engagements' : '/privacy');
+          // The front page, /s, /client and /admin draw the Workbench header (front-page.spec.ts,
+          // TASK-AI); /privacy keeps the shared bar, signed in or not.
+          await page.goto('/privacy');
           const row = await headerRow(page);
           const label = `${locale} ${theme}`;
           expect(row.height, label).toBeLessThanOrEqual(65);

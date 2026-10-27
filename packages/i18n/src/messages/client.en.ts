@@ -25,6 +25,8 @@ export const clientEn = {
     home: 'Home',
     results: 'Results',
     report: 'Report',
+    learn: 'Learn',
+    survey: 'Survey',
   },
   organisation: 'Organisation: {tenant}',
   home: {
@@ -93,6 +95,9 @@ export const clientEn = {
     learnTitle: 'Learn the audit',
     learnNudge: 'New to this? Learn the audit in 10 minutes before you share.',
     learnCta: 'Learn the audit in 10 minutes',
+    ownSent: 'Your own answers were sent.',
+    ownNotYet: 'You have not sent your own answers yet.',
+    ownCta: 'Answer the questions',
     back: 'Back to my space',
   },
   invitations: {

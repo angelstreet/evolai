@@ -24,6 +24,13 @@ export const MENU_ICONS: Record<string, ReactNode> = {
       <path d="M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2" />
     </>,
   ),
+  settings: line(
+    <>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1" />
+    </>,
+  ),
+  results: line(<path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />),
   report: line(
     <>
       <path d="M6 3h9l4 4v14H6z" />

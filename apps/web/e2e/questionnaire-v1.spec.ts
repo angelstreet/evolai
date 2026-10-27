@@ -33,9 +33,7 @@ test.describe('questionnaire v1 on a phone', () => {
     await expect(page.locator('main')).toContainText('We mask them.');
     await expect(page.locator('main')).toContainText('Optional');
     await page.goto(`/s/${token}/q/0`);
-    await expect(page.locator('button.option-button').last()).toHaveText(
-      'I don’t know / It depends',
-    );
+    await expect(page.locator('button.ck-opt').last()).toHaveText('I don’t know / It depends');
   });
 
   test('the API refuses text that is too long, empty, or an unknown option', async ({
@@ -60,7 +58,7 @@ test.describe('questionnaire v1 on a phone', () => {
     await expect(page.getByRole('heading', { level: 1 })).toContainText(
       'En général, que faites-vous',
     );
-    const options = page.locator('button.option-button');
+    const options = page.locator('button.ck-opt');
     await expect(options.last()).toHaveText('Je ne sais pas / Ça dépend');
     await expect(page.locator('main')).not.toContainText(
       /bonne demande|pas toujours la bonne|bonne réponse/i,
@@ -71,7 +69,7 @@ test.describe('questionnaire v1 on a phone', () => {
 
     for (let i = 1; i < FIRST_TEXT; i += 1) {
       await expect(page).toHaveURL(new RegExp(`/q/${i}$`));
-      await page.locator('button.option-button').last().click();
+      await page.locator('button.ck-opt').last().click();
       await page.locator('button.text-next').click();
     }
 
@@ -116,8 +114,8 @@ test.describe('questionnaire v1 on a phone', () => {
     // Role question: coarse categories only, no text box.
     await expect(page).toHaveURL(new RegExp(`/q/${FIRST_TEXT + 3}$`));
     await expect(page.locator('textarea')).toHaveCount(0);
-    expect(await page.locator('button.option-button').count()).toBeLessThanOrEqual(8);
-    await page.locator('button.option-button').last().click();
+    expect(await page.locator('button.ck-opt').count()).toBeLessThanOrEqual(8);
+    await page.locator('button.ck-opt').last().click();
     await page.locator('button.text-next').click();
     await page.waitForURL(/\/done$/);
 

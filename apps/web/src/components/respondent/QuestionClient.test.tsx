@@ -81,7 +81,7 @@ describe('QuestionClient, free-text question', () => {
     expect(html).toContain('Facultatif');
     expect(html).toContain('Suivant');
     expect(html).toContain('Passer');
-    expect(html).not.toContain('option-button');
+    expect(html).not.toContain('ck-opt');
   });
 
   it('English: matching copy', () => {
@@ -106,7 +106,7 @@ describe('QuestionClient, free-text question', () => {
     expect(html).not.toContain('survey-prev');
     expect(html).not.toContain('Passer');
     expect(html).not.toContain('<textarea');
-    expect(html.match(/option-button/g)?.length).toBeGreaterThanOrEqual(4);
+    expect(html.match(/ck-opt/g)?.length).toBeGreaterThanOrEqual(4);
     expect(html.lastIndexOf('Je ne sais pas / Ça dépend')).toBeGreaterThan(
       html.lastIndexOf('Je vérifie ailleurs'),
     );

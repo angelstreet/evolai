@@ -52,7 +52,7 @@ const setLocale = (context: BrowserContext, baseURL: string | undefined, locale:
   context.addCookies([{ name: 'evolai_locale', value: locale, url: baseURL as string }]);
 
 const signIn = async (page: Page) => {
-  await page.goto('/login');
+  await page.goto('/login?next=%2Fclient');
   await page.fill('input[name=email]', REFERENT.email);
   await page.fill('input[name=password]', REFERENT.password);
   await page.click('button[type=submit]');
@@ -77,7 +77,7 @@ const finishSurvey = async (page: Page) => {
   for (let i = 0; i < 40 && !page.url().endsWith('/done'); i += 1) {
     // Answer only a question that is on screen and open, never the one being left.
     const open = page
-      .locator('textarea.text-answer-input:not([disabled]), button.option-button:not([disabled])')
+      .locator('textarea.text-answer-input:not([disabled]), button.ck-opt:not([disabled])')
       .first();
     try {
       await open.waitFor({ timeout: 3000 });

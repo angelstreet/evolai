@@ -53,18 +53,18 @@ test.describe('employee mobile survey @ 360 px', () => {
     // Q1 \u2014 wait for the question heading and the option list to be rendered.
     await expect(page).toHaveURL(/\/q\/0$/);
     await expect(page.getByRole('progressbar')).toBeVisible();
-    const option1 = page.locator('button.option-button').first();
+    const option1 = page.locator('button.ck-opt').first();
     await expect(option1).toBeVisible();
     const box1 = await option1.boundingBox();
     expect(box1).not.toBeNull();
     expect(box1?.width ?? 0).toBeLessThanOrEqual(page.viewportSize()?.width ?? 360);
     // Pick an option, then Next saves it and moves on (TASK-AI L3).
-    await page.locator('button.option-button').nth(1).click();
+    await page.locator('button.ck-opt').nth(1).click();
     await page.locator('button.text-next').click();
 
     // Q2 \u2014 URL changes to /q/1 once the answer is saved. We then measure the option button.
     await expect(page).toHaveURL(/\/q\/1$/);
-    const option2 = page.locator('button.option-button').first();
+    const option2 = page.locator('button.ck-opt').first();
     await expect(option2).toBeVisible();
     const box2 = await option2.boundingBox();
     expect(box2).not.toBeNull();

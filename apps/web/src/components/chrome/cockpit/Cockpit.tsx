@@ -37,6 +37,7 @@ import {
   TILE_ICONS,
   VIDEO_ART,
 } from './icons';
+import AuditSheet from './AuditSheet';
 import PrimaryButton from './PrimaryButton';
 import SendSheet, { type SendOutcome } from './SendSheet';
 
@@ -53,7 +54,7 @@ export interface CockpitVideo {
 }
 export type Viewer =
   | { readonly kind: 'anon' }
-  | { readonly kind: 'referent'; readonly name: string }
+  | { readonly kind: 'referent'; readonly name: string; readonly teams: readonly string[] }
   | { readonly kind: 'staff'; readonly name: string };
 
 interface Props {
@@ -108,6 +109,7 @@ export default function Cockpit({
   const [seen, setSeen] = useState<ReadonlySet<number>>(new Set());
   const [sent, setSent] = useState(false);
   const [sheet, setSheet] = useState(false);
+  const [audit, setAudit] = useState(false);
   const [splash, setSplash] = useState<'on' | 'out' | 'off'>('on');
   const [today, setToday] = useState('');
   const [loaded, setLoaded] = useState(false);
@@ -248,9 +250,16 @@ export default function Cockpit({
     }
   };
 
-  // Old /learn addresses and links from the referent space (`/?learn=n`): open lesson n of 5.
+  // Old /learn addresses and links from the referent space (`/?learn=n`): open lesson n of 5;
+  // `/?survey=1` opens the survey.
   useEffect(() => {
     const url = new URL(window.location.href);
+    if (url.searchParams.get('survey') === '1') {
+      url.searchParams.delete('survey');
+      window.history.replaceState(null, '', url.pathname + url.search);
+      setSection('survey');
+      return;
+    }
     const n = Number(url.searchParams.get('learn'));
     if (!Number.isInteger(n) || n < 1 || n > LESSON_KEYS.length) return;
     url.searchParams.delete('learn');
@@ -285,6 +294,11 @@ export default function Cockpit({
 
   const homeCard = () => (
     <>
+      {viewer.kind === 'referent' && viewer.teams.length > 0 && (
+        <p className="ck-muted ck-small ck-team-line" data-testid="ck-team-line">
+          {t('cockpit.home.team', { team: viewer.teams.join(', ') })}
+        </p>
+      )}
       <h1>{t('cockpit.home.title')}</h1>
       <p className="ck-lede">{t('cockpit.home.lede')}</p>
       <div className="ck-points">
@@ -299,7 +313,24 @@ export default function Cockpit({
       </div>
       {videoSlot(0, 'home-video')}
       <div className="ck-foot-row">
-        <span />
+        {/* a referent's way to their space (TASK-AI L5) */}
+        {viewer.kind === 'referent' ? (
+          <Button variant="text" href="/client" sx={{ minHeight: 44 }} data-testid="ck-space-link">
+            {t('cockpit.home.space')}
+          </Button>
+        ) : viewer.kind === 'anon' ? (
+          // a visitor without an account asks for an audit with a valid email (TASK-AI L6)
+          <Button
+            variant="text"
+            onClick={() => setAudit(true)}
+            sx={{ minHeight: 44 }}
+            data-testid="ck-audit"
+          >
+            {t('cockpit.audit.ask')}
+          </Button>
+        ) : (
+          <span />
+        )}
         <Button variant="outlined" onClick={() => open('learn')} sx={{ minHeight: 44 }}>
           {t('cockpit.home.start')}
           {ARROW_RIGHT}
@@ -805,6 +836,7 @@ export default function Cockpit({
           </span>
         </footer>
       </div>
+      <AuditSheet open={audit} onClose={() => setAudit(false)} />
       <SendSheet
         open={sheet}
         signedIn={signed}

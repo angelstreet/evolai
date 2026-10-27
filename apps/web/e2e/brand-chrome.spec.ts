@@ -77,7 +77,7 @@ for (const theme of ['light', 'dark'] as const) {
     }
 
     test('client home shows the kit logo once', async ({ page }) => {
-      await page.goto('/login');
+      await page.goto('/login?next=%2Fclient');
       await page.fill('input[name=email]', REFERENT.email);
       await page.fill('input[name=password]', REFERENT.password);
       await page.click('button[type=submit]');

@@ -55,6 +55,7 @@ export const adminEn = {
     pending: 'pending',
     tabMissions: 'Missions',
     tabSettings: 'Settings',
+    tabFront: 'Front page',
     tabsAria: 'Admin sections',
     tabPortfolio: 'Portfolio',
     tabEngagements: 'Missions',

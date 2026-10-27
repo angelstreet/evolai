@@ -24,6 +24,8 @@ export const clientFr: ClientMessages = {
     home: 'Accueil',
     results: 'Résultats',
     report: 'Rapport',
+    learn: 'Cours',
+    survey: 'Questionnaire',
   },
   organisation: 'Organisation : {tenant}',
   home: {
@@ -93,6 +95,9 @@ export const clientFr: ClientMessages = {
     learnTitle: 'Comprendre l’audit',
     learnNudge: 'Première fois ? Découvrez l’audit en 10 minutes avant de partager.',
     learnCta: 'Découvrir l’audit en 10 minutes',
+    ownSent: 'Vos propres réponses ont été envoyées.',
+    ownNotYet: 'Vous n’avez pas encore envoyé vos réponses.',
+    ownCta: 'Répondre aux questions',
     back: 'Retour à mon espace',
   },
   invitations: {

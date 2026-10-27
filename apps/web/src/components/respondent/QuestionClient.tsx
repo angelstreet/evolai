@@ -218,7 +218,7 @@ export default function QuestionClient(props: Props) {
               <button
                 key={option.value}
                 type="button"
-                className="ck-opt option-button"
+                className="ck-opt"
                 role="radio"
                 aria-checked={selected === option.value}
                 disabled={busy}

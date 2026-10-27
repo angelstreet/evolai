@@ -5,7 +5,8 @@ import { usePathname } from 'next/navigation';
 
 /**
  * The shared header, banner and footer wrap every page except the front-page cockpit (TASK-AH)
- * and the team survey `/s/*` (TASK-AI L3), which draw the Workbench header themselves. Server components arrive as props, so they stay
+ * the team survey `/s/*` (TASK-AI L3), the referent space `/client` (L4) and admin `/admin` (L7),
+ * which draw the Workbench header themselves. Server components arrive as props, so they stay
  * server-rendered; this client part only decides whether to show them.
  */
 export default function ChromeGate({
@@ -20,7 +21,8 @@ export default function ChromeGate({
   children: ReactNode;
 }) {
   const path = usePathname();
-  const own = path === '/' || path.startsWith('/s/');
+  const under = (p: string) => path === p || path.startsWith(`${p}/`);
+  const own = path === '/' || path.startsWith('/s/') || under('/client') || under('/admin');
   if (own) return <>{children}</>;
   return (
     <>

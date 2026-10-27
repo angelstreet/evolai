@@ -29,6 +29,9 @@ export default function SurveyFrame({ children }: { children: ReactNode }) {
           <span>{t('cockpit.footer.line')}</span>
           <span className="ck-links">
             <Link href="/privacy">{t('cockpit.footer.privacy')}</Link>
+            <a href="https://github.com/angelstreet/evolai" rel="noopener noreferrer">
+              {t('cockpit.footer.source')}
+            </a>
           </span>
         </footer>
       </div>

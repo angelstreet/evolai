@@ -131,7 +131,7 @@ test.describe('respondent path, keyboard only, with axe on every page', () => {
           await expectFocusRing(page, `question ${i + 1} next`);
           await page.keyboard.press('Enter');
         } else {
-          await tabTo(page, 'button.option-button');
+          await tabTo(page, 'button.ck-opt');
           await expectFocusRing(page, `question ${i + 1} option`);
           await page.keyboard.press(i % 2 === 0 ? 'Enter' : 'Space');
           await tabTo(page, 'button.text-next');

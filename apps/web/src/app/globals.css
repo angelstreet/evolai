@@ -430,6 +430,20 @@ details ul {
   top: var(--space-2);
 }
 
+/* Above a narrow reading column (privacy, sign-in) the shared bar has no room for the account name
+   or the organisation: the avatar stays and the name is visually hidden but remains the button's
+   accessible name; the working pages show the organisation in the Workbench header (one header row). */
+body:not(:has(main > .wide)) .topbar [data-testid='header-organisation'] {
+  display: none !important;
+}
+body:not(:has(main > .wide)) .topbar .account-name {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
 /* Header and footer (docs/UI_RULES.md §5, §7): one row, same surface as the page, hairline. */
 .topbar,
 .footer-row {

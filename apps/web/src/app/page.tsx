@@ -3,6 +3,7 @@ import Cockpit, { type CockpitQuestion, type Viewer } from '@/components/chrome/
 import { getSession } from '@/lib/authServer';
 import { loadIdentity } from '@/components/chrome/SiteHeader';
 import { getT } from '@/lib/i18n';
+import { loadTeamNames } from '@/lib/clientData';
 import { effectiveContext } from '@/lib/tenantAccess';
 
 export const dynamic = 'force-dynamic';
@@ -13,7 +14,8 @@ export function generateMetadata() {
 
 /**
  * Front page (TASK-AH, docs/mockups/glowup-c-workbench.html): the cockpit. Open by default
- * (ADR 0051): the page reads no tenant data; the signed-in header only needs the session.
+ * (ADR 0051): signed out, the page reads no tenant data; a signed-in referent also gets their own
+ * team names, scoped by the session (TASK-AI L5).
  */
 export default async function FrontPage() {
   const { locale } = getT();
@@ -33,9 +35,11 @@ export default async function FrontPage() {
   let viewer: Viewer = { kind: 'anon' };
   if (session) {
     const name = session.name || '';
+    const ctx = effectiveContext(session);
+    // A referent sees their own team names and a link to their space (TASK-AI L5).
     viewer =
-      effectiveContext(session).kind === 'client'
-        ? { kind: 'referent', name }
+      ctx.kind === 'client'
+        ? { kind: 'referent', name, teams: await loadTeamNames(ctx.tenantId, ctx.teamIds) }
         : { kind: 'staff', name };
   }
   return (

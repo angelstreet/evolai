@@ -29,6 +29,7 @@ import {
   withLink,
   type Participation,
 } from '@/lib/referentView';
+import { loadProgress } from '@/lib/accountProgress';
 import { loadPublishedReport } from '@/lib/reportData';
 import { surveyEstimatedMinutes } from '@/lib/syntheticTemplate';
 import { addressUrl, ensureTeamAddresses } from '@/lib/teamAddresses';
@@ -100,12 +101,13 @@ export default async function ClientHome() {
     ctx.teamIds.includes(a.teamId),
   );
   const expected = new Map(addresses.map((a) => [a.teamId, a.expectedSize]));
-  const [rows, published, anySubmitted, firstOn, expiryOn] = await Promise.all([
+  const [rows, published, anySubmitted, firstOn, expiryOn, own] = await Promise.all([
     referentProgress(ctx.tenantId, survey, ctx.teamIds, expected),
     loadPublishedReport(tenantId, survey.engagementId),
     anyAnswerSubmitted(ctx.tenantId, survey.engagementId, ctx.teamIds),
     firstLinkOn(ctx.tenantId, survey.engagementId, ctx.teamIds),
     earliestLinkExpiryOn(ctx.tenantId, survey.engagementId, ctx.teamIds),
+    loadProgress(session),
   ]);
   const closeDay = effectiveCloseDay(survey.closesOn, expiryOn);
   const today = new Date().toISOString().slice(0, 10);
@@ -191,6 +193,29 @@ export default async function ClientHome() {
             </Typography>
           </Stack>
         </Paper>
+
+        {/* The referent's own answers (TASK-AI L5): sent from the front page, or not yet. Only a
+            yes/no from the account's progress; never which response is theirs (ADR 0055, 0056). */}
+        {own.kind === 'ok' ? (
+          <Paper variant="outlined" sx={{ p: 4, borderRadius: 3 }} data-testid="client-own">
+            <Typography variant="body1" sx={{ m: 0 }} data-testid="client-own-state">
+              <StatusText status={own.progress.sent ? 'success' : 'pending'}>
+                {own.progress.sent ? t('client.space.ownSent') : t('client.space.ownNotYet')}
+              </StatusText>
+            </Typography>
+            {own.progress.sent ? null : (
+              <Button
+                variant="outlined"
+                href="/?survey=1"
+                endIcon={<AppIcon name="forward" size={16} />}
+                data-testid="client-own-cta"
+                sx={{ mt: 4, minHeight: 44 }}
+              >
+                {t('client.space.ownCta')}
+              </Button>
+            )}
+          </Paper>
+        ) : null}
 
         {noAnswersYet ? (
           <Paper variant="outlined" sx={{ p: 4, borderRadius: 3 }} data-testid="client-learn">

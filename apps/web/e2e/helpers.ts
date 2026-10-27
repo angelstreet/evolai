@@ -30,7 +30,7 @@ export const answerCurrent = async (
     await page.locator('button.text-next').click();
     return;
   }
-  await page.locator('button.option-button').last().click();
+  await page.locator('button.ck-opt').last().click();
   await page.locator('button.text-next').click();
 };
 

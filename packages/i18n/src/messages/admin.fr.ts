@@ -58,6 +58,7 @@ export const adminFr: AdminMessages = {
     pending: 'en attente',
     tabMissions: 'Missions',
     tabSettings: 'Paramètres',
+    tabFront: 'Page d’accueil',
     tabsAria: 'Sections d’administration',
     tabPortfolio: 'Portefeuille',
     tabEngagements: 'Missions',

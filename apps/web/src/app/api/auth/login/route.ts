@@ -23,7 +23,10 @@ const safeNext = (raw: string | null): string =>
 /** The front page's send step (ADR 0055): back to the answers kept in this browser. */
 const FRONT_SEND = '/?send=1';
 
-/** A team referent lands on the client surface; staff keep their `next` (TASK-P). */
+/**
+ * A team referent lands on the front page Workbench (TASK-AI L5), or on a `/client` path they asked
+ * for; staff keep their `next` (TASK-P).
+ */
 const landing = (staff: boolean, raw: string | null): string =>
   raw === FRONT_SEND
     ? FRONT_SEND
@@ -31,7 +34,7 @@ const landing = (staff: boolean, raw: string | null): string =>
       ? safeNext(raw)
       : raw && /^\/client(\/[A-Za-z0-9_\-./?=&%]*)?$/.test(raw)
         ? raw
-        : '/client';
+        : '/';
 
 const back = (error: string) => redirectTo(`/login?error=${error}`);
 
