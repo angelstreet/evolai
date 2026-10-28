@@ -63,8 +63,11 @@ by a native speaker before the pilot (ADR 0046).
 
 ## Review
 
-6. **Answers**: read the counts per choice and the anonymised free texts by question (only from 5 answers). The
-   analysis pipeline is parked in this version: you write the findings and the steps yourself in the Report tab.
+6. **Findings** (from 5 answers): in the Report tab, "Propose findings" reads the answers and proposes findings
+   (weaker practices chosen by 3 people or more, questions many people were unsure about, problems named in the
+   free texts), each with the people behind it. Approve what you stand behind, reject the rest. In the Answers
+   tab you can also tick free texts and choices and "Write a finding" yourself. An approved finding of 5 people
+   or more gets suggested actions under Actions; under 5 people it stays internal. No AI is used (ADR 0058).
 
 ## Build the audit report
 

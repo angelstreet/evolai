@@ -4,6 +4,7 @@ import PDFDocument from 'pdfkit';
 import type { Horizon, Quadrant, ReportSnapshot } from '@evolai/contracts';
 import { formatDate, type SupportedLocale, type Translator } from '@evolai/i18n';
 import { palette } from '@evolai/ui/palette';
+import { weightsSentence } from './reportModel';
 
 /**
  * Server-side PDF of a published audit report (TASK-V, ADR 0042).
@@ -198,7 +199,7 @@ export const renderReportPdf = (
     });
   }
   for (const line of [
-    `${t('report.readiness.weights')} ${t('report.readiness.missing')}`,
+    weightsSentence(t, s.readiness),
     t('report.readiness.scale'),
     t('report.readiness.notHr'),
   ]) {

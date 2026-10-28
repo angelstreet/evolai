@@ -18,13 +18,16 @@ import {
   StepCard,
   SuggestForm,
 } from '@/components/report/ReportForms';
+import { FindingsPanel } from '@/components/report/FindingsPanel';
 import { WorkflowBar } from '@/components/report/WorkflowBar';
 import { sessionTenantFor } from '@/lib/authServer';
 import { enumLabelOf } from '@/lib/enumLabel';
 import { getT } from '@/lib/i18n';
+import { listFindings } from '@/lib/findingsData';
 import { isUuid } from '@/lib/invitationForm';
 import { MIN_GROUP_SIZE } from '@/lib/invitationTracking';
 import { loadReportForEngagement, loadReportInputs, rankForScreen } from '@/lib/reportData';
+import { weightsSentence } from '@/lib/reportModel';
 
 export const dynamic = 'force-dynamic';
 
@@ -82,7 +85,24 @@ export default async function ReportEditorPage({
       </section>
     );
   }
-  const bundle = await loadReportForEngagement(tenantId, params.id);
+  const [bundle, findings] = await Promise.all([
+    loadReportForEngagement(tenantId, params.id),
+    listFindings(tenantId, params.id),
+  ]);
+  const findingsCard = (
+    <Card
+      id="report-findings"
+      title={t('report.findings.work.title')}
+      subtitle={t('report.findings.work.subtitle', { n: MIN_GROUP_SIZE })}
+    >
+      <FindingsPanel
+        ids={{ tenantId, engagementId: params.id }}
+        findings={findings}
+        minGroup={MIN_GROUP_SIZE}
+        disabled={false}
+      />
+    </Card>
+  );
   if (!bundle) {
     const inputs = await loadReportInputs(tenantId, params.id);
     return (
@@ -94,7 +114,10 @@ export default async function ReportEditorPage({
           subtitle={t('report.list.subtitle')}
         />
         {inputs ? (
-          <StartReportForm tenantId={tenantId} engagementId={params.id} primary />
+          <Stack spacing={4}>
+            <StartReportForm tenantId={tenantId} engagementId={params.id} primary />
+            {findingsCard}
+          </Stack>
         ) : (
           <EmptyState title={t('report.result.not_found')} />
         )}
@@ -223,9 +246,11 @@ export default async function ReportEditorPage({
             {inputs.readiness.hiddenTeams > 0
               ? `${t('report.readiness.hiddenTeams', { count: inputs.readiness.hiddenTeams })} `
               : ''}
-            {t('report.readiness.weights')} {t('report.readiness.missing')}
+            {weightsSentence(t, inputs.readiness)}
           </Typography>
         </Card>
+
+        {findingsCard}
 
         <Card
           id="report-summary"

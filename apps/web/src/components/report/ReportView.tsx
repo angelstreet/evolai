@@ -12,6 +12,7 @@ import type { Horizon, Quadrant, ReadinessGroup, ReportSnapshot } from '@evolai/
 import { formatDate } from '@evolai/i18n';
 import { enumLabelOf } from '@/lib/enumLabel';
 import { getT } from '@/lib/i18n';
+import { weightsSentence } from '@/lib/reportModel';
 
 /**
  * The audit report as the client reads it (TASK-V, ADR 0041). Renders a frozen snapshot only, so
@@ -210,7 +211,7 @@ export default function ReportView({
             </Typography>
           ) : null}
           <Typography variant="body2" color="text.secondary">
-            {t('report.readiness.weights')} {t('report.readiness.missing')}
+            {weightsSentence(t, s.readiness)}
           </Typography>
           <Typography variant="body2" color="text.secondary">
             {t('report.readiness.scale')}

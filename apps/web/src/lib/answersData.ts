@@ -19,6 +19,7 @@ export class AnswersGroupTooSmallError extends Error {
 }
 
 interface AnswerDbRow {
+  answer_id: string;
   respondent_pseudonym: string;
   engagement_id: string;
   team_id: string;
@@ -32,6 +33,8 @@ interface AnswerDbRow {
 }
 
 export interface AnswerLine {
+  /** The stored answer (empty for the closing comment, which is not an answer row). */
+  readonly answerId?: string;
   readonly pseudonym: string;
   readonly engagementId: string;
   readonly teamId: string;
@@ -97,7 +100,7 @@ export const loadAnswerLines = async (
 ): Promise<AnswerLine[]> => {
   if (engagementIds.length === 0) return [];
   const { rows } = await client.query<AnswerDbRow>(
-    `SELECT i.respondent_pseudonym, s.engagement_id, i.team_id, q.code AS question_code, q.kind AS question_kind,
+    `SELECT a.id AS answer_id, i.respondent_pseudonym, s.engagement_id, i.team_id, q.code AS question_code, q.kind AS question_kind,
             q.prompt, q.options_json, a.value_json, a.rationale, a.created_at AS answered_at
        FROM answers a
        JOIN submissions s ON s.id = a.submission_id
@@ -108,7 +111,8 @@ export const loadAnswerLines = async (
       ORDER BY a.created_at ASC, a.sequence ASC`,
     [tenantId, engagementIds],
   );
-  const lines = rows.map((r) => ({
+  const lines: AnswerLine[] = rows.map((r) => ({
+    answerId: r.answer_id,
     pseudonym: r.respondent_pseudonym,
     engagementId: r.engagement_id,
     teamId: r.team_id,
@@ -196,6 +200,8 @@ export interface AnswersView {
     readonly code: string;
     readonly question: string;
     readonly items: readonly string[];
+    /** The same texts with the answer each one is, for "Write a finding" (staff only, TASK-AJ). */
+    readonly entries: ReadonlyArray<{ readonly id: string | null; readonly text: string }>;
   }>;
 }
 
@@ -209,11 +215,15 @@ export const summariseAnswers = (
   lines: readonly AnswerLine[],
 ): Pick<AnswersView, 'choices' | 'texts'> => {
   const choiceMap = new Map<string, { question: string; counts: Map<string, number> }>();
-  const textMap = new Map<string, { question: string; items: string[] }>();
+  const textMap = new Map<
+    string,
+    { question: string; items: string[]; entries: { id: string | null; text: string }[] }
+  >();
   const addText = (l: AnswerLine, text: string): void => {
     if (text === '') return;
-    const e = textMap.get(l.questionCode) ?? { question: l.question, items: [] };
+    const e = textMap.get(l.questionCode) ?? { question: l.question, items: [], entries: [] };
     e.items.push(text);
+    e.entries.push({ id: l.answerId || null, text });
     textMap.set(l.questionCode, e);
   };
   for (const l of lines) {
@@ -240,6 +250,7 @@ export const summariseAnswers = (
       code,
       question: e.question,
       items: [...e.items].sort((a, b) => a.localeCompare(b)),
+      entries: [...e.entries].sort((a, b) => a.text.localeCompare(b.text)),
     })),
   };
 };

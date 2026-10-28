@@ -57,6 +57,10 @@ export const AUDIT_GROUPS = {
     'report_step.update',
     'report_step.accept',
     'report_step.reject',
+    'finding.create',
+    'finding.propose',
+    'finding.approve',
+    'finding.reject',
   ],
 } as const;
 

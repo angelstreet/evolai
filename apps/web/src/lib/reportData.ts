@@ -24,7 +24,7 @@ import {
   scoreSubmission,
   type ScoredSubmission,
 } from '@evolai/domain';
-import { aggregateThemes } from './clientData';
+import { linkedFindingWords, loadApprovedFindings } from './findingsData';
 import { withTenant } from './db';
 import { MIN_GROUP_SIZE } from './invitationTracking';
 import {
@@ -213,26 +213,18 @@ export interface ReportInputs {
   readonly answered: number;
 }
 
+/** Approved findings cited by at least the minimum group (TASK-AJ, ADR 0058), most people first. */
 const loadFindings = async (
   client: pg.PoolClient,
   tenantId: string,
   engagementId: string,
-): Promise<ReportFinding[]> => {
-  const { rows } = await client.query<{ submission_id: string; payload_json: unknown }>(
-    `SELECT submission_id, payload_json FROM analyses
-      WHERE tenant_id = $1 AND engagement_id = $2 AND approved_at IS NOT NULL`,
-    [tenantId, engagementId],
-  );
-  return aggregateThemes(
-    rows.map((r) => ({ submissionId: r.submission_id, payload: r.payload_json })),
-    MIN_GROUP_SIZE,
-  ).map((th) => ({
-    key: findingKey(th.axis, th.label),
-    axis: th.axis,
-    label: th.label,
-    people: th.people,
+): Promise<ReportFinding[]> =>
+  (await loadApprovedFindings(client, tenantId, engagementId, MIN_GROUP_SIZE)).map((f) => ({
+    key: findingKey(f.axis, f.label),
+    axis: f.axis,
+    label: f.label,
+    people: f.people,
   }));
-};
 
 const loadReadiness = async (
   client: pg.PoolClient,
@@ -501,16 +493,20 @@ const suggestWith = async (
         WHERE op.tenant_id = $1 AND op.id = $2 AND a.approved_at IS NOT NULL`,
       [tenantId, o.id],
     );
-    const labels = linked.rows.flatMap((r) => {
-      const themes = (r.payload_json as { themes?: unknown } | null)?.themes;
-      return Array.isArray(themes)
-        ? themes.flatMap((t) =>
-            typeof (t as { label?: unknown }).label === 'string'
-              ? [(t as { label: string }).label]
-              : [],
-          )
-        : [];
-    });
+    const fromFindings = await linkedFindingWords(client, tenantId, o.id);
+    const labels = [
+      ...fromFindings.labels,
+      ...linked.rows.flatMap((r) => {
+        const themes = (r.payload_json as { themes?: unknown } | null)?.themes;
+        return Array.isArray(themes)
+          ? themes.flatMap((t) =>
+              typeof (t as { label?: unknown }).label === 'string'
+                ? [(t as { label: string }).label]
+                : [],
+            )
+          : [];
+      }),
+    ];
     const description = await client.query<{ description: string }>(
       'SELECT description FROM opportunities WHERE tenant_id = $1 AND id = $2',
       [tenantId, o.id],
@@ -520,6 +516,7 @@ const suggestWith = async (
       description: description.rows[0]?.description ?? '',
       axis: o.axis,
       findingLabels: labels,
+      tags: fromFindings.tags,
     });
     for (const m of matches) {
       position += 1;

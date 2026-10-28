@@ -172,6 +172,7 @@ describe('answerValueText', () => {
 
 // Type-level guard: a line never carries more than these fields (no name, no address).
 const _line: Record<keyof AnswerLine, true> = {
+  answerId: true,
   pseudonym: true,
   engagementId: true,
   teamId: true,

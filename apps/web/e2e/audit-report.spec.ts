@@ -10,8 +10,8 @@ import pg from 'pg';
  * again once it is unpublished. Phone (360) and desktop (1280), French and English.
  *
  * Fixture: a second team of the synthetic client C ("Synthetic report team", so the TASK-S
- * counts of the referent's own team do not move) with six completed surveys, six approved
- * analyses raising the same two themes, and one approved opportunity. All obviously fake.
+ * counts of the referent’s own team do not move) with six completed surveys, two approved
+ * findings resting on their answers, and one approved opportunity. All obviously fake.
  */
 
 const REFERENT = {
@@ -65,6 +65,7 @@ const cleanupFixture = async (): Promise<void> => {
   if (!eng) return;
   await query('DELETE FROM audit_report_versions WHERE engagement_id = $1', [eng.id]);
   await query('DELETE FROM audit_reports WHERE engagement_id = $1', [eng.id]);
+  await query('DELETE FROM findings WHERE engagement_id = $1', [eng.id]);
   await query('DELETE FROM opportunities WHERE engagement_id = $1 AND title = ANY($2)', [
     eng.id,
     [OPP_TITLE, OWN_STEP],
@@ -96,6 +97,7 @@ const resetFixture = async (withOpportunity = true): Promise<Fixture> => {
   const ownerId = owner?.id as string;
   await query('DELETE FROM audit_report_versions WHERE engagement_id = $1', [eng.id]);
   await query('DELETE FROM audit_reports WHERE engagement_id = $1', [eng.id]);
+  await query('DELETE FROM findings WHERE engagement_id = $1', [eng.id]);
   await query('DELETE FROM opportunities WHERE engagement_id = $1 AND title = ANY($2)', [
     eng.id,
     [OPP_TITLE, OWN_STEP],
@@ -130,7 +132,7 @@ const resetFixture = async (withOpportunity = true): Promise<Fixture> => {
        JOIN questionnaire_versions qv ON qi.id = ANY(qv.item_ids) WHERE qv.id = $1`,
     [eng.qv],
   );
-  let firstAnalysis = '';
+  const evidence: string[] = [];
   for (let i = 0; i < PEOPLE; i += 1) {
     const [inv] = await query<{ id: string }>(
       `INSERT INTO invitations (id, tenant_id, engagement_id, team_id, respondent_pseudonym, status,
@@ -149,9 +151,9 @@ const resetFixture = async (withOpportunity = true): Promise<Fixture> => {
     for (const [seq, item] of items.entries()) {
       const opts = item.options_json;
       const choice = opts[(i + seq) % opts.length]?.value;
-      await query(
+      const [answer] = await query<{ id: string }>(
         `INSERT INTO answers (id, tenant_id, submission_id, question_item_id, value_json, sequence)
-         VALUES (gen_random_uuid(), $1, $2, $3, $4, $5)`,
+         VALUES (gen_random_uuid(), $1, $2, $3, $4, $5) RETURNING id`,
         [
           eng.tenant_id,
           sub?.id,
@@ -160,32 +162,30 @@ const resetFixture = async (withOpportunity = true): Promise<Fixture> => {
           seq,
         ],
       );
+      if (seq === 0) evidence.push(answer?.id as string);
     }
-    const [analysis] = await query<{ id: string }>(
-      `INSERT INTO analyses (tenant_id, engagement_id, submission_id, sensitivity, theme_count,
-                             payload_json, model_route, approved_at, approved_by)
-       VALUES ($1, $2, $3, 'internal', 2, $4, 'rule-based/v1', now(), $5) RETURNING id`,
-      [
-        eng.tenant_id,
-        eng.id,
-        sub?.id,
-        JSON.stringify({
-          themes: THEMES.map((t, n) => ({ id: `theme-${n}`, ...t, summary: 'synthetic' })),
-        }),
-        ownerId,
-      ],
+  }
+  // Two approved findings, each resting on one answer of every person (ADR 0058).
+  for (const t of THEMES) {
+    const [f] = await query<{ id: string }>(
+      `INSERT INTO findings (tenant_id, engagement_id, axis, label, status, source, created_by)
+       VALUES ($1, $2, $3, $4, 'approved', 'auditor', $5) RETURNING id`,
+      [eng.tenant_id, eng.id, t.axis, t.label, ownerId],
     );
-    if (i === 0) firstAnalysis = analysis?.id as string;
+    await query(
+      `INSERT INTO finding_evidence (tenant_id, finding_id, answer_id)
+       SELECT $1, $2, unnest($3::uuid[])`,
+      [eng.tenant_id, f?.id, evidence],
+    );
   }
   if (withOpportunity) {
     await query(
-      `INSERT INTO opportunities (tenant_id, engagement_id, analysis_id, status, title, description,
+      `INSERT INTO opportunities (tenant_id, engagement_id, status, title, description,
                                   axis, created_by)
-       VALUES ($1, $2, $3, 'approved', $4, $5, 'practice', $6)`,
+       VALUES ($1, $2, 'approved', $3, $4, 'practice', $5)`,
       [
         eng.tenant_id,
         eng.id,
-        firstAnalysis,
         OPP_TITLE,
         'Les chiffres sont copiés et collés dans le rapport chaque semaine.',
         ownerId,

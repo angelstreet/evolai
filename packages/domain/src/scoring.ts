@@ -89,7 +89,9 @@ export const scoreSubmission = (
     const item = itemsById.get(answer.questionItemId);
     if (!item) continue;
     const optionScore = scoreOption(answer.value, item);
-    const weighted = optionScore === null ? null : optionScore * item.scoring.weight;
+    // Weight 0 keeps the answer out of the score (the contract's rule), like free text (TASK-AJ A4).
+    const weighted =
+      optionScore === null || item.scoring.weight === 0 ? null : optionScore * item.scoring.weight;
 
     const entry = accumulator.get(item.axis) ?? { sum: 0, count: 0, skipped: 0, weight: 0 };
     if (weighted === null) {

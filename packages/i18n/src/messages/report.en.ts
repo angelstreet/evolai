@@ -132,6 +132,8 @@ export const reportEn = {
     hiddenTeams:
       '{count, plural, one {# team is not shown} other {# teams are not shown}} to protect privacy.',
     weights: 'The overall score is the average of the three axes, each counting for a third.',
+    weightsSome:
+      'The overall score rests on {used} only: the survey has no scored answer for {unused}.',
     missing: 'An axis nobody answered is left out and the others count more.',
     notHr: 'A picture of the group, not an assessment of anyone, and not for HR decisions.',
     axis: {
@@ -171,6 +173,77 @@ export const reportEn = {
     subtitle: 'Approved findings raised by at least {n} people.',
     people: '{count, plural, one {raised by # person} other {raised by # people}}',
     empty: 'No finding to show.',
+    work: {
+      title: 'Findings',
+      subtitle:
+        'What the answers show. Approve what you stand behind: approved findings from at least {n} people go into the report, with suggested actions.',
+      propose: 'Propose findings',
+      fromAnswers: 'Write one from the answers',
+      empty:
+        'No finding yet. Propose findings from the answers, or write one from the Answers tab.',
+      unavailable: 'Findings are not set up on this server yet.',
+      approve: 'Approve',
+      reject: 'Reject',
+      withdraw: 'Withdraw',
+      status: { draft: 'To review', approved: 'Approved', rejected: 'Rejected' },
+      source: { rule: 'Proposed from the answers', auditor: 'Written by you' },
+      staffOnly: 'Staff only: under {n} people, never in the report.',
+      rejectedTitle: 'Rejected',
+    },
+    result: {
+      proposed:
+        '{count, plural, =0 {No new finding.} one {# new finding to review.} other {# new findings to review.}}',
+      created: 'Finding saved.',
+      approved: 'Approved.',
+      approvedWithActions: 'Approved. Suggested actions are under Actions.',
+      rejected: 'Rejected.',
+      few_people: 'Findings need at least {n} finished surveys.',
+      no_evidence: 'Tick at least one answer or choice the finding rests on.',
+      bad_input: 'Write a title of 3 to 200 characters and pick an axis.',
+      not_found: 'Not found.',
+      forbidden: 'You cannot change these findings.',
+      error: 'Something went wrong. Please try again.',
+    },
+    rule: {
+      choice: {
+        v1_source_check: {
+          label: 'AI answers are used without checking a source',
+          statement:
+            '{count} of {total} people use an AI answer as is or only reread it, without checking another source.',
+        },
+        v1_data_sharing: {
+          label: 'Client data goes into public AI tools as is',
+          statement: '{count} of {total} people paste client data into a public AI tool as is.',
+        },
+        v1_request_style: {
+          label: 'Requests to AI are too short',
+          statement:
+            '{count} of {total} people ask an AI tool in one short line, with no goal, audience or format.',
+        },
+        v1_report_flow: {
+          label: 'A tool is sought before the work is mapped',
+          statement:
+            '{count} of {total} people would look for a tool before listing the steps of a manual report.',
+        },
+        v1_repeat_data: {
+          label: 'AI is the first idea for simple copying work',
+          statement:
+            '{count} of {total} people would use an AI assistant where a simple automation would do.',
+        },
+        v1_repeat_time: {
+          label: 'Repeated tasks take 3 hours or more a week',
+          statement: '{count} of {total} people spend 3 hours or more a week on repeated tasks.',
+        },
+      },
+      unsure: {
+        label: 'Unsure: {question}',
+        statement: '{count} of {total} people answered “I don’t know” to: {question}',
+      },
+      tag: {
+        label: 'Named in the free texts: {tag}',
+        statement: '{count} of {total} people describe {tag} in their free-text answers.',
+      },
+    },
   },
   steps: {
     title: 'Actions',

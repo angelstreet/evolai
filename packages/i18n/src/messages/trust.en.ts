@@ -156,6 +156,10 @@ export const trustEn = {
       report_step_reject: 'Rejected an action',
       privacy_request_handle: 'Marked a privacy request as handled',
       answers_anonymise: 'Anonymised stored free-text answers',
+      finding_create: 'Wrote a finding',
+      finding_propose: 'Proposed findings from the answers',
+      finding_approve: 'Approved a finding',
+      finding_reject: 'Rejected a finding',
     },
   },
   notice: {

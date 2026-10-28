@@ -9,6 +9,22 @@ import {
   type ReportStep,
 } from '@evolai/contracts';
 import { findingKey, rankOpportunities, uniqueLines } from '@evolai/domain';
+import type { Translator } from '@evolai/i18n';
+
+/**
+ * The weighting sentence under the score (TASK-AJ A4): when an axis has no scored answer, it says
+ * which axes the overall score rests on, so the reader never assumes three axes counted.
+ */
+export const weightsSentence = (t: Translator, readiness: ReadinessReport): string => {
+  const axes = readiness.overall?.axes ?? [];
+  const name = (a: (typeof axes)[number]) => t(`report.readiness.axis.${a.axis}`);
+  const used = axes.filter((a) => a.score !== null).map(name);
+  const unused = axes.filter((a) => a.score === null).map(name);
+  if (used.length === 0 || unused.length === 0) {
+    return `${t('report.readiness.weights')} ${t('report.readiness.missing')}`;
+  }
+  return t('report.readiness.weightsSome', { used: used.join(', '), unused: unused.join(', ') });
+};
 
 /**
  * Pure model of the audit report (TASK-V, ADR 0041): the snapshot the client sees, the publish

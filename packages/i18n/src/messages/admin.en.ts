@@ -91,6 +91,20 @@ export const adminEn = {
     exportLater: 'Available from {n} answers.',
     people: '{n, plural, one {# person} other {# people}}',
     chartAria: 'Answers to: {question}',
+    make: {
+      title: 'Write a finding',
+      subtitle:
+        'Tick the free texts above and the choices below that show it, then say it in your own words. It goes to the Report tab, approved.',
+      choices: 'Choices',
+      label: 'Finding',
+      labelHelp: 'A short title, no names and no quotes.',
+      statement: 'In one sentence',
+      axis: 'Axis',
+      submit: 'Save the finding',
+      picked:
+        '{n, plural, =0 {Nothing ticked} one {# answer or choice ticked} other {# answers or choices ticked}}',
+      pick: 'Use as evidence',
+    },
   },
   brief: {
     title: 'Pre-visit brief',

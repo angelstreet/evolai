@@ -199,7 +199,7 @@
       "theme": "friction",
       "kind": "scenario_choice",
       "sensitivity": "internal",
-      "weight": 1,
+      "weight": 0,
       "prompt": {
         "fr": "Combien d’heures par semaine pour des tâches répétitives ?",
         "en": "How many hours a week go on repeated tasks?"

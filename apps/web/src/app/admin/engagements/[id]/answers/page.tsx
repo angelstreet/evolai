@@ -5,6 +5,7 @@ import Typography from '@mui/material/Typography';
 import type { EngagementId } from '@evolai/contracts';
 import { AppIcon, EmptyState, PageTitle } from '@evolai/ui';
 import ChoiceBars from '@/components/mission/ChoiceBars';
+import FindingPicker from '@/components/mission/FindingPicker';
 import { answersViewFor } from '@/lib/answersData';
 import { sessionTenantIds } from '@/lib/authServer';
 import { getT } from '@/lib/i18n';
@@ -87,42 +88,13 @@ export default async function AnswersPage({ params }: { params: { id: string } }
               />
             ))}
           </Paper>
-          <Paper
-            variant="outlined"
-            component="section"
-            id="free-texts"
-            aria-labelledby="texts-title"
-            sx={CARD_SX}
-          >
-            <Typography
-              id="texts-title"
-              variant="sectionTitle"
-              component="h3"
-              sx={{ mt: 0, mb: 4 }}
-            >
-              {t('admin.answers.textsTitle')}
-            </Typography>
-            {view.texts.length === 0 ? (
-              <Typography color="text.secondary">{t('admin.answers.noTexts')}</Typography>
-            ) : (
-              view.texts.map((q) => (
-                <section key={q.code} data-testid="answers-text-group">
-                  <Typography variant="cardTitle" component="h4" sx={{ mb: 2 }}>
-                    {q.question || t('admin.answers.endComment')}
-                  </Typography>
-                  <ul>
-                    {q.items.map((item, i) => (
-                      <li key={i}>
-                        <Typography variant="body2" component="span">
-                          {item}
-                        </Typography>
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              ))
-            )}
-          </Paper>
+          <FindingPicker
+            tenantId={mission.tenantId}
+            engagementId={mission.id}
+            choices={view.choices}
+            texts={view.texts}
+            minGroup={MIN_GROUP_SIZE}
+          />
         </>
       )}
     </section>

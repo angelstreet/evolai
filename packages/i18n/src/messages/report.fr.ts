@@ -144,6 +144,8 @@ export const reportFr: Shape<typeof reportEn> = {
     hiddenTeams:
       '{count, plural, one {# équipe n’est pas affichée} other {# équipes ne sont pas affichées}} pour protéger la confidentialité.',
     weights: 'Le score global est la moyenne des trois axes, chacun compte pour un tiers.',
+    weightsSome:
+      'Le score global repose seulement sur {used} : le questionnaire n’a pas de réponse notée pour {unused}.',
     missing: 'Un axe sans réponse est laissé de côté et les autres comptent davantage.',
     notHr:
       'Une image du groupe, pas une évaluation des personnes, et jamais pour des décisions RH.',
@@ -184,6 +186,79 @@ export const reportFr: Shape<typeof reportEn> = {
     subtitle: 'Constats approuvés, cités par au moins {n} personnes.',
     people: '{count, plural, one {cité par # personne} other {cité par # personnes}}',
     empty: 'Aucun constat à afficher.',
+    work: {
+      title: 'Constats',
+      subtitle:
+        'Ce que montrent les réponses. Approuvez ce que vous assumez : les constats approuvés d’au moins {n} personnes vont dans le rapport, avec des actions suggérées.',
+      propose: 'Proposer des constats',
+      fromAnswers: 'En écrire un depuis les réponses',
+      empty:
+        'Aucun constat. Proposez des constats à partir des réponses, ou écrivez-en un depuis l’onglet Réponses.',
+      unavailable: 'Les constats ne sont pas encore activés sur ce serveur.',
+      approve: 'Approuver',
+      reject: 'Refuser',
+      withdraw: 'Retirer',
+      status: { draft: 'À relire', approved: 'Approuvé', rejected: 'Refusé' },
+      source: { rule: 'Proposé à partir des réponses', auditor: 'Écrit par vous' },
+      staffOnly: 'Interne : moins de {n} personnes, jamais dans le rapport.',
+      rejectedTitle: 'Refusés',
+    },
+    result: {
+      proposed:
+        '{count, plural, =0 {Aucun nouveau constat.} one {# nouveau constat à relire.} other {# nouveaux constats à relire.}}',
+      created: 'Constat enregistré.',
+      approved: 'Approuvé.',
+      approvedWithActions: 'Approuvé. Les actions suggérées sont sous Actions.',
+      rejected: 'Refusé.',
+      few_people: 'Les constats demandent au moins {n} questionnaires terminés.',
+      no_evidence: 'Cochez au moins une réponse ou un choix sur lequel repose le constat.',
+      bad_input: 'Écrivez un titre de 3 à 200 caractères et choisissez un axe.',
+      not_found: 'Introuvable.',
+      forbidden: 'Vous ne pouvez pas modifier ces constats.',
+      error: 'Une erreur est survenue. Veuillez réessayer.',
+    },
+    rule: {
+      choice: {
+        v1_source_check: {
+          label: 'Les réponses d’IA sont utilisées sans vérifier la source',
+          statement:
+            '{count} personnes sur {total} utilisent une réponse d’IA telle quelle ou la relisent seulement, sans vérifier une autre source.',
+        },
+        v1_data_sharing: {
+          label: 'Des données clients vont telles quelles dans des IA publiques',
+          statement:
+            '{count} personnes sur {total} collent des données clients telles quelles dans une IA publique.',
+        },
+        v1_request_style: {
+          label: 'Les demandes à l’IA sont trop courtes',
+          statement:
+            '{count} personnes sur {total} formulent leur demande à l’IA en une ligne, sans but, public ni format.',
+        },
+        v1_report_flow: {
+          label: 'On cherche un outil avant de décrire le travail',
+          statement:
+            '{count} personnes sur {total} chercheraient un outil avant de lister les étapes d’un rapport manuel.',
+        },
+        v1_repeat_data: {
+          label: 'L’IA vient en premier pour une simple recopie',
+          statement:
+            '{count} personnes sur {total} utiliseraient un assistant d’IA là où une automatisation simple suffirait.',
+        },
+        v1_repeat_time: {
+          label: 'Les tâches répétitives prennent 3 heures ou plus par semaine',
+          statement:
+            '{count} personnes sur {total} passent 3 heures ou plus par semaine sur des tâches répétitives.',
+        },
+      },
+      unsure: {
+        label: 'Incertitude : {question}',
+        statement: '{count} personnes sur {total} ont répondu « Je ne sais pas » à : {question}',
+      },
+      tag: {
+        label: 'Cité dans les textes libres : {tag}',
+        statement: '{count} personnes sur {total} décrivent {tag} dans leurs textes libres.',
+      },
+    },
   },
   steps: {
     title: 'Actions',

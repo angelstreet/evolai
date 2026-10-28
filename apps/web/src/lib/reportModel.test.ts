@@ -8,7 +8,9 @@ import {
   findingKey,
   type SnapshotInput,
   type StepRow,
+  weightsSentence,
 } from './reportModel';
+import { createTranslator } from '@evolai/i18n';
 
 const OPP_A = '0a000000-0000-4000-8000-00000000000a';
 const OPP_B = '0b000000-0000-4000-8000-00000000000b';
@@ -252,5 +254,37 @@ describe('methodologyNote', () => {
     expect(methodologyNote({ answered: 12, themes: 2, opportunities: 0 }, 5, w)).not.toContain(
       'opportunities approved',
     );
+  });
+});
+
+describe('weightsSentence (TASK-AJ A4)', () => {
+  const t = createTranslator('en');
+  const readiness = (practice: number | null) =>
+    ({
+      overall: {
+        people: 6,
+        overall: 40,
+        level: 'L2',
+        axes: [
+          { axis: 'literacy', score: 40, level: 'L2' },
+          { axis: 'practice', score: practice, level: practice === null ? null : 'L2' },
+          { axis: 'readiness', score: null, level: null },
+        ],
+      },
+      teams: [],
+      hiddenTeams: 0,
+      weights: { literacy: 1 / 3, practice: 1 / 3, readiness: 1 / 3 },
+      minGroupSize: 5,
+    }) as unknown as Parameters<typeof weightsSentence>[1];
+
+  it('names the axes the score rests on when one has no scored answer', () => {
+    expect(weightsSentence(t, readiness(null))).toBe(
+      'The overall score rests on Knowledge only: the survey has no scored answer for Use, Conditions.',
+    );
+  });
+
+  it('keeps the plain sentence when nothing is left out or there is no score', () => {
+    const none = { ...readiness(50), overall: null } as Parameters<typeof weightsSentence>[1];
+    expect(weightsSentence(t, none)).toContain('each counting for a third');
   });
 });

@@ -25,6 +25,8 @@ export interface MatchInput {
   readonly axis: string | null;
   /** Labels of the approved findings linked to the opportunity (no quotes, no answers). */
   readonly findingLabels?: readonly string[];
+  /** Evidence patterns already known from the linked findings (TASK-AJ): matched like keywords. */
+  readonly tags?: readonly EvidenceTag[];
 }
 
 export interface Match {
@@ -65,7 +67,7 @@ export const matchImprovements = (
   catalogue: readonly ImprovementEntry[] = IMPROVEMENT_CATALOGUE,
 ): Match[] => {
   const text = [input.title, input.description, ...(input.findingLabels ?? [])].join(' \n ');
-  const strong = new Set(tagsInText(text));
+  const strong = new Set([...tagsInText(text), ...(input.tags ?? [])]);
   const weak = new Set((input.axis ? AXIS_TAGS[input.axis] : undefined) ?? []);
   const scored = catalogue.map((entry, order) => {
     const tags = entry.evidence.filter((t) => strong.has(t) || weak.has(t));

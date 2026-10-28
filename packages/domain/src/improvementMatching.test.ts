@@ -52,6 +52,18 @@ describe('improvement matching', () => {
     expect(m[0]?.entry.id).toBe('ai.meeting_notes');
   });
 
+  it('takes the evidence patterns of linked findings as given', () => {
+    const m = matchImprovements({
+      title: 'Zzz',
+      description: '',
+      axis: null,
+      tags: ['manual_reentry'],
+    });
+    expect(m.length).toBeGreaterThan(0);
+    expect(m.every((x) => x.tags.includes('manual_reentry'))).toBe(true);
+    expect(m[0]?.score).toBe(2);
+  });
+
   it('returns nothing when nothing matches, and respects the limit', () => {
     expect(matchImprovements({ title: 'Zzz', description: '', axis: null })).toEqual([]);
     const many = matchImprovements(

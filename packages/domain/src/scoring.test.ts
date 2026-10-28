@@ -194,4 +194,25 @@ describe('scoreSubmission', () => {
     expect(result.byAxis.get('literacy')?.normalised).toBe(0);
     expect(result.byAxis.get('practice')?.normalised).toBe(1);
   });
+  it('leaves a weight-0 item out of the score (TASK-AJ A4)', () => {
+    const unscored: QuestionItem = { ...itemPractice, scoring: { weight: 0, reverse: false } };
+    const result = scoreSubmission(
+      [
+        {
+          id: parseAnswerId('550e8400-e29b-41d4-a716-446655440099'),
+          tenantId: TENANT,
+          submissionId: SUB,
+          questionItemId: ITEM_C,
+          value: { kind: 'scenario_choice', choice: 'check_source' },
+          confidence: null,
+          rationale: null,
+          durationMs: null,
+          sequence: 0,
+          createdAt: '2026-10-14T19:00:00.000Z',
+        } as Answer,
+      ],
+      new Map([[ITEM_C as string, unscored]]),
+    );
+    expect(result.byAxis.get('practice')).toMatchObject({ scoredItems: 0, skippedItems: 1 });
+  });
 });

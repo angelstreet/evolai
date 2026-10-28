@@ -1,6 +1,7 @@
 import type { TenantId } from '@evolai/contracts';
 import { aggregateFindings } from '@evolai/domain';
 import { withTenant } from './db';
+import { loadApprovedFindings } from './findingsData';
 import { teamCounts } from './invitationData';
 import { MIN_GROUP_SIZE, parseReminderDays } from './invitationTracking';
 import { parseContact, referentParticipation, type Participation } from './referentView';
@@ -175,17 +176,12 @@ export const aggregateThemes = (
   minPeople: number = MIN_GROUP_SIZE,
 ): PublishedTheme[] => aggregateFindings(analyses, minPeople);
 
-/** Only what the auditor approved: approved analyses (aggregated) and published opportunities. */
+/** Only what the auditor approved: approved findings (TASK-AJ) and published opportunities. */
 export const loadPublishedResults = async (
   tenantId: string,
   engagementId: string,
 ): Promise<PublishedResults> =>
   withTenant(tenantId as TenantId, async (client) => {
-    const analyses = await client.query<{ submission_id: string; payload_json: unknown }>(
-      `SELECT submission_id, payload_json FROM analyses
-        WHERE tenant_id = $1 AND engagement_id = $2 AND approved_at IS NOT NULL`,
-      [tenantId, engagementId],
-    );
     const opps = await client.query<{
       id: string;
       title: string;
@@ -198,9 +194,7 @@ export const loadPublishedResults = async (
       [tenantId, engagementId, PUBLISHED_OPPORTUNITY],
     );
     return {
-      themes: aggregateThemes(
-        analyses.rows.map((r) => ({ submissionId: r.submission_id, payload: r.payload_json })),
-      ),
+      themes: await loadApprovedFindings(client, tenantId, engagementId),
       opportunities: opps.rows,
     };
   });

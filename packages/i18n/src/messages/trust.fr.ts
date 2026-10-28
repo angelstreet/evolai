@@ -155,6 +155,10 @@ export const trustFr: Messages['trust'] = {
       report_step_reject: 'A refusé une action',
       privacy_request_handle: 'A marqué une demande vie privée comme traitée',
       answers_anonymise: 'A anonymisé les textes libres déjà enregistrés',
+      finding_create: 'A écrit un constat',
+      finding_propose: 'A proposé des constats à partir des réponses',
+      finding_approve: 'A approuvé un constat',
+      finding_reject: 'A refusé un constat',
     },
   },
   notice: {

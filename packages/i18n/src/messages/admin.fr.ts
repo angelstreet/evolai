@@ -95,6 +95,20 @@ export const adminFr: AdminMessages = {
     exportLater: 'Disponible à partir de {n} réponses.',
     people: '{n, plural, one {# personne} other {# personnes}}',
     chartAria: 'Réponses à : {question}',
+    make: {
+      title: 'Écrire un constat',
+      subtitle:
+        'Cochez les textes libres ci-dessus et les choix ci-dessous qui le montrent, puis dites-le avec vos mots. Il va dans l’onglet Rapport, approuvé.',
+      choices: 'Choix',
+      label: 'Constat',
+      labelHelp: 'Un titre court, sans nom ni citation.',
+      statement: 'En une phrase',
+      axis: 'Axe',
+      submit: 'Enregistrer le constat',
+      picked:
+        '{n, plural, =0 {Rien de coché} one {# réponse ou choix coché} other {# réponses ou choix cochés}}',
+      pick: 'Utiliser comme preuve',
+    },
   },
   brief: {
     title: 'Synthèse avant la visite',
