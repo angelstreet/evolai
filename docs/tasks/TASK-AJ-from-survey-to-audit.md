@@ -18,5 +18,5 @@ v1 for a mission whose survey opens before A4 and A5 are done. A1 to A4 first; d
 | A9  | Baseline and day 90               | Each action has a baseline and a day-90 measure                                                                                                                                                                            | to do             |
 | A10 | Model-drafted findings            | Only behind a contract-approved route                                                                                                                                                                                      | waits on a route  |
 
-Production: migration `0029_findings.sql` must be applied to Neon (RUNBOOK "Apply migrations to Neon"). The app
-runs before and after it: before, the Findings card says findings are not set up yet.
+Production: migration `0029_findings.sql` applied to Neon on 2026-10-28 (owner approval): the three tables with
+row-level security, and `v1_repeat_time` unscored on the existing question items.
