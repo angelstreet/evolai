@@ -300,7 +300,9 @@ for (const size of SIZES) {
       test('French copy and the language control', async ({ page, baseURL }) => {
         await setLocale(page, 'fr', baseURL as string);
         await page.goto('/');
-        await expect(page.getByRole('heading', { level: 1 })).toContainText('L’audit IA par équipe');
+        await expect(page.getByRole('heading', { level: 1 })).toContainText(
+          'L’audit IA par équipe',
+        );
         await expect(page.getByTestId('ck-next')).toHaveText('Suivant');
         await expect(page.getByTestId('ck-try-count')).toHaveText('1 sur 10');
         await expect(menu(page, 'survey')).toContainText('Questionnaire');
