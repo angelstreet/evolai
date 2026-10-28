@@ -297,13 +297,15 @@ html:has(.ck) {
   padding: var(--space-6);
 }
 .ck-lesson h1 {
-  max-width: 20ch;
-  /* the mockup's 28-40 px headline */
-  font-size: clamp(var(--text-xl), 3vw, calc(var(--text-2xl) * 1.25));
+  /* One line on every card, so the card does not change height from page to page (owner,
+     2026-10-28); titles are kept short, a long report title ends with an ellipsis */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: clamp(var(--ck-18), 2.6vw, calc(var(--text-2xl) * 1.1));
   font-weight: var(--weight-bold);
   letter-spacing: -0.02em;
   line-height: var(--leading-tight);
-  text-wrap: balance;
 }
 .ck-lede {
   margin-top: var(--space-3);

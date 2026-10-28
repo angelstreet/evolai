@@ -135,10 +135,10 @@ test.describe('FR | EN toggle', () => {
     const toggle = page.getByTestId('language-toggle');
     await expect(toggle).toHaveAttribute('aria-label', /.+/);
     await expect(page.getByTestId('switch-fr')).toHaveAttribute('aria-pressed', 'true');
-    await expect(page.getByRole('heading', { level: 1 })).toContainText('part de vos équipes');
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('L’audit IA par équipe');
     await page.getByTestId('switch-en').click();
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
-    await expect(page.getByRole('heading', { level: 1 })).toContainText('starts with your teams');
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('team first');
     await page.goto('/login');
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
     await expect(page.getByTestId('switch-en')).toHaveAttribute('aria-pressed', 'true');

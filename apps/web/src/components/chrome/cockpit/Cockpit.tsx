@@ -513,7 +513,7 @@ export default function Cockpit({
   };
   const ownReportCard = (r: OwnReport) => (
     <div data-testid="ck-own-report">
-      <h1>{r.title}</h1>
+      <h1 title={r.title}>{r.title}</h1>
       <p className="ck-muted ck-small ck-mt">
         {t('cockpit.report.published', {
           date: new Date(r.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-GB', {
@@ -766,19 +766,22 @@ export default function Cockpit({
 
   /* ---------- Your path ---------- */
   const stepName = (i: number) => t(`cockpit.path.s${i + 1}` as 'cockpit.path.s1');
+  // Progress is shown only when signed in (owner rule 2026-10-28): signed out, every step is To do
+  // and 0 / 7, even though the browser keeps the lessons and answers for the send step.
   const path = () => {
-    const steps = stepList(progress);
-    const nowIndex = steps.findIndex((s) => !s.done);
+    const steps = stepList(progress).map((s) => (signed ? s : { ...s, done: false }));
+    const shown = signed ? done : 0;
+    const nowIndex = signed ? steps.findIndex((s) => !s.done) : -1;
     return (
       <section className="ck-card ck-path" aria-labelledby="ck-path-h">
         <h2 id="ck-path-h">
           <span>{t('cockpit.path.title')}</span>
           <span className="ck-count" data-testid="ck-path-count">
-            {t('cockpit.path.count', { n: done })}
+            {t('cockpit.path.count', { n: shown })}
           </span>
         </h2>
         <div className="ck-pbar" aria-hidden="true">
-          <i style={{ width: `${(done / TOTAL_STEPS) * 100}%` }} />
+          <i style={{ width: `${(shown / TOTAL_STEPS) * 100}%` }} />
         </div>
         <ol>
           {steps.map((s, i) => {
@@ -803,6 +806,11 @@ export default function Cockpit({
             );
           })}
         </ol>
+        {!signed && (
+          <p className="ck-muted ck-small ck-mt" data-testid="ck-path-signin">
+            {t('cockpit.path.keep')}
+          </p>
+        )}
       </section>
     );
   };

@@ -62,9 +62,7 @@ for (const size of SIZES) {
         await page.goto('/');
         await expect(page.getByTestId('ck-splash')).toHaveCount(0);
         const main = page.getByTestId('ck-main');
-        await expect(main.getByRole('heading', { level: 1 })).toContainText(
-          'starts with your teams',
-        );
+        await expect(main.getByRole('heading', { level: 1 })).toContainText('team first');
         await expect(main.locator('.ck-point')).toHaveCount(3);
         await menu(page, 'learn').click();
         await expect(menu(page, 'learn')).toHaveAttribute('aria-current', 'page');
@@ -81,8 +79,8 @@ for (const size of SIZES) {
         await menu(page, 'survey').click();
         await expect(page.getByTestId('ck-question-row')).toHaveCount(10);
         await menu(page, 'report').click();
-        await expect(main).toContainText('Demo Client');
-        await expect(main).toContainText('Sales team');
+        await expect(main).toContainText('Your report');
+        await expect(main).not.toContainText('Demo Client');
         // Round 1 pieces are gone.
         await expect(
           page.locator('.ck-ctl, .ck-tabs, .ck-strip, .ck-tstrip, .ck-mono'),
@@ -122,7 +120,7 @@ for (const size of SIZES) {
         await expect(page.getByTestId('ck-path-count')).toHaveText('0 / 7');
       });
 
-      test('Your path: seven read-only steps; a lesson is done once you move past it', async ({
+      test('Your path signed out: seven read-only steps, no progress shown', async ({
         page,
         baseURL,
       }) => {
@@ -130,17 +128,21 @@ for (const size of SIZES) {
         await page.goto('/');
         const steps = page.getByTestId('ck-path-step');
         await expect(steps).toHaveCount(7);
-        await expect(steps.first()).toContainText('Now');
+        await expect(steps.first()).toContainText('To do');
         await expect(steps.nth(1)).toContainText('To do');
         await expect(steps.last()).toContainText('Sign in');
+        await expect(page.getByTestId('ck-path-signin')).toContainText(
+          'Sign in to keep your progress',
+        );
         await expect(page.locator('.ck-path button')).toHaveCount(0);
         await menu(page, 'learn').click();
         await expect(page.getByTestId('ck-path-count')).toHaveText('0 / 7');
         await page.locator('.ck-foot-row .MuiButton-outlined').click();
         await expect(page.getByTestId('ck-crumb')).toContainText('Lesson 2 of 5');
-        await expect(page.getByTestId('ck-path-count')).toHaveText('1 / 7');
-        await expect(steps.first()).toContainText('Done');
-        await expect(steps.nth(1)).toContainText('Now');
+        // Moving on is remembered in the browser, but progress is shown only once signed in.
+        await expect(page.getByTestId('ck-path-count')).toHaveText('0 / 7');
+        await expect(steps.first()).toContainText('To do');
+        await expect(page.locator('.ck-path :text("Done")')).toHaveCount(0);
       });
 
       test('survey: ten questions, answers kept in the browser, ends at the sign-in step', async ({
@@ -162,7 +164,7 @@ for (const size of SIZES) {
         await expect(page.getByRole('dialog')).toHaveCount(0);
         await page.reload();
         await expect(page.getByTestId('ck-try-done')).toContainText('You answered 10 of 10');
-        await expect(page.getByTestId('ck-path-count')).toHaveText('1 / 7');
+        await expect(page.getByTestId('ck-path-count')).toHaveText('0 / 7');
         await page.getByTestId('ck-send').click();
         const sheet = page.getByRole('dialog');
         await expect(sheet).toContainText('Sign in to send');
@@ -298,7 +300,7 @@ for (const size of SIZES) {
       test('French copy and the language control', async ({ page, baseURL }) => {
         await setLocale(page, 'fr', baseURL as string);
         await page.goto('/');
-        await expect(page.getByRole('heading', { level: 1 })).toContainText('part de vos équipes');
+        await expect(page.getByRole('heading', { level: 1 })).toContainText('L’audit IA par équipe');
         await expect(page.getByTestId('ck-next')).toHaveText('Suivant');
         await expect(page.getByTestId('ck-try-count')).toHaveText('1 sur 10');
         await expect(menu(page, 'survey')).toContainText('Questionnaire');
@@ -396,6 +398,41 @@ test.describe('desktop layout', () => {
     expect(tryIt!.x).toBeGreaterThan(card!.x + card!.width - 1);
     expect(path!.y).toBeGreaterThan(tryIt!.y + tryIt!.height - 1);
   });
+});
+
+test.describe('one-line card titles', () => {
+  onlyDesktopProject();
+  test.use({ reducedMotion: 'reduce' });
+  // The card keeps its height from page to page: every title fits on one line (owner, 2026-10-28).
+  for (const width of [360, 1280]) {
+    test(`every card title is one line at ${width} px, FR and EN`, async ({ page, baseURL }) => {
+      await page.setViewportSize({ width, height: 800 });
+      const cut: string[] = [];
+      for (const locale of ['fr', 'en'] as const) {
+        await setLocale(page, locale, baseURL as string);
+        await page.goto('/');
+        const check = async (label: string) => {
+          const h = page.locator('.ck-lesson h1').first();
+          const [sw, cw, hh] = await h.evaluate((el) => [
+            el.scrollWidth,
+            el.clientWidth,
+            el.getBoundingClientRect().height,
+          ]);
+          if (sw > cw + 1 || hh > 60) cut.push(`${locale} ${label}: ${await h.innerText()}`);
+        };
+        for (const key of MENU) {
+          await menu(page, key).click();
+          if (key === 'learn') {
+            for (let i = 0; i < 5; i++) {
+              await check(`lesson ${i + 1}`);
+              if (i < 4) await page.locator('.ck-foot-row .MuiButton-outlined').click();
+            }
+          } else await check(key);
+        }
+      }
+      expect(cut).toEqual([]);
+    });
+  }
 });
 
 test.describe('old routes', () => {
