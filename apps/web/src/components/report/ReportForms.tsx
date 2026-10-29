@@ -412,7 +412,20 @@ const STATUS_COLOUR = {
   rejected: 'text.secondary',
 } as const;
 
-export function StepCard({ ids, step, disabled }: { ids: Ids; step: StepRow; disabled: boolean }) {
+export function StepCard({
+  ids,
+  step,
+  disabled,
+  due = false,
+  followUpReady = false,
+}: {
+  ids: Ids;
+  step: StepRow;
+  disabled: boolean;
+  /** Its follow-up date has come and no day-90 result is set (ADR 0061). */
+  due?: boolean;
+  followUpReady?: boolean;
+}) {
   const { t, locale } = useI18n();
   const [measureState, saveMeasure] = useFormState(measureStepAction, reportIdle);
   const [measuring, setMeasuring] = useState(false);
@@ -470,6 +483,11 @@ export function StepCard({ ids, step, disabled }: { ids: Ids; step: StepRow; dis
           <Typography variant="caption" color="text.secondary" component="p" sx={{ m: 0 }}>
             {why}
           </Typography>
+          {due ? (
+            <StatusText status="warning">
+              <span data-testid="step-follow-up-due">{t('report.steps.measure.due')}</span>
+            </StatusText>
+          ) : null}
           {measure ? (
             <Typography variant="body2" color="text.secondary" data-testid="step-measure">
               {measure}
@@ -544,7 +562,6 @@ export function StepCard({ ids, step, disabled }: { ids: Ids; step: StepRow; dis
           <Button
             variant="text"
             onClick={() => setMeasuring(true)}
-            disabled={disabled}
             startIcon={<AppIcon name="time" size={20} />}
             data-testid="step-measure-open"
             sx={{ minHeight: 44 }}
@@ -565,6 +582,7 @@ export function StepCard({ ids, step, disabled }: { ids: Ids; step: StepRow; dis
           open={measuring}
           onClose={() => setMeasuring(false)}
           onSave={saveMeasure}
+          followUpReady={followUpReady}
         />
       ) : null}
       <Dialog

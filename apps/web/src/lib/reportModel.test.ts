@@ -4,6 +4,7 @@ import {
   buildSnapshot,
   draftSummary,
   findingLine,
+  followUpsDue,
   measureLine,
   methodologyNote,
   findLeak,
@@ -355,5 +356,50 @@ describe('findingLine and measureLine (TASK-AJ A6, A8, A9)', () => {
     ).toBe(
       'Baseline: 40 minutes per order (time sheet) · Follow-up: 2027-01-30 · Day 90: Validated',
     );
+  });
+
+  it('adds the value at follow-up and the change against the baseline (ADR 0061)', () => {
+    const m = {
+      baselineValue: 40,
+      baselineUnit: 'min',
+      baselineSource: '',
+      followUpOn: '2027-01-30',
+      day90Status: 'validated' as const,
+      followUpValue: 16,
+    };
+    expect(measureLine(t, m, ': ')).toBe(
+      'Baseline: 40 min · Follow-up: 2027-01-30 · At follow-up: 16 min (−60%) · Day 90: Validated',
+    );
+    expect(measureLine(t, { ...m, baselineValue: null, baselineUnit: '' }, ': ')).toBe(
+      'Follow-up: 2027-01-30 · At follow-up: 16 · Day 90: Validated',
+    );
+    expect(measureLine(createTranslator('fr'), { ...m, followUpValue: 50 }, '\u00a0: ')).toContain(
+      'Au suivi\u00a0: 50 min (+25\u00a0%)',
+    );
+  });
+
+  it('lists the follow-ups that are due and have no result yet', () => {
+    const step = (id: string, followUpOn: string | null, done = false) =>
+      ({
+        id,
+        status: 'accepted',
+        measure: {
+          baselineValue: 1,
+          baselineUnit: '',
+          baselineSource: '',
+          followUpOn,
+          day90Status: done ? 'validated' : null,
+        },
+      }) as unknown as StepRow;
+    const due = followUpsDue(
+      [
+        step('a', '2027-01-30'),
+        step('b', '2027-02-01'),
+        step('c', '2027-01-01', true),
+        step('d', null),
+      ],
+      '2027-01-31',
+    );
+    expect(due.map((s) => s.id)).toEqual(['a']);
   });
 });

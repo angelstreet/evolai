@@ -105,6 +105,8 @@ export const stepMeasureSchema = z
       .regex(/^\d{4}-\d{2}-\d{2}$/)
       .nullable(),
     day90Status: day90StatusSchema.nullable(),
+    /** Value measured on the follow-up date, same unit as the baseline (ADR 0061). */
+    followUpValue: z.number().min(0).nullable().optional(),
   })
   .strict();
 export type StepMeasure = z.infer<typeof stepMeasureSchema>;

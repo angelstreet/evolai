@@ -175,6 +175,43 @@ export const reportEn = {
     team: 'Team',
     noAxis: 'No answer',
   },
+  quality: {
+    title: 'Audit quality',
+    subtitle:
+      'For the EvolAI team only: is the audit solid enough to show? Each area is rated 0 to 5 from what the app records.',
+    score: '{score} out of 100',
+    gate: {
+      ready: 'Ready for the client review',
+      gaps: 'Fill the gaps first',
+      discover: 'More discovery needed',
+      unscored: 'Not rated: under {n} answers',
+    },
+    noGo: {
+      automation_without_owner: 'A high-impact automation has no owner.',
+      open_dispute: 'A finding the referent disputed has no answer yet.',
+    },
+    rated: '{score} / 5',
+    weight: 'Counts for {pct}%',
+    dimension: {
+      coverage: 'Who answered',
+      fidelity: 'Work seen on site',
+      evidence: 'Evidence',
+      practicality: 'Actions ready to start',
+      governance: 'Risks and rules',
+      validation: 'Checked by the client',
+      measurement: 'Ready to measure',
+    },
+    hint: {
+      coverage: 'Answers against the 70% target. A team under {n} answers costs a point.',
+      fidelity: 'Visit notes: one point per interview, two per observation or workshop.',
+      evidence: 'The time figure, and findings with {n} people or a visit note.',
+      practicality: 'Accepted actions with an owner and what is needed first.',
+      governance: 'A risks note, what risky actions need first, and a Conditions score.',
+      validation: 'Findings the referent confirmed, or disputed and you answered.',
+      measurement: 'Accepted actions with a baseline and a follow-up date.',
+    },
+    note: 'An internal check, not a certification. 80 and above: ready. 60 to 79: fill the gaps. Under 60: more discovery.',
+  },
   time: {
     title: 'Time on repeated tasks',
     subtitle:
@@ -337,6 +374,14 @@ export const reportEn = {
         not_implemented: 'Not implemented',
       },
       save: 'Save the measure',
+      after: 'At follow-up',
+      afterValue: 'Value at follow-up',
+      afterHelp: 'Same unit as the baseline',
+      change: '{sign}{pct}%',
+      due: 'Follow-up due',
+      dueTitle: '{count, plural, one {# follow-up is due} other {# follow-ups are due}}',
+      dueBody:
+        'Measure again, then set the day-90 result. The published report does not change until you publish a new version.',
     },
     whyPicked: 'Picked from the catalogue.',
     whyAuditor: 'Written by you.',

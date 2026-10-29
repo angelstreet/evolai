@@ -28,9 +28,12 @@ export default function MeasureDialog({
   open,
   onClose,
   onSave,
+  followUpReady,
 }: {
   ids: Ids;
   step: StepRow;
+  /** The follow-up value column exists (migration 0032). */
+  followUpReady: boolean;
   open: boolean;
   onClose: () => void;
   onSave: (fd: FormData) => void;
@@ -95,6 +98,16 @@ export default function MeasureDialog({
                 InputLabelProps={{ shrink: true }}
                 sx={{ minWidth: 180 }}
               />
+              {followUpReady ? (
+                <TextField
+                  name="followUpValue"
+                  label={t('report.steps.measure.afterValue')}
+                  helperText={t('report.steps.measure.afterHelp')}
+                  defaultValue={m?.followUpValue ?? ''}
+                  inputProps={{ inputMode: 'decimal', maxLength: 20 }}
+                  sx={{ minWidth: 180 }}
+                />
+              ) : null}
               <TextField
                 select
                 name="day90Status"

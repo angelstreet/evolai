@@ -390,6 +390,17 @@ export const measureLine = (
     parts.push(`${t('report.steps.measure.baseline')}${colon}${value}${source}`);
   }
   if (m.followUpOn) parts.push(`${t('report.steps.measure.followUp')}${colon}${m.followUpOn}`);
+  if (m.followUpValue != null) {
+    // Before → after (ADR 0061): the change in percent when there is a baseline to compare with.
+    const after = [m.followUpValue, m.baselineUnit].join(' ').trim();
+    const base = m.baselineValue;
+    const pct = base ? Math.round(((m.followUpValue - base) / base) * 100) : null;
+    const change =
+      pct === null
+        ? ''
+        : ` (${t('report.steps.measure.change', { sign: pct > 0 ? '+' : pct < 0 ? '−' : '', pct: Math.abs(pct) })})`;
+    parts.push(`${t('report.steps.measure.after')}${colon}${after}${change}`);
+  }
   if (m.day90Status) {
     parts.push(
       `${t('report.steps.measure.day90')}${colon}${t(`report.steps.measure.status.${m.day90Status}`)}`,
@@ -397,3 +408,13 @@ export const measureLine = (
   }
   return parts.length > 0 ? parts.join(' · ') : null;
 };
+
+/** Accepted steps whose follow-up date has come and that have no day-90 result yet (ADR 0061). */
+export const followUpsDue = (steps: readonly StepRow[], today: string): StepRow[] =>
+  steps.filter(
+    (s) =>
+      s.status === 'accepted' &&
+      s.measure?.followUpOn != null &&
+      s.measure.followUpOn <= today &&
+      s.measure.day90Status === null,
+  );

@@ -150,6 +150,18 @@ test('a visit note becomes a finding; a dispute holds the report until answered'
     await expect(
       own.getByTestId('report-opportunity').filter({ hasText: `${LABEL}, night team` }),
     ).toBeVisible();
+
+    // ADR 0061: the audit-quality card (staff only) and the value at follow-up.
+    await expect(own.getByTestId('audit-quality')).toBeVisible();
+    await expect(own.getByTestId('quality-dimension')).toHaveCount(7);
+    const measured = own.locator('[data-testid=report-step][data-status=accepted]').first();
+    await measured.getByTestId('step-measure-open').click();
+    const follow = own.getByRole('dialog');
+    await follow.locator('input[name=followUpValue]').fill('16');
+    await own.getByTestId('measure-save').click();
+    await expect(measured.getByTestId('step-measure')).toHaveText(
+      'Baseline: 40 minutes per order (time sheet) · Follow-up: 2027-01-30 · At follow-up: 16 minutes per order (−60%)',
+    );
     await own.context().close();
   } finally {
     await clean();

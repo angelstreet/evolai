@@ -257,12 +257,15 @@ export async function measureStepAction(
     const stepId = String(fd.get('stepId') ?? '');
     const rawValue = str(fd, 'baselineValue', 20).replace(',', '.');
     const value = rawValue === '' ? null : Number(rawValue);
+    const rawAfter = str(fd, 'followUpValue', 20).replace(',', '.');
+    const after = rawAfter === '' ? null : Number(rawAfter);
     const followUpOn = str(fd, 'followUpOn', 10);
     const status = str(fd, 'day90Status', 20);
     const day90 = status === '' ? null : day90StatusSchema.safeParse(status);
     if (
       !isUuid(stepId) ||
       (value !== null && (!Number.isFinite(value) || value < 0)) ||
+      (after !== null && (!Number.isFinite(after) || after < 0)) ||
       (followUpOn !== '' && !/^\d{4}-\d{2}-\d{2}$/.test(followUpOn)) ||
       (day90 !== null && !day90.success)
     ) {
@@ -274,6 +277,7 @@ export async function measureStepAction(
       baselineSource: str(fd, 'baselineSource', 200),
       followUpOn: followUpOn || null,
       day90Status: day90?.success ? day90.data : null,
+      ...(fd.has('followUpValue') ? { followUpValue: after } : {}),
     });
     return { ok: true, code: 'saved' };
   });

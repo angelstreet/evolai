@@ -188,6 +188,46 @@ export const reportFr: Shape<typeof reportEn> = {
     team: 'Équipe',
     noAxis: 'Pas de réponse',
   },
+  quality: {
+    title: 'Qualité de l’audit',
+    subtitle:
+      'Pour l’équipe EvolAI seulement : l’audit est-il assez solide pour être présenté ? Chaque point est noté de 0 à 5 à partir de ce que l’application enregistre.',
+    score: '{score} sur 100',
+    gate: {
+      ready: 'Prêt pour la relecture du client',
+      gaps: 'Combler les manques d’abord',
+      discover: 'Il faut en apprendre davantage',
+      unscored: 'Non noté : moins de {n} réponses',
+    },
+    noGo: {
+      automation_without_owner: 'Une automatisation à fort impact n’a pas de responsable.',
+      open_dispute: 'Un constat contesté par le référent attend votre réponse.',
+    },
+    rated: '{score} / 5',
+    weight: 'Compte pour {pct} %',
+    dimension: {
+      coverage: 'Qui a répondu',
+      fidelity: 'Travail vu sur place',
+      evidence: 'Preuves',
+      practicality: 'Actions prêtes à démarrer',
+      governance: 'Risques et règles',
+      validation: 'Vérifié par le client',
+      measurement: 'Prêt à mesurer',
+    },
+    hint: {
+      coverage:
+        'Les réponses par rapport à l’objectif de 70 %. Une équipe sous {n} réponses coûte un point.',
+      fidelity: 'Notes de visite : un point par entretien, deux par observation ou atelier.',
+      evidence: 'Le temps passé, et les constats appuyés par {n} personnes ou une note de visite.',
+      practicality: 'Les actions acceptées avec un responsable et ce qu’il faut d’abord.',
+      governance:
+        'Une note sur les risques, ce qu’il faut avant les actions risquées, et un score Conditions.',
+      validation:
+        'Les constats confirmés par le référent, ou contestés et auxquels vous avez répondu.',
+      measurement: 'Les actions acceptées avec un point de départ et une date de suivi.',
+    },
+    note: 'Un contrôle interne, pas une certification. 80 et plus : prêt. De 60 à 79 : combler les manques. En dessous de 60 : en apprendre davantage.',
+  },
   time: {
     title: 'Temps passé sur les tâches répétitives',
     subtitle:
@@ -355,6 +395,14 @@ export const reportFr: Shape<typeof reportEn> = {
         not_implemented: 'Non mis en œuvre',
       },
       save: 'Enregistrer la mesure',
+      after: 'Au suivi',
+      afterValue: 'Valeur au suivi',
+      afterHelp: 'Même unité que le point de départ',
+      change: '{sign}{pct} %',
+      due: 'Suivi à faire',
+      dueTitle: '{count, plural, one {# suivi est à faire} other {# suivis sont à faire}}',
+      dueBody:
+        'Mesurez à nouveau, puis indiquez le résultat au jour 90. Le rapport publié ne change pas tant que vous ne publiez pas une nouvelle version.',
     },
     whyPicked: 'Choisie dans le catalogue.',
     whyAuditor: 'Rédigée par vous.',

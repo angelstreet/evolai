@@ -18,16 +18,23 @@ import {
   StepCard,
   SuggestForm,
 } from '@/components/report/ReportForms';
+import { AuditQualityCard } from '@/components/report/AuditQualityCard';
 import { FindingsPanel } from '@/components/report/FindingsPanel';
 import { WorkflowBar } from '@/components/report/WorkflowBar';
+import { qualityOf } from '@/lib/auditQualityFacts';
 import { sessionTenantFor } from '@/lib/authServer';
 import { enumLabelOf } from '@/lib/enumLabel';
 import { getT } from '@/lib/i18n';
 import { canEditFindings, listFindings } from '@/lib/findingsData';
 import { isUuid } from '@/lib/invitationForm';
 import { MIN_GROUP_SIZE } from '@/lib/invitationTracking';
-import { loadReportForEngagement, loadReportInputs, rankForScreen } from '@/lib/reportData';
-import { weightsSentence } from '@/lib/reportModel';
+import {
+  canRecordFollowUpValue,
+  loadReportForEngagement,
+  loadReportInputs,
+  rankForScreen,
+} from '@/lib/reportData';
+import { followUpsDue, weightsSentence } from '@/lib/reportModel';
 
 export const dynamic = 'force-dynamic';
 
@@ -85,10 +92,11 @@ export default async function ReportEditorPage({
       </section>
     );
   }
-  const [bundle, findings, canEdit] = await Promise.all([
+  const [bundle, findings, canEdit, followUpReady] = await Promise.all([
     loadReportForEngagement(tenantId, params.id),
     listFindings(tenantId, params.id),
     canEditFindings(tenantId),
+    canRecordFollowUpValue(tenantId),
   ]);
   const findingsCard = (
     <Card
@@ -134,6 +142,8 @@ export default async function ReportEditorPage({
     steps.some((s) => s.opportunityId === o.id && s.status === 'accepted'),
   );
   const o = inputs.readiness.overall;
+  const due = followUpsDue(steps, new Date().toISOString().slice(0, 10));
+  const dueIds = new Set(due.map((s) => s.id));
   const lvl = (l: 'low' | 'medium' | 'high') => t(`report.steps.level.${l}`).toLowerCase();
 
   return (
@@ -205,11 +215,36 @@ export default async function ReportEditorPage({
           </Stack>
         </Paper>
         {locked ? <Alert severity="info">{t('report.editor.locked')}</Alert> : null}
+        {due.length > 0 ? (
+          <Alert severity="warning" data-testid="report-follow-ups-due">
+            <Typography variant="body1" sx={{ fontWeight: 600 }}>
+              {t('report.steps.measure.dueTitle', { count: due.length })}
+            </Typography>
+            <Typography variant="body2">{due.map((s) => s.title).join(' · ')}</Typography>
+            <Typography variant="body2">{t('report.steps.measure.dueBody')}</Typography>
+          </Alert>
+        ) : null}
         {inputs.answered < MIN_GROUP_SIZE ? (
           <Alert severity="warning" data-testid="report-few-people">
             {t('report.editor.fewPeople', { count: inputs.answered, n: MIN_GROUP_SIZE })}
           </Alert>
         ) : null}
+
+        <AuditQualityCard
+          t={t}
+          minGroup={MIN_GROUP_SIZE}
+          quality={qualityOf({
+            expected: inputs.expected,
+            answered: inputs.answered,
+            minGroup: MIN_GROUP_SIZE,
+            readiness: inputs.readiness,
+            visit: inputs.visit,
+            timeShown: inputs.repeatedTime.overall !== null,
+            risksNote: r.risksNote,
+            findings: findings ?? [],
+            steps,
+          })}
+        />
 
         <Card
           id="report-readiness"
@@ -325,7 +360,16 @@ export default async function ReportEditorPage({
                         {t('report.steps.none')}
                       </Typography>
                     ) : (
-                      own.map((s) => <StepCard key={s.id} ids={ids} step={s} disabled={locked} />)
+                      own.map((s) => (
+                        <StepCard
+                          key={s.id}
+                          ids={ids}
+                          step={s}
+                          disabled={locked}
+                          due={dueIds.has(s.id)}
+                          followUpReady={followUpReady}
+                        />
+                      ))
                     )}
                     <AddStepForm
                       ids={ids}

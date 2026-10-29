@@ -35,3 +35,8 @@ the "time on repeated tasks" section, editing findings, and seven fixes the dry 
 migration `0031_finding_update.sql` on production.
 
 Production: migration `0031_finding_update.sql` applied to Neon on 2026-10-29 (owner approval): editing findings is on.
+
+Follow-up 2026-10-29 (ADR 0061, owner choice "Weight existing questions"): Use and Conditions are scored from
+questions already asked, the report screen has the audit-quality score of PRD §29 (staff only), and the day-90
+follow-up records the value measured on the date, with the due follow-ups listed. The value needs migration
+`0032_follow_up_value.sql` on production.

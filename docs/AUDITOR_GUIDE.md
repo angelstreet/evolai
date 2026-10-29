@@ -39,15 +39,16 @@ same for everyone and never hints at a right answer.
 - **Six short choice questions** about what the person usually does in a situation: an AI answer with no source,
   client data and a public assistant, how they word a request, where they would start to simplify a report made by
   hand, copying the same data every day, and the weekly time spent on tasks that come back the same way. Each has an
-  honest "I don't know / It depends" option, which is not scored and does not lower the readiness score.
+  honest "I don't know / It depends" option, which is not scored and does not lower the readiness score. Which
+  answer counts for which axis is in ADR 0061.
 - **Three optional free-text questions** (400 characters, a live counter, "No names, emails or numbers: we mask them
   automatically"): the repetitive task that took the most time last week, the tool or information that was missing
   this week, and the one thing an assistant could help with. These are what the analysis turns into themes and draft
   opportunities, each with the person's own words as the citation. Names, emails, phone numbers and the words on
   your "Names to hide" list are masked before the text is saved.
 - **Four quick choices about that repeated task** (questionnaire v2, ADR 0059): how often, how long each time,
-  with which kind of tool, and which kind of data. They are not scored; they show per team in the brief and feed
-  the proposed findings ("a heavy repeated task every day or week").
+  with which kind of tool, and which kind of data. They show per team in the brief and feed the proposed findings
+  ("a heavy repeated task every day or week"); the tool also counts for Use (an AI assistant) and Conditions.
 - **One optional role question**: the area the person works in, in seven broad categories. There is no seniority
   question and no free text: in a team of fewer than 5, area plus seniority could point to one person. Results by
   area only appear for groups of 5 or more.
@@ -99,9 +100,13 @@ counts the interviews, observations and workshops (ADR 0059).
    9b. **Time on repeated tasks**: nothing to do. From the survey's "how often" and "how long", the report shows
    about how many hours a week each team spends on its main repeated task, marked as self-reported. Use it
    as an order of magnitude, never as a measurement; the baseline of an action comes from the visit.
-10. **Readiness score**: nothing to do. It is computed from the survey answers per axis (knowledge, use,
-    conditions), each counting for a third, shown with what the level means, and per team only when at least 5
-    people answered.
+10. **Readiness score**: nothing to do. It is computed from the survey answers per axis, each counting for a
+    third: Knowledge (checking a source, client data, copying data), Use (how people word a request, an AI
+    assistant for the main task) and Conditions (the tool of the main task, the weekly time on repeated tasks).
+    It shows what the level means, and per team only when at least 5 people answered.
+    10b. **Audit quality** (for you only, never in the report): seven areas rated 0 to 5 with what raises each
+    one. 80 and above means ready for the client review; under 60, go back on site. A red line means do not
+    publish yet (an unanswered dispute, or a high-impact automation with no owner).
 11. **Next 30, 60 and 90 days**: "Build from the accepted steps", then edit, add or remove lines. Each horizon ends
     with a checkpoint (check use, measure early results, keep, adapt or stop).
 12. Fill **Risks** (one per line) and check the **Method and privacy** note.
@@ -129,5 +134,8 @@ Every step above is written to the **Audit trail** (who, when, what), without th
 
 16. Each accepted action has **Measure**: the baseline value, its unit and source (for example "40 minutes per
     order, time sheet"), the follow-up date and, at day 90, the status (validated, mixed, no benefit, not
-    implemented). Set the baseline before publishing; at day 90 start a new version, set the status and publish.
+    implemented). Set the baseline before publishing. When the follow-up date comes, the report screen lists the
+    follow-ups that are due: open **Measure**, enter the **value at follow-up** (same unit as the baseline) and
+    the status. The report then says "At follow-up: 16 minutes per order (−60%)". This works on a published
+    report; the client sees it once you start a new version and publish it.
 17. Retention and erasure requests: workspace **Settings, Data and erasure**.

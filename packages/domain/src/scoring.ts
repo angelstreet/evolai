@@ -34,7 +34,7 @@ export interface ScoringResult {
  * Multi-choice answers use the *mean* of their option scores; this rewards breadth without
  * overcounting.
  */
-const scoreOption = (value: AnswerValue, item: QuestionItem): number | null => {
+export const scoreOption = (value: AnswerValue, item: QuestionItem): number | null => {
   // "I don't know / It depends" is an honest answer, not a low one: it is left out of the
   // ordering and of the score (TASK-Z2).
   const options = item.options.filter((o) => o.value !== UNSURE_VALUE);

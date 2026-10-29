@@ -24,7 +24,7 @@ import {
   estimateRepeatedTime,
   matchImprovements,
   rankOpportunities,
-  scoreSubmission,
+  scoreReadinessAnswers,
   type ScoredSubmission,
 } from '@evolai/domain';
 import { createTranslator } from '@evolai/i18n';
@@ -169,6 +169,7 @@ interface StepDbRow {
   baseline_source?: string;
   follow_up_on?: string | null;
   day90_status?: StepMeasure['day90Status'];
+  follow_up_value?: string | null;
 }
 
 const STEP_COLS = `id, opportunity_id, catalogue_id, source, status, category, title, description,
@@ -177,13 +178,26 @@ const STEP_COLS = `id, opportunity_id, catalogue_id, source, status, category, t
 const MEASURE_COLS = `, baseline_value, baseline_unit, baseline_source,
   to_char(follow_up_on, 'YYYY-MM-DD') AS follow_up_on, day90_status`;
 
-const measureReady = async (client: pg.PoolClient): Promise<boolean> =>
+const columnReady = async (client: pg.PoolClient, column: string): Promise<boolean> =>
   (
     await client.query(
       `SELECT 1 FROM information_schema.columns
-        WHERE table_name = 'report_steps' AND column_name = 'day90_status'`,
+        WHERE table_name = 'report_steps' AND column_name = $1`,
+      [column],
     )
   ).rowCount === 1;
+
+const measureReady = (client: pg.PoolClient): Promise<boolean> =>
+  columnReady(client, 'day90_status');
+
+/** The value measured at follow-up (migration 0032, ADR 0061). */
+const followUpValueReady = (client: pg.PoolClient): Promise<boolean> =>
+  columnReady(client, 'follow_up_value');
+
+const measureCols = async (client: pg.PoolClient): Promise<string> =>
+  (await measureReady(client))
+    ? MEASURE_COLS + ((await followUpValueReady(client)) ? ', follow_up_value' : '')
+    : '';
 
 const measureOf = (r: StepDbRow): StepMeasure | null => {
   const m: StepMeasure = {
@@ -193,13 +207,17 @@ const measureOf = (r: StepDbRow): StepMeasure | null => {
     baselineSource: r.baseline_source ?? '',
     followUpOn: r.follow_up_on ?? null,
     day90Status: r.day90_status ?? null,
+    ...(r.follow_up_value === null || r.follow_up_value === undefined
+      ? {}
+      : { followUpValue: Number(r.follow_up_value) }),
   };
   const empty =
     m.baselineValue === null &&
     m.baselineUnit === '' &&
     m.baselineSource === '' &&
     m.followUpOn === null &&
-    m.day90Status === null;
+    m.day90Status === null &&
+    m.followUpValue === undefined;
   return empty ? null : m;
 };
 
@@ -251,6 +269,8 @@ export interface ReportInputs {
   readonly readiness: ReadinessReport;
   /** People who finished the survey (a count only; the score still needs the minimum group). */
   readonly answered: number;
+  /** Team headcounts of the mission: the audit-quality coverage (ADR 0061). */
+  readonly expected: number;
   /** Visit notes per kind (A6): the method note counts the visit. */
   readonly visit: Record<NoteKind, number>;
   /** The referent's review (A8): disputed, corrected, and still open. */
@@ -284,12 +304,13 @@ const loadReadiness = async (
 ): Promise<ReadinessReport> => {
   const items = await client.query<{
     id: string;
+    code: string;
     axis: QuestionItem['axis'];
     kind: QuestionItem['kind'];
     options_json: unknown;
     scoring_json: unknown;
   }>(
-    `SELECT qi.id, qi.axis, qi.kind, qi.options_json, qi.scoring_json
+    `SELECT qi.id, qi.code, qi.axis, qi.kind, qi.options_json, qi.scoring_json
        FROM question_items qi
       WHERE qi.tenant_id = $1
         AND qi.id IN (SELECT a.question_item_id FROM answers a
@@ -297,6 +318,7 @@ const loadReadiness = async (
                        WHERE s.tenant_id = $1 AND s.engagement_id = $2)`,
     [tenantId, engagementId],
   );
+  const codeById = new Map(items.rows.map((r) => [r.id, r.code]));
   const itemsById = new Map<string, QuestionItem>(
     items.rows.map((r) => {
       const scoring = (r.scoring_json ?? {}) as { weight?: unknown; reverse?: unknown };
@@ -336,10 +358,13 @@ const loadReadiness = async (
   }
   // Per-person axis scores exist only inside this function; only group aggregates leave it.
   const scored: ScoredSubmission[] = [...bySubmission.values()].map((s) => {
-    const result = scoreSubmission(s.answers as Parameters<typeof scoreSubmission>[0], itemsById);
-    const axes: Record<string, number> = {};
-    for (const [axis, v] of result.byAxis) if (v.scoredItems > 0) axes[axis] = v.normalised;
-    return { teamId: s.teamId, axes };
+    // The rubric by question code scores Use and Conditions too (ADR 0061).
+    const coded = (s.answers as { questionItemId: string; value: AnswerValue }[]).flatMap((a) => {
+      const item = itemsById.get(a.questionItemId);
+      const code = codeById.get(a.questionItemId);
+      return item && code ? [{ code, value: a.value, item }] : [];
+    });
+    return { teamId: s.teamId, axes: scoreReadinessAnswers(coded) };
   });
   const teams = await client.query<{ id: string; name: string }>(
     `SELECT t.id, t.name FROM engagement_teams et JOIN teams t ON t.id = et.team_id
@@ -446,6 +471,16 @@ const loadInputsWith = async (
         )
       ).rows[0]?.n ?? 0,
     ),
+    expected: Number(
+      (
+        await client.query<{ n: string | null }>(
+          `SELECT COALESCE(sum(t.expected_headcount), 0) AS n
+             FROM engagement_teams et JOIN teams t ON t.id = et.team_id
+            WHERE et.tenant_id = $1 AND et.engagement_id = $2`,
+          [tenantId, engagementId],
+        )
+      ).rows[0]?.n ?? 0,
+    ),
     visit: await countNotesWith(client, tenantId, engagementId),
     repeatedTime: await loadRepeatedTimeWith(client, tenantId, engagementId),
     review: await reviewCountsWith(client, tenantId, engagementId),
@@ -532,7 +567,7 @@ const loadSteps = async (
   tenantId: string,
   reportId: string,
 ): Promise<StepRow[]> => {
-  const cols = STEP_COLS + ((await measureReady(client)) ? MEASURE_COLS : '');
+  const cols = STEP_COLS + (await measureCols(client));
   const { rows } = await client.query<StepDbRow>(
     `SELECT ${cols} FROM report_steps WHERE tenant_id = $1 AND report_id = $2
       ORDER BY position, created_at, id`,
@@ -812,13 +847,25 @@ export const updateStep = (tenantId: TenantId, actor: string, stepId: string, s:
   });
 
 /** Baseline and day-90 follow-up of an accepted action (A9). Editable until published. */
+/**
+ * Baseline and day-90 follow-up of a step. Unlike the other step edits it is allowed on a published
+ * report: the follow-up happens months later and the published version stays as it was (ADR 0061).
+ */
 export const setStepMeasure = (tenantId: TenantId, actor: string, stepId: string, m: StepMeasure) =>
   withTenant(tenantId, async (client) => {
     if (!(await measureReady(client))) throw new ReportError('unavailable');
-    const reportId = await stepReport(client, tenantId, stepId);
+    const { rows } = await client.query<{ report_id: string }>(
+      `SELECT report_id FROM report_steps WHERE tenant_id = $1 AND id = $2 AND status = 'accepted'`,
+      [tenantId, stepId],
+    );
+    const reportId = rows[0]?.report_id;
+    if (!reportId) throw new ReportError('not_found');
+    const withValue = await followUpValueReady(client);
+    if (!withValue && m.followUpValue != null) throw new ReportError('unavailable');
     await client.query(
       `UPDATE report_steps SET baseline_value = $3, baseline_unit = $4, baseline_source = $5,
               follow_up_on = $6, day90_status = $7, updated_at = now()
+              ${withValue ? ', follow_up_value = $8' : ''}
         WHERE tenant_id = $1 AND id = $2`,
       [
         tenantId,
@@ -828,6 +875,7 @@ export const setStepMeasure = (tenantId: TenantId, actor: string, stepId: string
         m.baselineSource,
         m.followUpOn,
         m.day90Status,
+        ...(withValue ? [m.followUpValue ?? null] : []),
       ],
     );
     await touch(client, tenantId, reportId, actor);
@@ -835,9 +883,14 @@ export const setStepMeasure = (tenantId: TenantId, actor: string, stepId: string
       reportId,
       baseline: m.baselineValue !== null,
       followUp: m.followUpOn !== null,
+      followUpValue: m.followUpValue != null,
       day90Status: m.day90Status,
     });
   });
+
+/** Whether the follow-up value can be stored yet (migration 0032). */
+export const canRecordFollowUpValue = (tenantId: TenantId) =>
+  withTenant(tenantId, (client) => followUpValueReady(client));
 
 export const setStepStatus = (
   tenantId: TenantId,
