@@ -26,3 +26,6 @@ site" on the Overview, the referent's confirm or dispute before publishing, and 
 They need migration `0030_visit_review_measure.sql` on production; until it is applied, the Visit tab says notes
 are not available, measures and reviews are hidden, and everything else works. A7's prompts are one card per
 mission (findings are per mission), not one per team.
+
+Production: migration `0030_visit_review_measure.sql` applied to Neon on 2026-10-29 (owner approval): visit
+notes, finding notes and finding reviews with row-level security, and the measure columns on `report_steps`.
