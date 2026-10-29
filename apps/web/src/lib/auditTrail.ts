@@ -64,6 +64,7 @@ export const AUDIT_GROUPS = {
     'finding.confirm',
     'finding.dispute',
     'finding.resolve',
+    'finding.update',
     'report_step.measure',
     'visit_note.create',
     'visit_note.delete',

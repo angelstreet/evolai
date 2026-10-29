@@ -13,6 +13,7 @@ import {
   type ReportFinding,
   type ReportSnapshot,
   type ReportStatus,
+  type RepeatedTimeReport,
   type StepMeasure,
   type TenantId,
 } from '@evolai/contracts';
@@ -20,11 +21,13 @@ import {
   buildPlan,
   computeReadiness,
   defaultHorizon,
+  estimateRepeatedTime,
   matchImprovements,
   rankOpportunities,
   scoreSubmission,
   type ScoredSubmission,
 } from '@evolai/domain';
+import { createTranslator } from '@evolai/i18n';
 import { linkedFindingWords, loadApprovedFindings, reviewCountsWith } from './findingsData';
 import { withTenant } from './db';
 import { MIN_GROUP_SIZE } from './invitationTracking';
@@ -252,6 +255,8 @@ export interface ReportInputs {
   readonly visit: Record<NoteKind, number>;
   /** The referent's review (A8): disputed, corrected, and still open. */
   readonly review: { disputed: number; corrected: number; open: number };
+  /** Time on the main repeated task per team, self-reported (ADR 0060). */
+  readonly repeatedTime: RepeatedTimeReport;
 }
 
 /**
@@ -344,6 +349,53 @@ const loadReadiness = async (
   return computeReadiness(scored, new Map(teams.rows.map((t) => [t.id, t.name])), MIN_GROUP_SIZE);
 };
 
+/** The task inventory answers of the mission's finished surveys, as hours a week per team. */
+export const loadRepeatedTimeWith = async (
+  client: pg.PoolClient,
+  tenantId: string,
+  engagementId: string,
+): Promise<RepeatedTimeReport> => {
+  const { rows } = await client.query<{
+    submission_id: string;
+    team_id: string;
+    team_name: string;
+    code: string;
+    choice: string;
+  }>(
+    `SELECT s.id AS submission_id, i.team_id, t.name AS team_name, q.code,
+            a.value_json->>'choice' AS choice
+       FROM answers a
+       JOIN submissions s ON s.id = a.submission_id
+       JOIN invitations i ON i.id = s.invitation_id
+       JOIN teams t ON t.id = i.team_id
+       JOIN question_items q ON q.id = a.question_item_id
+      WHERE a.tenant_id = $1 AND s.engagement_id = $2 AND s.status = 'submitted'
+        AND q.code IN ('v2_task_frequency', 'v2_task_duration', 'v2_task_tool')
+        AND a.value_json->>'choice' IS NOT NULL`,
+    [tenantId, engagementId],
+  );
+  const names = new Map(rows.map((r) => [r.team_id, r.team_name]));
+  const est = estimateRepeatedTime(
+    rows.map((r) => ({
+      submissionId: r.submission_id,
+      teamId: r.team_id,
+      code: r.code,
+      value: r.choice,
+    })),
+    MIN_GROUP_SIZE,
+  );
+  return {
+    overall: est.overall,
+    teams: est.teams.map((x) => ({
+      team: names.get(x.teamId) ?? '',
+      people: x.people,
+      hoursPerWeek: x.hoursPerWeek,
+      tool: x.tool,
+    })),
+    hiddenTeams: est.hiddenTeams,
+  };
+};
+
 const loadInputsWith = async (
   client: pg.PoolClient,
   tenantId: string,
@@ -395,6 +447,7 @@ const loadInputsWith = async (
       ).rows[0]?.n ?? 0,
     ),
     visit: await countNotesWith(client, tenantId, engagementId),
+    repeatedTime: await loadRepeatedTimeWith(client, tenantId, engagementId),
     review: await reviewCountsWith(client, tenantId, engagementId),
   };
 };
@@ -536,6 +589,18 @@ const suggestWith = async (
     [tenantId, reportId],
   );
   let position = pos.rows[0]?.n ?? 0;
+  // A catalogue action is proposed once per report, under its first opportunity: the same action
+  // under two findings would be planned twice (dry run, 2026-10-29).
+  const present = new Set(
+    (
+      await client.query<{ catalogue_id: string }>(
+        `SELECT catalogue_id FROM report_steps
+          WHERE tenant_id = $1 AND report_id = $2 AND catalogue_id IS NOT NULL`,
+        [tenantId, reportId],
+      )
+    ).rows.map((r) => r.catalogue_id),
+  );
+  const owners = createTranslator(locale);
   for (const o of opportunities) {
     const linked = await client.query<{ payload_json: unknown }>(
       `SELECT a.payload_json FROM opportunities op JOIN analyses a ON a.id = op.analysis_id
@@ -568,13 +633,15 @@ const suggestWith = async (
       tags: fromFindings.tags,
     });
     for (const m of matches) {
-      position += 1;
       const e = m.entry;
+      if (present.has(e.id)) continue;
+      present.add(e.id);
+      position += 1;
       const res = await client.query(
         `INSERT INTO report_steps (tenant_id, report_id, opportunity_id, catalogue_id, source, status,
                                    category, title, description, effort, impact, risk, owner, horizon,
                                    prerequisites, match_json, position)
-         VALUES ($1, $2, $3, $4, 'rule', 'suggested', $5, $6, $7, $8, $9, $10, '', $11, $12, $13, $14)
+         VALUES ($1, $2, $3, $4, 'rule', 'suggested', $5, $6, $7, $8, $9, $10, $15, $11, $12, $13, $14)
          ON CONFLICT DO NOTHING`,
         [
           tenantId,
@@ -591,6 +658,7 @@ const suggestWith = async (
           JSON.stringify(e.prerequisites.map((p) => p[locale])),
           JSON.stringify({ tags: m.tags, score: m.score, ownerRole: e.ownerRole }),
           position,
+          owners(`report.steps.ownerRole.${e.ownerRole}`),
         ],
       );
       added += res.rowCount ?? 0;
@@ -847,7 +915,7 @@ export const addStep = (
         e.effort,
         e.impact,
         e.risk,
-        '',
+        createTranslator(r.locale)(`report.steps.ownerRole.${e.ownerRole}`),
         defaultHorizon(e.effort, e.risk),
         JSON.stringify(e.prerequisites.map((p) => p[r.locale])),
         JSON.stringify({ tags: [], ownerRole: e.ownerRole, picked: true }),
@@ -1027,6 +1095,7 @@ const checkWith = async (
       plan: r.plan,
       minGroupSize: MIN_GROUP_SIZE,
       catalogueVersion: r.catalogueVersion,
+      repeatedTime: inputs.repeatedTime,
     },
     await leakSources(client, tenantId, r.engagementId),
   );

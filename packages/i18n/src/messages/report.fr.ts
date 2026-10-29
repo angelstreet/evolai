@@ -188,6 +188,23 @@ export const reportFr: Shape<typeof reportEn> = {
     team: 'Équipe',
     noAxis: 'Pas de réponse',
   },
+  time: {
+    title: 'Temps passé sur les tâches répétitives',
+    subtitle:
+      'Ce que les personnes ont dit de leur principale tâche répétitive : à quelle fréquence, et combien de temps à chaque fois. Déclaratif et arrondi : un ordre de grandeur, pas une mesure.',
+    overall: '{people} personnes : environ {hours} heures par semaine au total.',
+    team: '{team} : environ {hours} heures par semaine, {people} personnes',
+    tool: 'surtout {tool}',
+    hidden:
+      '{count, plural, one {# équipe n’est pas affichée} other {# équipes ne sont pas affichées}} : moins de {n} réponses chacune.',
+    toolName: {
+      spreadsheet: 'dans un tableur',
+      email: 'par e-mail',
+      business_app: 'dans un logiciel métier',
+      paper: 'sur papier ou PDF',
+      ai_assistant: 'avec un assistant IA',
+    },
+  },
   findings: {
     title: 'Constats clés',
     subtitle: 'Constats approuvés, cités par au moins {n} personnes ou vus pendant la visite.',
@@ -207,6 +224,8 @@ export const reportFr: Shape<typeof reportEn> = {
       approve: 'Approuver',
       reject: 'Refuser',
       withdraw: 'Retirer',
+      edit: 'Modifier le constat',
+      editTitle: 'Modifier le constat',
       status: { draft: 'À relire', approved: 'Approuvé', rejected: 'Refusé' },
       source: { rule: 'Proposé à partir des réponses', auditor: 'Écrit par vous' },
       staffOnly:
@@ -230,6 +249,8 @@ export const reportFr: Shape<typeof reportEn> = {
       approvedWithActions: 'Approuvé. Les actions suggérées sont sous Actions.',
       rejected: 'Refusé.',
       corrected: 'Marqué corrigé.',
+      updated: 'Enregistré. L’action qui en découle dit désormais la même chose.',
+      unavailable: 'La modification des constats n’est pas encore disponible sur ce serveur.',
       kept: 'Maintenu. Le rapport signale la contestation.',
       few_people: 'Les constats demandent au moins {n} questionnaires terminés.',
       no_evidence: 'Cochez au moins une réponse ou un choix sur lequel repose le constat.',
@@ -301,8 +322,8 @@ export const reportFr: Shape<typeof reportEn> = {
         statement: '{count} personnes sur {total} ont répondu « Je ne sais pas » à : {question}',
       },
       tag: {
-        label: 'Cité dans les textes libres : {tag}',
-        statement: '{count} personnes sur {total} décrivent {tag} dans leurs textes libres.',
+        label: '« {tag} » revient dans les textes libres',
+        statement: '{count} personnes sur {total} évoquent « {tag} » dans leurs textes libres.',
       },
     },
   },

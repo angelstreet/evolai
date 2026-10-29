@@ -137,6 +137,19 @@ test('a visit note becomes a finding; a dispute holds the report until answered'
     await disputed.getByTestId('finding-kept').click();
     await expect(disputed.getByTestId('finding-review')).toContainText('kept');
     await expect(disputed).not.toHaveAttribute('data-open-dispute', 'true');
+
+    // ADR 0060: reword the finding; the action made from it says the same.
+    await disputed.getByTestId('finding-edit').click();
+    const edit = own.getByRole('dialog');
+    await edit.locator('input[name=label]').fill(`${LABEL}, night team`);
+    await own.getByTestId('finding-edit-save').click();
+    const renamed = own.getByTestId('finding').filter({ hasText: `${LABEL}, night team` });
+    await expect(renamed.getByTestId('finding-edit-result')).toHaveText(
+      'Saved. The action made from it says the same now.',
+    );
+    await expect(
+      own.getByTestId('report-opportunity').filter({ hasText: `${LABEL}, night team` }),
+    ).toBeVisible();
     await own.context().close();
   } finally {
     await clean();

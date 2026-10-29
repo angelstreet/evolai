@@ -111,7 +111,7 @@ export async function startReportAction(
         {
           answered: inputs.answered,
           themes: inputs.findings.length,
-          opportunities: inputs.opportunities.length,
+          opportunities: 0,
           visit: inputs.visit,
           disputed: inputs.review.disputed,
           corrected: inputs.review.corrected,
@@ -190,7 +190,8 @@ export async function draftSummaryAction(
         {
           answered: bundle.inputs.answered,
           themes: bundle.inputs.findings.length,
-          opportunities: bundle.inputs.opportunities.length,
+          // The actions the client will read: the accepted steps (dry run, 2026-10-29).
+          opportunities: bundle.steps.filter((x) => x.status === 'accepted').length,
           visit: bundle.inputs.visit,
           disputed: bundle.inputs.review.disputed,
           corrected: bundle.inputs.review.corrected,

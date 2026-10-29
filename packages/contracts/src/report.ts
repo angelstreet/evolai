@@ -144,6 +144,30 @@ export const reportOpportunitySchema = z
   .strict();
 export type ReportOpportunity = z.infer<typeof reportOpportunitySchema>;
 
+/** Time on the main repeated task, self-reported (ADR 0060). Teams under the minimum are counted only. */
+export const repeatedTimeSchema = z
+  .object({
+    overall: z
+      .object({ people: z.number().int().min(1), hoursPerWeek: z.number().int().min(0) })
+      .strict()
+      .nullable(),
+    teams: z
+      .array(
+        z
+          .object({
+            team: z.string().min(1).max(120),
+            people: z.number().int().min(1),
+            hoursPerWeek: z.number().int().min(0),
+            tool: z.string().max(40).nullable(),
+          })
+          .strict(),
+      )
+      .max(60),
+    hiddenTeams: z.number().int().min(0),
+  })
+  .strict();
+export type RepeatedTimeReport = z.infer<typeof repeatedTimeSchema>;
+
 export const reportSnapshotSchema = z
   .object({
     version: z.number().int().min(1),
@@ -167,6 +191,8 @@ export const reportSnapshotSchema = z
     methodology: z.string().max(4000),
     minGroupSize: z.number().int().min(1),
     catalogueVersion: z.string().min(1).max(40),
+    /** Absent on snapshots published before ADR 0060, and when no one answered the inventory. */
+    repeatedTime: repeatedTimeSchema.optional(),
   })
   .strict();
 export type ReportSnapshot = z.infer<typeof reportSnapshotSchema>;

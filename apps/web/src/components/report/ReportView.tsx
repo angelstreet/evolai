@@ -12,7 +12,7 @@ import type { Horizon, Quadrant, ReadinessGroup, ReportSnapshot } from '@evolai/
 import { formatDate } from '@evolai/i18n';
 import { enumLabelOf } from '@/lib/enumLabel';
 import { getT } from '@/lib/i18n';
-import { findingLine, measureLine, weightsSentence } from '@/lib/reportModel';
+import { findingLine, measureLine, repeatedTimeLines, weightsSentence } from '@/lib/reportModel';
 
 /**
  * The audit report as the client reads it (TASK-V, ADR 0041). Renders a frozen snapshot only, so
@@ -87,7 +87,9 @@ export default function ReportView({
             component="p"
             sx={{ m: 0, fontVariantNumeric: 'tabular-nums' }}
           >
-            {score(a.score)} · {level(a.level)}
+            {a.score === null
+              ? t('report.readiness.noAxis')
+              : `${score(a.score)} · ${level(a.level)}`}
           </Typography>
         </Box>
       ))}
@@ -244,6 +246,23 @@ export default function ReportView({
           </Box>
         )}
       </Section>
+
+      {repeatedTimeLines(t, s.repeatedTime, s.minGroupSize).length > 0 ? (
+        <Section id="rv-time" title={t('report.time.title')}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2, maxWidth: '72ch' }}>
+            {t('report.time.subtitle')}
+          </Typography>
+          <Box component="ul" sx={{ m: 0, pl: 6 }} data-testid="report-time">
+            {repeatedTimeLines(t, s.repeatedTime, s.minGroupSize).map((line) => (
+              <Box component="li" key={line} sx={{ py: 0.5 }}>
+                <Typography variant="body1" component="span">
+                  {line}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        </Section>
+      ) : null}
 
       <Section id="rv-ranking" title={t('report.ranking.title')}>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>

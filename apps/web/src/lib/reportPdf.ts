@@ -4,7 +4,7 @@ import PDFDocument from 'pdfkit';
 import type { Horizon, Quadrant, ReportSnapshot } from '@evolai/contracts';
 import { formatDate, type SupportedLocale, type Translator } from '@evolai/i18n';
 import { palette } from '@evolai/ui/palette';
-import { findingLine, measureLine, weightsSentence } from './reportModel';
+import { findingLine, measureLine, repeatedTimeLines, weightsSentence } from './reportModel';
 
 /**
  * Server-side PDF of a published audit report (TASK-V, ADR 0042).
@@ -219,6 +219,14 @@ export const renderReportPdf = (
       indent: 14,
     });
   });
+
+  // Time on repeated tasks (ADR 0060), when the inventory was answered
+  const timeLines = repeatedTimeLines(t, s.repeatedTime, s.minGroupSize);
+  if (timeLines.length > 0) {
+    heading(t('report.time.title'));
+    text(t('report.time.subtitle'), { colour: C.muted, size: SIZE.small });
+    for (const line of timeLines) bullet(line);
+  }
 
   // Ranking: the 2 x 2 matrix, then the ordered list with its steps
   heading(t('report.ranking.title'));

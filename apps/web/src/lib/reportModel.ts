@@ -7,6 +7,7 @@ import {
   type ReportFinding,
   type ReportSnapshot,
   type ReportStep,
+  type RepeatedTimeReport,
   type StepMeasure,
 } from '@evolai/contracts';
 import { findingKey, rankOpportunities, uniqueLines } from '@evolai/domain';
@@ -79,6 +80,8 @@ export interface SnapshotInput {
   readonly plan: readonly PlanItem[];
   readonly minGroupSize: number;
   readonly catalogueVersion: string;
+  /** Time on the main repeated task (ADR 0060); omitted when nobody answered it. */
+  readonly repeatedTime?: RepeatedTimeReport | null;
 }
 
 /** Text the report must never contain: names to hide and what people wrote in their answers. */
@@ -220,6 +223,9 @@ export const buildSnapshot = (input: SnapshotInput, leaks: LeakSources): Publish
     methodology: input.methodology.trim(),
     minGroupSize: input.minGroupSize,
     catalogueVersion: input.catalogueVersion,
+    ...(input.repeatedTime && (input.repeatedTime.overall || input.repeatedTime.teams.length > 0)
+      ? { repeatedTime: input.repeatedTime }
+      : {}),
   };
 
   const leak = findLeak(
@@ -331,6 +337,33 @@ export const methodologyNote = (
     parts.push(w.disputed({ count: counts.disputed ?? 0, corrected: counts.corrected ?? 0 }));
   }
   return parts.join(' ');
+};
+
+/** The lines of the "time on repeated tasks" section (ADR 0060), or an empty list. */
+export const repeatedTimeLines = (
+  t: Translator,
+  r: RepeatedTimeReport | undefined,
+  minGroupSize: number,
+): string[] => {
+  if (!r) return [];
+  const lines: string[] = [];
+  if (r.overall) {
+    lines.push(
+      t('report.time.overall', { people: r.overall.people, hours: r.overall.hoursPerWeek }),
+    );
+  }
+  for (const tm of r.teams) {
+    const tool = tm.tool
+      ? `, ${t('report.time.tool', { tool: t(`report.time.toolName.${tm.tool as 'email'}`) })}`
+      : '';
+    lines.push(
+      `${t('report.time.team', { team: tm.team, hours: tm.hoursPerWeek, people: tm.people })}${tool}.`,
+    );
+  }
+  if (r.hiddenTeams > 0) {
+    lines.push(t('report.time.hidden', { count: r.hiddenTeams, n: minGroupSize }));
+  }
+  return lines;
 };
 
 /** The line under a key finding: people, "seen on the visit", "disputed, kept" (A6, A8). */

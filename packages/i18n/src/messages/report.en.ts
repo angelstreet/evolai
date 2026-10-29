@@ -175,6 +175,23 @@ export const reportEn = {
     team: 'Team',
     noAxis: 'No answer',
   },
+  time: {
+    title: 'Time on repeated tasks',
+    subtitle:
+      'What people said about their main repeated task: how often, and how long each time. Self-reported and rounded: an order of magnitude, not a measurement.',
+    overall: '{people} people: about {hours} hours a week in all.',
+    team: '{team}: about {hours} hours a week, {people} people',
+    tool: 'mostly in {tool}',
+    hidden:
+      '{count, plural, one {# team is not shown} other {# teams are not shown}}: under {n} answers each.',
+    toolName: {
+      spreadsheet: 'a spreadsheet',
+      email: 'email',
+      business_app: 'a business application',
+      paper: 'paper or PDF',
+      ai_assistant: 'an AI assistant',
+    },
+  },
   findings: {
     title: 'Key findings',
     subtitle: 'Approved findings raised by at least {n} people, or seen on the visit.',
@@ -194,6 +211,8 @@ export const reportEn = {
       approve: 'Approve',
       reject: 'Reject',
       withdraw: 'Withdraw',
+      edit: 'Edit the finding',
+      editTitle: 'Edit the finding',
       status: { draft: 'To review', approved: 'Approved', rejected: 'Rejected' },
       source: { rule: 'Proposed from the answers', auditor: 'Written by you' },
       staffOnly: 'Staff only: under {n} people and no visit note, never in the report.',
@@ -216,6 +235,8 @@ export const reportEn = {
       approvedWithActions: 'Approved. Suggested actions are under Actions.',
       rejected: 'Rejected.',
       corrected: 'Marked corrected.',
+      updated: 'Saved. The action made from it says the same now.',
+      unavailable: 'Editing findings is not set up on this server yet.',
       kept: 'Kept. The report notes the dispute.',
       few_people: 'Findings need at least {n} finished surveys.',
       no_evidence: 'Tick at least one answer or choice the finding rests on.',
@@ -284,8 +305,8 @@ export const reportEn = {
         statement: '{count} of {total} people answered “I don’t know” to: {question}',
       },
       tag: {
-        label: 'Named in the free texts: {tag}',
-        statement: '{count} of {total} people describe {tag} in their free-text answers.',
+        label: '“{tag}” comes up in the free texts',
+        statement: '{count} of {total} people mention “{tag}” in their free-text answers.',
       },
     },
   },

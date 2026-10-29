@@ -13,6 +13,7 @@ import {
   decideFinding,
   proposeMissionFindings,
   resolveDispute,
+  updateFinding,
 } from '@/lib/findingsData';
 import { isUuid } from '@/lib/invitationForm';
 import { ReportError, loadReportForEngagement, suggestSteps } from '@/lib/reportData';
@@ -177,6 +178,31 @@ export async function resolveDisputeAction(
     await resolveDispute(g.tenantId, g.actor, findingId, to);
     done();
     return { ok: true, code: to };
+  } catch (err) {
+    return { ok: false, code: codeOf(err) };
+  }
+}
+
+/** Reword a finding (ADR 0060): title, sentence, axis; the evidence stays. */
+export async function editFindingAction(
+  _prev: FindingActionState,
+  fd: FormData,
+): Promise<FindingActionState> {
+  const findingId = String(fd.get('findingId') ?? '');
+  const g = await guard(fd);
+  if (!g || !isUuid(findingId)) return { ok: false, code: 'forbidden' };
+  const label = String(fd.get('label') ?? '')
+    .trim()
+    .slice(0, 200);
+  const statement = String(fd.get('statement') ?? '')
+    .trim()
+    .slice(0, 600);
+  const axis = String(fd.get('axis') ?? '') as FindingAxis;
+  if (label.length < 3 || !FINDING_AXES.includes(axis)) return { ok: false, code: 'bad_input' };
+  try {
+    await updateFinding(g.tenantId, g.actor, findingId, { label, statement, axis });
+    done();
+    return { ok: true, code: 'updated' };
   } catch (err) {
     return { ok: false, code: codeOf(err) };
   }

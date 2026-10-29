@@ -71,16 +71,18 @@ by a native speaker before the pilot (ADR 0046).
    free texts), each with the people behind it. Approve what you stand behind, reject the rest. In the Answers
    tab you can also tick free texts and choices and "Write a finding" yourself. An approved finding of 5 people
    or more gets suggested actions under Actions; under 5 people it stays internal. No AI is used (ADR 0058).
+   Proposed findings are worded by rule: reword each one you keep with the pencil (title, sentence, axis) so it
+   reads as a plain statement for the client. The evidence stays (ADR 0060).
    The **Overview** then lists **Ask on site**: one question per finding to check during the visit, and a
    standard question for the axis with the least evidence. Print it with the brief.
 
 ## The visit
 
 6b. In the **Visit** tab, write a note for each interview, observation or workshop: the date, the team (or the
-    whole mission) and what you saw or heard. No names: they, emails and numbers are masked when you save. Notes
-    stay internal. Tick notes and "Write a finding from the notes": a finding seen on the visit can reach the
-    report even under 5 people, and the report says "seen on the visit" instead of a count. The method note
-    counts the interviews, observations and workshops (ADR 0059).
+whole mission) and what you saw or heard. No names: they, emails and numbers are masked when you save. Notes
+stay internal. Tick notes and "Write a finding from the notes": a finding seen on the visit can reach the
+report even under 5 people, and the report says "seen on the visit" instead of a count. The method note
+counts the interviews, observations and workshops (ADR 0059).
 
 ## Build the audit report
 
@@ -94,6 +96,9 @@ by a native speaker before the pilot (ADR 0046).
    steps. Rewrite it in your own words for the sponsor. Tick the findings it rests on: every claim keeps its
    source. No names, no quotes from answers. If the owner ran the AI draft, it shows as "AI draft, not reviewed";
    "Use this draft" copies it in, and you still edit it.
+   9b. **Time on repeated tasks**: nothing to do. From the survey's "how often" and "how long", the report shows
+   about how many hours a week each team spends on its main repeated task, marked as self-reported. Use it
+   as an order of magnitude, never as a measurement; the baseline of an action comes from the visit.
 10. **Readiness score**: nothing to do. It is computed from the survey answers per axis (knowledge, use,
     conditions), each counting for a third, shown with what the level means, and per team only when at least 5
     people answered.
@@ -105,7 +110,8 @@ by a native speaker before the pilot (ADR 0046).
 
 13. "Mark ready for review": the referent now sees the findings (titles and counts only) in their Report tab and
     confirms or disputes each one, with one line. A dispute shows under Findings; answer it with **Mark
-    corrected** (after you changed the finding) or **Keep as is**. You cannot publish while a dispute is
+    corrected** (after you changed the finding; editing it with the pencil does this for you) or **Keep as
+    is**. You cannot publish while a dispute is
     unanswered; a kept dispute is noted in the report. Then **Preview as the client**. You see exactly what the client will see, or the
     reason it is not ready (for example: no finding ticked, a name from the list, words copied from an answer).
 14. **Publish** and confirm. The referent now sees it in the **Report** tab of their space and can download the

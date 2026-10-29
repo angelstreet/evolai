@@ -4,7 +4,8 @@ import type { Translator } from '@evolai/i18n';
 
 /**
  * "Ask on site" (TASK-AJ A7, ADR 0059): one question per open finding for the visit, with the
- * count behind it, plus the standard question of the axis with the least evidence. Rule-based
+ * count behind it, plus the standard question of the axis with the least evidence. Findings that
+ * lead to the same question share it, so no question is printed twice (dry run, 2026-10-29). Rule-based
  * text from a small template table per evidence pattern and per axis; no model.
  */
 
@@ -36,30 +37,35 @@ export interface PromptFinding {
 }
 
 export interface SitePrompt {
-  /** The finding it follows up, or null for the standard question. */
-  readonly finding: string | null;
-  readonly people: number;
   readonly question: string;
+  /** The findings it follows up, most people first; empty for the standard question. */
+  readonly findings: ReadonlyArray<{ readonly label: string; readonly people: number }>;
 }
 
 export const sitePrompts = (t: Translator, findings: readonly PromptFinding[]): SitePrompt[] => {
   const open = findings
     .filter((f) => f.status !== 'rejected')
     .sort((a, b) => b.people - a.people || a.label.localeCompare(b.label));
-  const out: SitePrompt[] = open.map((f) => {
+  // One question once, with every finding it follows up (in the order of their first finding).
+  const byQuestion = new Map<string, { label: string; people: number }[]>();
+  for (const f of open) {
     const tag = f.tags.find((x): x is (typeof ASK_TAGS)[number] =>
       (ASK_TAGS as readonly string[]).includes(x),
     );
-    return {
-      finding: f.label,
-      people: f.people,
-      question: tag ? t(`admin.brief.ask.tag.${tag}`) : t(`admin.brief.ask.axis.${f.axis}`),
-    };
-  });
+    const question = tag ? t(`admin.brief.ask.tag.${tag}`) : t(`admin.brief.ask.axis.${f.axis}`);
+    byQuestion.set(question, [
+      ...(byQuestion.get(question) ?? []),
+      { label: f.label, people: f.people },
+    ]);
+  }
+  const out: SitePrompt[] = [...byQuestion].map(([question, findings]) => ({
+    question,
+    findings,
+  }));
   const evidence = new Map<FindingAxis, number>(AXES.map((a) => [a, 0]));
   for (const f of open) evidence.set(f.axis, (evidence.get(f.axis) ?? 0) + 1);
   const weakest = [...AXES].sort((a, b) => (evidence.get(a) ?? 0) - (evidence.get(b) ?? 0))[0];
-  if (weakest)
-    out.push({ finding: null, people: 0, question: t(`admin.brief.ask.axis.${weakest}`) });
+  const standard = weakest ? t(`admin.brief.ask.axis.${weakest}`) : null;
+  if (standard && !byQuestion.has(standard)) out.push({ question: standard, findings: [] });
   return out;
 };

@@ -625,3 +625,65 @@ export const resolveDispute = (
     if ((res.rowCount ?? 0) === 0) throw new FindingError('not_found');
     await audit(client, tenantId, actor, 'finding.resolve', findingId, { resolution });
   });
+
+// ---------------------------------------------------------------------------------------------
+// Editing a finding (ADR 0060)
+// ---------------------------------------------------------------------------------------------
+
+/** True once migration 0031 (the `finding.update` audit verb) is applied. */
+const editReady = async (client: pg.PoolClient): Promise<boolean> =>
+  (
+    await client.query(
+      `SELECT 1 FROM pg_constraint
+        WHERE conname = 'audit_log_action_check'
+          AND pg_get_constraintdef(oid) LIKE '%finding.update%'`,
+    )
+  ).rowCount === 1;
+
+export const canEditFindings = (tenantId: TenantId): Promise<boolean> =>
+  withTenant(tenantId, editReady);
+
+/**
+ * Reword a finding (title, sentence, axis). Its evidence does not change. The opportunity made from
+ * it follows, so the report's action list says the same thing. Editing a finding the referent
+ * disputed answers the dispute as "corrected".
+ */
+export const updateFinding = (
+  tenantId: TenantId,
+  actor: string,
+  findingId: string,
+  input: { label: string; statement: string; axis: FindingAxis },
+): Promise<{ engagementId: string }> =>
+  withTenant(tenantId, async (client) => {
+    if (!(await editReady(client))) throw new FindingError('unavailable');
+    const res = await client.query<{ engagement_id: string }>(
+      `UPDATE findings SET label = $3, statement = $4, axis = $5, updated_at = now()
+        WHERE tenant_id = $1 AND id = $2 AND status <> 'rejected'
+        RETURNING engagement_id`,
+      [tenantId, findingId, input.label, input.statement, input.axis],
+    );
+    const engagementId = res.rows[0]?.engagement_id;
+    if (!engagementId) throw new FindingError('not_found');
+    await client.query(
+      `UPDATE opportunities o SET title = $3, description = $4, axis = $5, updated_at = now()
+         FROM opportunity_findings ofi
+        WHERE ofi.finding_id = $2 AND ofi.opportunity_id = o.id AND o.tenant_id = $1
+          AND o.status <> 'archived'`,
+      [tenantId, findingId, input.label, input.statement, input.axis],
+    );
+    await audit(client, tenantId, actor, 'finding.update', findingId, { engagementId });
+    if (await tableReady(client, 'finding_reviews')) {
+      const resolved = await client.query(
+        `UPDATE finding_reviews SET resolution = 'corrected', resolved_by = $3, resolved_at = now()
+          WHERE tenant_id = $1 AND finding_id = $2 AND verdict = 'disputed' AND resolution IS NULL`,
+        [tenantId, findingId, actor],
+      );
+      if ((resolved.rowCount ?? 0) > 0) {
+        await audit(client, tenantId, actor, 'finding.resolve', findingId, {
+          resolution: 'corrected',
+          byEdit: true,
+        });
+      }
+    }
+    return { engagementId };
+  });

@@ -20,18 +20,28 @@ describe('sitePrompts (TASK-AJ A7)', () => {
       f({ label: 'Few people', axis: 'practice', people: 3, status: 'draft' }),
       f({ label: 'Rejected', status: 'rejected', people: 9 }),
     ]);
-    expect(out.map((p) => p.finding)).toEqual(['Typed twice', 'Few people', null]);
+    expect(out.map((p) => p.findings.map((x) => x.label))).toEqual([
+      ['Typed twice'],
+      ['Few people'],
+      [],
+    ]);
     expect(out[0]?.question).toBe(t('admin.brief.ask.tag.manual_reentry'));
     expect(out[1]?.question).toBe(t('admin.brief.ask.axis.practice'));
   });
 
+  it('never prints a question twice: findings that lead to it share it', () => {
+    const out = sitePrompts(t, [
+      f({ label: 'Daily task', tags: ['repetitive_task'], people: 6 }),
+      f({ label: 'Long task', tags: ['repetitive_task'], people: 5 }),
+    ]);
+    const questions = out.map((p) => p.question);
+    expect(new Set(questions).size).toBe(questions.length);
+    expect(out[0]?.findings.map((x) => x.label)).toEqual(['Daily task', 'Long task']);
+  });
+
   it('ends with the standard question of the axis with the least evidence', () => {
     const out = sitePrompts(t, [f({ axis: 'literacy' })]);
-    expect(out.at(-1)).toEqual({
-      finding: null,
-      people: 0,
-      question: t('admin.brief.ask.axis.practice'),
-    });
+    expect(out.at(-1)).toEqual({ question: t('admin.brief.ask.axis.practice'), findings: [] });
   });
 
   it('still asks the standard question with no finding', () => {

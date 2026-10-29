@@ -18,6 +18,7 @@ import { findingIdle, type FindingActionState } from '@/app/admin/findings/state
 import { enumLabelOf } from '@/lib/enumLabel';
 import { isOpenDispute, isReportable } from '@/lib/findingRules';
 import type { FindingRow } from '@/lib/findingsData';
+import FindingEditDialog from './FindingEditDialog';
 
 interface Ids {
   readonly tenantId: string;
@@ -181,10 +182,23 @@ function Review({ ids, f, minGroup }: { ids: Ids; f: FindingRow; minGroup: numbe
   );
 }
 
-/** Draft: approve or reject. Approved: withdraw. Rejected: approve again. */
-function Decide({ ids, f, minGroup }: { ids: Ids; f: FindingRow; minGroup: number }) {
+/** Draft: approve or reject. Approved: withdraw. Rejected: approve again. Not rejected: edit. */
+function Decide({
+  ids,
+  f,
+  minGroup,
+  canEdit,
+}: {
+  ids: Ids;
+  f: FindingRow;
+  minGroup: number;
+  canEdit: boolean;
+}) {
   return (
     <Stack direction="row" spacing={2} sx={{ flexWrap: 'wrap', alignItems: 'flex-start' }}>
+      {canEdit && f.status !== 'rejected' ? (
+        <FindingEditDialog tenantId={ids.tenantId} finding={f} />
+      ) : null}
       {f.status !== 'approved' ? (
         <DecideForm ids={ids} f={f} to="approved" minGroup={minGroup} />
       ) : null}
@@ -195,7 +209,17 @@ function Decide({ ids, f, minGroup }: { ids: Ids; f: FindingRow; minGroup: numbe
   );
 }
 
-function FindingItem({ ids, f, minGroup }: { ids: Ids; f: FindingRow; minGroup: number }) {
+function FindingItem({
+  ids,
+  f,
+  minGroup,
+  canEdit,
+}: {
+  ids: Ids;
+  f: FindingRow;
+  minGroup: number;
+  canEdit: boolean;
+}) {
   const { t } = useI18n();
   return (
     <Box
@@ -250,7 +274,7 @@ function FindingItem({ ids, f, minGroup }: { ids: Ids; f: FindingRow; minGroup: 
         </Typography>
       ) : null}
       <Review ids={ids} f={f} minGroup={minGroup} />
-      <Decide ids={ids} f={f} minGroup={minGroup} />
+      <Decide ids={ids} f={f} minGroup={minGroup} canEdit={canEdit} />
     </Box>
   );
 }
@@ -265,11 +289,14 @@ export function FindingsPanel({
   findings,
   minGroup,
   disabled,
+  canEdit = false,
 }: {
   ids: Ids;
   findings: readonly FindingRow[] | null;
   minGroup: number;
   disabled: boolean;
+  /** Rewording is on once migration 0031 is applied (ADR 0060). */
+  canEdit?: boolean;
 }) {
   const { t } = useI18n();
   const [state, action] = useFormState(proposeFindingsAction, findingIdle);
@@ -304,7 +331,7 @@ export function FindingsPanel({
       ) : (
         <Stack component="ul" spacing={3} sx={{ m: 0, p: 0 }}>
           {open.map((f) => (
-            <FindingItem key={f.id} ids={ids} f={f} minGroup={minGroup} />
+            <FindingItem key={f.id} ids={ids} f={f} minGroup={minGroup} canEdit={canEdit} />
           ))}
         </Stack>
       )}
@@ -315,7 +342,7 @@ export function FindingsPanel({
           </Typography>
           <Stack component="ul" spacing={3} sx={{ m: 0, p: 0 }}>
             {rejected.map((f) => (
-              <FindingItem key={f.id} ids={ids} f={f} minGroup={minGroup} />
+              <FindingItem key={f.id} ids={ids} f={f} minGroup={minGroup} canEdit={canEdit} />
             ))}
           </Stack>
         </Box>

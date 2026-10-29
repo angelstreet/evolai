@@ -60,11 +60,13 @@ export default async function MissionOverviewPage({ params }: { params: { id: st
         }
       />
       <Typography color="text.secondary" data-testid="brief-counts" sx={{ mb: 5 }}>
-        {t('admin.brief.counts', {
-          links,
-          submitted: mission.submitted,
-          expected: mission.expected,
-        })}
+        {mission.expected >= mission.submitted
+          ? t('admin.brief.counts', {
+              links,
+              submitted: mission.submitted,
+              expected: mission.expected,
+            })
+          : t('admin.brief.countsOnly', { links, submitted: mission.submitted })}
         {closes ? ` ${closes}.` : null}
       </Typography>
       {anyShown && findings !== null ? (
@@ -87,11 +89,17 @@ export default async function MissionOverviewPage({ params }: { params: { id: st
             {sitePrompts(t, findings).map((p, i) => (
               <li key={i} data-testid="brief-ask-item">
                 <Typography variant="body1">{p.question}</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {p.finding
-                    ? `${p.finding} · ${t('report.findings.people', { count: p.people })}`
-                    : t('admin.brief.askStandard')}
-                </Typography>
+                {p.findings.length > 0 ? (
+                  p.findings.map((f) => (
+                    <Typography key={f.label} variant="body2" color="text.secondary">
+                      {f.label} · {t('report.findings.people', { count: f.people })}
+                    </Typography>
+                  ))
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    {t('admin.brief.askStandard')}
+                  </Typography>
+                )}
               </li>
             ))}
           </Stack>
@@ -123,10 +131,12 @@ export default async function MissionOverviewPage({ params }: { params: { id: st
                 color="text.secondary"
                 sx={{ fontVariantNumeric: 'tabular-nums' }}
               >
-                {t('admin.brief.teamAnswers', {
-                  submitted: team.submitted,
-                  expected: team.expected,
-                })}
+                {team.expected >= team.submitted
+                  ? t('admin.brief.teamAnswers', {
+                      submitted: team.submitted,
+                      expected: team.expected,
+                    })
+                  : t('admin.brief.teamAnswersOnly', { submitted: team.submitted })}
               </Typography>
               {closes ? (
                 <Typography variant="body2" color="text.secondary">

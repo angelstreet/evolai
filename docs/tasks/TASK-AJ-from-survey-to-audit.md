@@ -29,3 +29,7 @@ mission (findings are per mission), not one per team.
 
 Production: migration `0030_visit_review_measure.sql` applied to Neon on 2026-10-29 (owner approval): visit
 notes, finding notes and finding reviews with row-level security, and the measure columns on `report_steps`.
+
+Follow-up 2026-10-29 (ADR 0060): a full dry run of one audit (`apps/web/e2e/dry-run.spec.ts`, off by default),
+the "time on repeated tasks" section, editing findings, and seven fixes the dry run found. Editing needs
+migration `0031_finding_update.sql` on production.

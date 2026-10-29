@@ -162,6 +162,7 @@ export const trustFr: Messages['trust'] = {
       finding_confirm: 'A confirmé un constat (référent)',
       finding_dispute: 'A contesté un constat (référent)',
       finding_resolve: 'A traité un constat contesté',
+      finding_update: 'A modifié un constat',
       report_step_measure: 'A renseigné la mesure d’une action',
       visit_note_create: 'A ajouté une note de visite',
       visit_note_delete: 'A supprimé une note de visite',

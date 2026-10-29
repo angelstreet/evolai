@@ -23,7 +23,7 @@ import { WorkflowBar } from '@/components/report/WorkflowBar';
 import { sessionTenantFor } from '@/lib/authServer';
 import { enumLabelOf } from '@/lib/enumLabel';
 import { getT } from '@/lib/i18n';
-import { listFindings } from '@/lib/findingsData';
+import { canEditFindings, listFindings } from '@/lib/findingsData';
 import { isUuid } from '@/lib/invitationForm';
 import { MIN_GROUP_SIZE } from '@/lib/invitationTracking';
 import { loadReportForEngagement, loadReportInputs, rankForScreen } from '@/lib/reportData';
@@ -85,9 +85,10 @@ export default async function ReportEditorPage({
       </section>
     );
   }
-  const [bundle, findings] = await Promise.all([
+  const [bundle, findings, canEdit] = await Promise.all([
     loadReportForEngagement(tenantId, params.id),
     listFindings(tenantId, params.id),
+    canEditFindings(tenantId),
   ]);
   const findingsCard = (
     <Card
@@ -100,6 +101,7 @@ export default async function ReportEditorPage({
         findings={findings}
         minGroup={MIN_GROUP_SIZE}
         disabled={false}
+        canEdit={canEdit}
       />
     </Card>
   );
