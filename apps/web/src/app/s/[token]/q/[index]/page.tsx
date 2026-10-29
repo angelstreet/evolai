@@ -59,7 +59,7 @@ export default async function QuestionPage({ params }: { params: Params }) {
         segments={segments}
         labels={{
           title: t('cockpit.menu.survey'),
-          count: t('cockpit.tryIt.count', { n: index + 1 }),
+          count: t('cockpit.tryIt.count', { n: index + 1, total }),
           progress: t('survey.progress'),
           previous: t('survey.previous'),
           next: t('survey.next'),

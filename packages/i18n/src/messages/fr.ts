@@ -89,7 +89,7 @@ export const fr: Messages = {
     lede: 'EvolAI aide les organisations à voir où l’IA aide déjà, où elle est risquée et quoi faire ensuite. Un court questionnaire anonyme, puis une visite et un plan.',
     stepsAria: 'Comment ça marche, en trois étapes',
     step1Title: 'Comprendre',
-    step1Body: 'Vos équipes répondent à dix questions, anonymement, en sept minutes.',
+    step1Body: 'Vos équipes répondent à 14 questions courtes, anonymement, en huit minutes.',
     step2Title: 'Adapter',
     step2Body: 'Nous venons sur place avec une image déjà claire et travaillons avec vos équipes.',
     step3Title: 'Évoluer',

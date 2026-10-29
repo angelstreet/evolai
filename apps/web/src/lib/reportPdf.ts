@@ -4,7 +4,7 @@ import PDFDocument from 'pdfkit';
 import type { Horizon, Quadrant, ReportSnapshot } from '@evolai/contracts';
 import { formatDate, type SupportedLocale, type Translator } from '@evolai/i18n';
 import { palette } from '@evolai/ui/palette';
-import { weightsSentence } from './reportModel';
+import { findingLine, measureLine, weightsSentence } from './reportModel';
 
 /**
  * Server-side PDF of a published audit report (TASK-V, ADR 0042).
@@ -213,7 +213,7 @@ export const renderReportPdf = (
   s.findings.forEach((x, i) => {
     ensure(28);
     text(`${i + 1}. ${x.label}`, { gap: 0 });
-    text(t('report.findings.people', { count: x.people }), {
+    text(findingLine(t, x), {
       colour: C.muted,
       size: SIZE.small,
       indent: 14,
@@ -278,6 +278,8 @@ export const renderReportPdf = (
         ].join(' · '),
         { colour: C.muted, size: SIZE.small, indent: 14, gap: 0.5 },
       );
+      const measure = measureLine(t, st.measure, colon);
+      if (measure) text(measure, { colour: C.muted, size: SIZE.small, indent: 14, gap: 0.5 });
     }
   }
 

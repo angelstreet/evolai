@@ -84,7 +84,7 @@ interface Props {
 
 type Section = 'home' | 'learn' | 'videos' | 'survey' | 'report';
 const SECTIONS: readonly Section[] = ['home', 'learn', 'videos', 'survey', 'report'];
-const COUNTS: Partial<Record<Section, number>> = { learn: 5, videos: 10, survey: 10 };
+const COUNTS: Partial<Record<Section, number>> = { learn: 5, videos: 10 };
 const TILE_SETS = [
   { icon: 'eye', tone: 'amber' },
   { icon: 'target', tone: 'blue' },
@@ -621,12 +621,12 @@ export default function Cockpit({
             <span>{t('cockpit.tryIt.title')}</span>
           </h2>
           <span className="ck-count" data-testid="ck-try-count">
-            {t('cockpit.tryIt.count', { n: Math.min(qi + 1, total) })}
+            {t('cockpit.tryIt.count', { n: Math.min(qi + 1, total), total })}
           </span>
         </div>
         <div className="ck-try-body">
           {/* each segment jumps to its question: one before the current, answered, or right after an answered one */}
-          <div className="ck-qbar">
+          <div className={total > 10 ? 'ck-qbar ck-qbar-rows' : 'ck-qbar'}>
             {questions.map((c, i) => {
               const prev = questions[i - 1];
               const reachable = i <= qi || hasAnswer(c.code) || (!!prev && hasAnswer(prev.code));
@@ -649,7 +649,7 @@ export default function Cockpit({
           {finished || !q ? (
             <>
               <p className="ck-q" data-testid="ck-try-done">
-                {t('cockpit.tryIt.complete', { n: answered })}
+                {t('cockpit.tryIt.complete', { n: answered, total })}
               </p>
               {sent ? (
                 <p className="ck-status done ck-mt" data-testid="ck-sent">
@@ -822,7 +822,7 @@ export default function Cockpit({
       : section === 'survey'
         ? qi >= total
           ? t('cockpit.header.done')
-          : t('cockpit.header.question', { n: qi + 1 })
+          : t('cockpit.header.question', { n: qi + 1, total })
         : null;
 
   return (
@@ -854,7 +854,9 @@ export default function Cockpit({
             >
               {MENU_ICONS[k]}
               <span className="ck-label">{tk(`cockpit.menu.${k}`)}</span>
-              {COUNTS[k] ? <span className="ck-nav-count">{COUNTS[k]}</span> : null}
+              {(k === 'survey' ? total : COUNTS[k]) ? (
+                <span className="ck-nav-count">{k === 'survey' ? total : COUNTS[k]}</span>
+              ) : null}
             </button>
           ))}
         </nav>

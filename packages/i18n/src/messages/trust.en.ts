@@ -160,6 +160,12 @@ export const trustEn = {
       finding_propose: 'Proposed findings from the answers',
       finding_approve: 'Approved a finding',
       finding_reject: 'Rejected a finding',
+      finding_confirm: 'Confirmed a finding (referent)',
+      finding_dispute: 'Disputed a finding (referent)',
+      finding_resolve: 'Answered a disputed finding',
+      report_step_measure: 'Set the measure of an action',
+      visit_note_create: 'Added a visit note',
+      visit_note_delete: 'Deleted a visit note',
     },
   },
   notice: {

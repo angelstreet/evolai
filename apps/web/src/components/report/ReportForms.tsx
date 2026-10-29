@@ -39,9 +39,11 @@ import {
   suggestAction,
   updateStepAction,
   applyAiDraftAction,
+  measureStepAction,
 } from '@/app/admin/reports/actions';
 import { reportIdle, type ReportActionState } from '@/app/admin/reports/state';
-import type { StepRow } from '@/lib/reportModel';
+import { measureLine, type StepRow } from '@/lib/reportModel';
+import MeasureDialog from './MeasureDialog';
 
 /**
  * Auditor report editor controls (TASK-V, ADR 0041). Each form posts to a server action that
@@ -411,7 +413,10 @@ const STATUS_COLOUR = {
 } as const;
 
 export function StepCard({ ids, step, disabled }: { ids: Ids; step: StepRow; disabled: boolean }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const [measureState, saveMeasure] = useFormState(measureStepAction, reportIdle);
+  const [measuring, setMeasuring] = useState(false);
+  const measure = measureLine(t, step.measure, locale === 'fr' ? '\u00a0: ' : ': ');
   const [state, decide] = useFormState(decideStepAction, reportIdle);
   const [editState, edit] = useFormState(updateStepAction, reportIdle);
   const [open, setOpen] = useState(false);
@@ -465,6 +470,11 @@ export function StepCard({ ids, step, disabled }: { ids: Ids; step: StepRow; dis
           <Typography variant="caption" color="text.secondary" component="p" sx={{ m: 0 }}>
             {why}
           </Typography>
+          {measure ? (
+            <Typography variant="body2" color="text.secondary" data-testid="step-measure">
+              {measure}
+            </Typography>
+          ) : null}
         </Box>
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flex: 'none' }}>
           {statusWord}
@@ -530,8 +540,33 @@ export function StepCard({ ids, step, disabled }: { ids: Ids; step: StepRow; dis
             </IconButton>
           </span>
         </Tooltip>
-        <ActionResult state={state.code !== 'idle' ? state : editState} />
+        {step.status === 'accepted' ? (
+          <Button
+            variant="text"
+            onClick={() => setMeasuring(true)}
+            disabled={disabled}
+            startIcon={<AppIcon name="time" size={20} />}
+            data-testid="step-measure-open"
+            sx={{ minHeight: 44 }}
+          >
+            {t('report.steps.measure.title')}
+          </Button>
+        ) : null}
+        <ActionResult
+          state={
+            state.code !== 'idle' ? state : measureState.code !== 'idle' ? measureState : editState
+          }
+        />
       </Stack>
+      {step.status === 'accepted' ? (
+        <MeasureDialog
+          ids={ids}
+          step={step}
+          open={measuring}
+          onClose={() => setMeasuring(false)}
+          onSave={saveMeasure}
+        />
+      ) : null}
       <Dialog
         open={open}
         onClose={() => setOpen(false)}

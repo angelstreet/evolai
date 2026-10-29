@@ -3,6 +3,8 @@ import type { ReadinessReport } from '@evolai/contracts';
 import {
   buildSnapshot,
   draftSummary,
+  findingLine,
+  measureLine,
   methodologyNote,
   findLeak,
   findingKey,
@@ -239,6 +241,10 @@ describe('methodologyNote', () => {
     themes: (v: { count: number }) => `${v.count} themes approved.`,
     opportunities: (v: { count: number }) => `${v.count} opportunities approved.`,
     unreviewed: 'Nothing approved yet.',
+    visit: (v: { interviews: number; observations: number; workshops: number }) =>
+      `Visit: ${v.interviews} interviews, ${v.observations} observations, ${v.workshops} workshops.`,
+    disputed: (v: { count: number; corrected: number }) =>
+      `${v.count} disputed, ${v.corrected} corrected.`,
   };
 
   it('never claims approvals that did not happen', () => {
@@ -254,6 +260,37 @@ describe('methodologyNote', () => {
     expect(methodologyNote({ answered: 12, themes: 2, opportunities: 0 }, 5, w)).not.toContain(
       'opportunities approved',
     );
+  });
+
+  it('counts the visit and the referent’s disputes (TASK-AJ A6, A8)', () => {
+    expect(
+      methodologyNote(
+        {
+          answered: 12,
+          themes: 2,
+          opportunities: 1,
+          visit: { interview: 2, observation: 1, workshop: 0 },
+          disputed: 2,
+          corrected: 1,
+        },
+        5,
+        w,
+      ),
+    ).toBe(
+      '12 answered, groups of 5. Visit: 2 interviews, 1 observations, 0 workshops. 2 themes approved. 1 opportunities approved. 2 disputed, 1 corrected.',
+    );
+    expect(
+      methodologyNote(
+        {
+          answered: 12,
+          themes: 2,
+          opportunities: 0,
+          visit: { interview: 0, observation: 0, workshop: 0 },
+        },
+        5,
+        w,
+      ),
+    ).not.toContain('Visit');
   });
 });
 
@@ -286,5 +323,37 @@ describe('weightsSentence (TASK-AJ A4)', () => {
   it('keeps the plain sentence when nothing is left out or there is no score', () => {
     const none = { ...readiness(50), overall: null } as Parameters<typeof weightsSentence>[1];
     expect(weightsSentence(t, none)).toContain('each counting for a third');
+  });
+});
+
+describe('findingLine and measureLine (TASK-AJ A6, A8, A9)', () => {
+  const t = createTranslator('en');
+
+  it('never shows a count under the minimum: a visit finding says so instead', () => {
+    const base = { key: 'k', axis: 'opportunity', label: 'L' };
+    expect(findingLine(t, { ...base, people: 6 })).toBe('raised by 6 people');
+    expect(findingLine(t, { ...base, people: 0, visit: true })).toBe('seen on the visit');
+    expect(findingLine(t, { ...base, people: 6, visit: true, disputed: true })).toBe(
+      'raised by 6 people · seen on the visit · disputed by the client, kept',
+    );
+  });
+
+  it('writes the measure of an action, or nothing', () => {
+    expect(measureLine(t, null, ': ')).toBeNull();
+    expect(
+      measureLine(
+        t,
+        {
+          baselineValue: 40,
+          baselineUnit: 'minutes per order',
+          baselineSource: 'time sheet',
+          followUpOn: '2027-01-30',
+          day90Status: 'validated',
+        },
+        ': ',
+      ),
+    ).toBe(
+      'Baseline: 40 minutes per order (time sheet) · Follow-up: 2027-01-30 · Day 90: Validated',
+    );
   });
 });

@@ -11,7 +11,7 @@ export type MissionStatus = 'draft' | 'open' | 'closed' | 'published';
 export type NextStep = 'createLinks' | 'followAnswers' | 'readBrief' | 'writeReport';
 
 /** Mission tab a next step opens. */
-export type MissionTab = 'overview' | 'invitations' | 'answers' | 'report' | 'settings';
+export type MissionTab = 'overview' | 'invitations' | 'answers' | 'visit' | 'report' | 'settings';
 
 export interface MissionFacts {
   readonly status: Engagement['status'];

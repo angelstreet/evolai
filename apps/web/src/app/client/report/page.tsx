@@ -3,10 +3,12 @@ import Button from '@mui/material/Button';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import { AppIcon, EmptyState, PageTitle } from '@evolai/ui';
+import FindingReview from '@/components/report/FindingReview';
 import PrintReportButton from '@/components/report/PrintReportButton';
 import ReportView from '@/components/report/ReportView';
 import { requireClientContext } from '@/lib/clientContext';
 import { loadClientSurvey } from '@/lib/clientData';
+import { reviewItems } from '@/lib/findingsData';
 import { getT } from '@/lib/i18n';
 import { longDate } from '@/lib/referentMessages';
 import { loadPublishedReport } from '@/lib/reportData';
@@ -17,6 +19,8 @@ export const dynamic = 'force-dynamic';
  * The published audit report in the team space (TASK-V, ADR 0041). Read only. The engagement comes
  * from the session's teams, never from the URL, and only a published, not withdrawn snapshot is
  * read: a draft or a report in review never reaches this page. View-as sees the same thing.
+ * While the working report is in review, the referent checks the findings (labels and counts
+ * only) and confirms or disputes each one (TASK-AJ A8).
  */
 export default async function ClientReportPage() {
   const { ctx } = await requireClientContext();
@@ -25,6 +29,7 @@ export default async function ClientReportPage() {
   const published = survey
     ? await loadPublishedReport(ctx.tenantId as TenantId, survey.engagementId)
     : null;
+  const toReview = survey ? await reviewItems(ctx.tenantId as TenantId, survey.engagementId) : [];
   return (
     <section aria-labelledby="client-report-title">
       <PageTitle
@@ -54,6 +59,9 @@ export default async function ClientReportPage() {
           {t('report.view.receiveForward')}
         </Typography>
       </Paper>
+      {toReview.length > 0 ? (
+        <FindingReview items={toReview} readOnly={ctx.readOnly || ctx.viewAs !== null} />
+      ) : null}
       {published ? (
         <ReportView
           snapshot={published.snapshot}

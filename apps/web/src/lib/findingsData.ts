@@ -9,6 +9,10 @@ import {
 import { answerValueText, submittedCounts } from './answersData';
 import { withTenant } from './db';
 import { MIN_GROUP_SIZE } from './invitationTracking';
+import { isOpenDispute, isReportable } from './findingRules';
+import { tableReady } from './visitData';
+
+export { isOpenDispute, isReportable };
 
 /**
  * Findings of a mission (TASK-AJ A1 to A3, ADR 0058): engagement-level statements, each resting on
@@ -21,7 +25,13 @@ import { MIN_GROUP_SIZE } from './invitationTracking';
  * size it stays on staff pages ("not publishable"). Withdrawing it archives that opportunity and
  * rejects its actions.
  *
- * Until migration 0029 is applied the reads answer `unavailable` and pages show nothing new.
+ * A finding can also rest on visit notes (A6, ADR 0059): one that cites a note is reportable
+ * whatever its people count, because the auditor saw it on site; the report then says "seen on the
+ * visit" instead of a count under the minimum. The referent can confirm or dispute an approved
+ * finding (A8); an open dispute blocks publishing until the auditor marks it corrected or kept.
+ *
+ * Until migration 0029 is applied the reads answer `unavailable` and pages show nothing new; until
+ * 0030, findings have no notes and no review.
  */
 
 export const FINDING_AXES: readonly FindingAxis[] = [
@@ -34,6 +44,12 @@ export const FINDING_AXES: readonly FindingAxis[] = [
 
 export type FindingStatus = 'draft' | 'approved' | 'rejected';
 
+export interface FindingReview {
+  readonly verdict: 'confirmed' | 'disputed';
+  readonly comment: string;
+  readonly resolution: 'corrected' | 'kept' | null;
+}
+
 export interface FindingRow {
   readonly id: string;
   readonly axis: FindingAxis;
@@ -43,6 +59,10 @@ export interface FindingRow {
   readonly source: 'auditor' | 'rule';
   readonly tags: readonly EvidenceTag[];
   readonly people: number;
+  /** Visit notes it cites (A6). */
+  readonly notes: number;
+  /** The referent's confirm or dispute (A8). */
+  readonly review: FindingReview | null;
   readonly opportunityId: string | null;
 }
 
@@ -52,10 +72,6 @@ export class FindingError extends Error {
     this.name = 'FindingError';
   }
 }
-
-/** Postgres "relation does not exist": migration 0029 is not applied yet. */
-const missingTable = (err: unknown): boolean =>
-  typeof err === 'object' && err !== null && (err as { code?: unknown }).code === '42P01';
 
 const cleanTags = (raw: unknown): EvidenceTag[] =>
   Array.isArray(raw) ? raw.flatMap((t) => (evidenceTagSchema.safeParse(t).success ? [t] : [])) : [];
@@ -74,16 +90,34 @@ const audit = (
     [tenantId, actor, action, targetId, JSON.stringify(payload)],
   );
 
-const SELECT_FINDINGS = `
+/** Which migrations are applied: 0029 (findings), 0030 (notes and reviews). */
+interface Ready {
+  readonly findings: boolean;
+  readonly visit: boolean;
+}
+
+const readiness = async (client: pg.PoolClient): Promise<Ready> => ({
+  findings: await tableReady(client, 'findings'),
+  visit: await tableReady(client, 'finding_reviews'),
+});
+
+const selectFindings = (ready: Ready) => `
   SELECT f.id, f.axis, f.label, f.statement, f.status, f.source, f.tags,
          (SELECT count(DISTINCT a.submission_id)::int FROM finding_evidence fe
             JOIN answers a ON a.id = fe.answer_id
             JOIN submissions s ON s.id = a.submission_id AND s.status = 'submitted'
            WHERE fe.finding_id = f.id) AS people,
+         ${
+           ready.visit
+             ? `(SELECT count(*)::int FROM finding_notes fn WHERE fn.finding_id = f.id) AS notes,
+         fr.verdict, fr.comment AS review_comment, fr.resolution,`
+             : `0 AS notes, NULL::text AS verdict, NULL::text AS review_comment, NULL::text AS resolution,`
+         }
          (SELECT ofi.opportunity_id FROM opportunity_findings ofi
             JOIN opportunities o ON o.id = ofi.opportunity_id AND o.status <> 'archived'
            WHERE ofi.finding_id = f.id LIMIT 1) AS opportunity_id
     FROM findings f
+    ${ready.visit ? 'LEFT JOIN finding_reviews fr ON fr.finding_id = f.id' : ''}
    WHERE f.tenant_id = $1 AND f.engagement_id = $2`;
 
 type DbFinding = {
@@ -95,6 +129,10 @@ type DbFinding = {
   source: 'auditor' | 'rule';
   tags: unknown;
   people: number;
+  notes: number;
+  verdict: 'confirmed' | 'disputed' | null;
+  review_comment: string | null;
+  resolution: 'corrected' | 'kept' | null;
   opportunity_id: string | null;
 };
 
@@ -107,6 +145,10 @@ const fromDb = (r: DbFinding): FindingRow => ({
   source: r.source,
   tags: cleanTags(r.tags),
   people: Number(r.people),
+  notes: Number(r.notes),
+  review: r.verdict
+    ? { verdict: r.verdict, comment: r.review_comment ?? '', resolution: r.resolution }
+    : null,
   opportunityId: r.opportunity_id,
 });
 
@@ -116,36 +158,65 @@ export const listFindingsWith = async (
   tenantId: string,
   engagementId: string,
 ): Promise<FindingRow[] | null> => {
-  await client.query('SAVEPOINT findings_read');
-  try {
-    const { rows } = await client.query<DbFinding>(
-      `${SELECT_FINDINGS}
-       ORDER BY CASE f.status WHEN 'approved' THEN 0 WHEN 'draft' THEN 1 ELSE 2 END, f.created_at, f.id`,
-      [tenantId, engagementId],
-    );
-    await client.query('RELEASE SAVEPOINT findings_read');
-    return rows.map(fromDb);
-  } catch (err) {
-    await client.query('ROLLBACK TO SAVEPOINT findings_read');
-    if (missingTable(err)) return null;
-    throw err;
-  }
+  const ready = await readiness(client);
+  if (!ready.findings) return null;
+  const { rows } = await client.query<DbFinding>(
+    `${selectFindings(ready)}
+     ORDER BY CASE f.status WHEN 'approved' THEN 0 WHEN 'draft' THEN 1 ELSE 2 END, f.created_at, f.id`,
+    [tenantId, engagementId],
+  );
+  return rows.map(fromDb);
 };
 
 export const listFindings = (tenantId: TenantId, engagementId: string) =>
   withTenant(tenantId, (c) => listFindingsWith(c, tenantId, engagementId));
 
-/** What a report and the client may show: approved findings cited by at least `minPeople`. */
+export interface ApprovedFinding {
+  readonly axis: string;
+  readonly label: string;
+  /** People behind it, or 0 when under the minimum (then it was seen on the visit). */
+  readonly people: number;
+  /** Rests on visit notes. */
+  readonly visit: boolean;
+  /** The referent disputed it and the auditor kept it: the report says so. */
+  readonly disputed: boolean;
+}
+
+/**
+ * What a report and the client may show: approved findings cited by at least `minPeople`, or by a
+ * visit note. A count under the minimum is never shown.
+ */
 export const loadApprovedFindings = async (
   client: pg.PoolClient,
   tenantId: string,
   engagementId: string,
   minPeople: number = MIN_GROUP_SIZE,
-): Promise<{ axis: string; label: string; people: number }[]> =>
+): Promise<ApprovedFinding[]> =>
   ((await listFindingsWith(client, tenantId, engagementId)) ?? [])
-    .filter((f) => f.status === 'approved' && f.people >= minPeople)
-    .sort((a, b) => b.people - a.people || a.label.localeCompare(b.label))
-    .map((f) => ({ axis: f.axis, label: f.label, people: f.people }));
+    .filter((f) => f.status === 'approved' && isReportable(f, minPeople))
+    .map((f) => ({
+      axis: f.axis,
+      label: f.label,
+      people: f.people >= minPeople ? f.people : 0,
+      visit: f.notes > 0,
+      disputed: f.review?.verdict === 'disputed' && f.review.resolution === 'kept',
+    }))
+    .sort((a, b) => b.people - a.people || a.label.localeCompare(b.label));
+
+/** The referent's review, counted for the method note (A8). */
+export const reviewCountsWith = async (
+  client: pg.PoolClient,
+  tenantId: string,
+  engagementId: string,
+): Promise<{ disputed: number; corrected: number; open: number }> => {
+  const all = (await listFindingsWith(client, tenantId, engagementId)) ?? [];
+  const disputed = all.filter((f) => f.status !== 'draft' && f.review?.verdict === 'disputed');
+  return {
+    disputed: disputed.length,
+    corrected: disputed.filter((f) => f.review?.resolution === 'corrected').length,
+    open: all.filter(isOpenDispute).length,
+  };
+};
 
 /** Labels and evidence patterns of the approved findings an opportunity was made from. */
 export const linkedFindingWords = async (
@@ -153,24 +224,17 @@ export const linkedFindingWords = async (
   tenantId: string,
   opportunityId: string,
 ): Promise<{ labels: string[]; tags: EvidenceTag[] }> => {
-  await client.query('SAVEPOINT findings_linked');
-  try {
-    const { rows } = await client.query<{ label: string; statement: string; tags: unknown }>(
-      `SELECT f.label, f.statement, f.tags FROM opportunity_findings ofi
-         JOIN findings f ON f.id = ofi.finding_id AND f.status = 'approved'
-        WHERE ofi.tenant_id = $1 AND ofi.opportunity_id = $2`,
-      [tenantId, opportunityId],
-    );
-    await client.query('RELEASE SAVEPOINT findings_linked');
-    return {
-      labels: rows.flatMap((r) => [r.label, r.statement]),
-      tags: [...new Set(rows.flatMap((r) => cleanTags(r.tags)))],
-    };
-  } catch (err) {
-    await client.query('ROLLBACK TO SAVEPOINT findings_linked');
-    if (missingTable(err)) return { labels: [], tags: [] };
-    throw err;
-  }
+  if (!(await tableReady(client, 'findings'))) return { labels: [], tags: [] };
+  const { rows } = await client.query<{ label: string; statement: string; tags: unknown }>(
+    `SELECT f.label, f.statement, f.tags FROM opportunity_findings ofi
+       JOIN findings f ON f.id = ofi.finding_id AND f.status = 'approved'
+      WHERE ofi.tenant_id = $1 AND ofi.opportunity_id = $2`,
+    [tenantId, opportunityId],
+  );
+  return {
+    labels: rows.flatMap((r) => [r.label, r.statement]),
+    tags: [...new Set(rows.flatMap((r) => cleanTags(r.tags)))],
+  };
 };
 
 // ---------------------------------------------------------------------------------------------
@@ -244,16 +308,15 @@ const ensureOpportunity = async (
   engagementId: string,
   findingId: string,
 ): Promise<boolean> => {
-  const [f] = (
-    await client.query<DbFinding>(`${SELECT_FINDINGS} AND f.id = $3`, [
+  const [row] = (
+    await client.query<DbFinding>(`${selectFindings(await readiness(client))} AND f.id = $3`, [
       tenantId,
       engagementId,
       findingId,
     ])
   ).rows;
-  if (!f || f.status !== 'approved' || Number(f.people) < MIN_GROUP_SIZE || f.opportunity_id) {
-    return false;
-  }
+  const f = row ? fromDb(row) : null;
+  if (!f || f.status !== 'approved' || !isReportable(f) || f.opportunityId) return false;
   const made = await client.query<{ id: string }>(
     `INSERT INTO opportunities (tenant_id, engagement_id, status, title, description, axis, created_by)
      VALUES ($1, $2, 'approved', $3, $4, $5, $6) RETURNING id`,
@@ -280,11 +343,14 @@ export interface NewFinding {
   readonly answerIds: readonly string[];
   /** Choice options ticked in the Answers tab: question code and the option's shown label. */
   readonly choices: ReadonlyArray<{ code: string; label: string }>;
+  /** Visit notes ticked in the Visit tab (A6). */
+  readonly noteIds?: readonly string[];
 }
 
 /**
- * A finding the auditor writes from the Answers tab. Writing it is the approval: it is saved
- * approved, with the ticked answers as evidence (only answers of this mission's finished surveys).
+ * A finding the auditor writes from the Answers or the Visit tab. Writing it is the approval: it is
+ * saved approved, with the ticked answers (only this mission's finished surveys, and only from five
+ * of them) and the ticked visit notes (only this mission's) as evidence.
  */
 export const createFinding = (
   tenantId: TenantId,
@@ -293,8 +359,20 @@ export const createFinding = (
   input: NewFinding,
 ): Promise<{ id: string; people: number }> =>
   withTenant(tenantId, async (client) => {
-    await minimumMet(client, tenantId, engagementId);
-    const rows = await loadEvidenceRows(client, tenantId, engagementId);
+    const wanted = input.noteIds ?? [];
+    const notes =
+      wanted.length > 0 && (await tableReady(client, 'visit_notes'))
+        ? (
+            await client.query<{ id: string }>(
+              `SELECT id FROM visit_notes
+                WHERE tenant_id = $1 AND engagement_id = $2 AND id = ANY($3::uuid[])`,
+              [tenantId, engagementId, wanted],
+            )
+          ).rows.map((r) => r.id)
+        : [];
+    const fromAnswers = input.answerIds.length > 0 || input.choices.length > 0;
+    if (fromAnswers) await minimumMet(client, tenantId, engagementId);
+    const rows = fromAnswers ? await loadEvidenceRows(client, tenantId, engagementId) : [];
     const ticked = new Set(input.answerIds);
     const evidence = rows.filter(
       (r) =>
@@ -305,7 +383,7 @@ export const createFinding = (
             answerValueText(r.value_json, r.options_json).split(' | ').includes(c.label),
         ),
     );
-    if (evidence.length === 0) throw new FindingError('no_evidence');
+    if (evidence.length === 0 && notes.length === 0) throw new FindingError('no_evidence');
     const ins = await client.query<{ id: string }>(
       `INSERT INTO findings (tenant_id, engagement_id, axis, label, statement, status, source, created_by)
        VALUES ($1, $2, $3, $4, $5, 'approved', 'auditor', $6) RETURNING id`,
@@ -317,10 +395,17 @@ export const createFinding = (
        SELECT $1, $2, unnest($3::uuid[])`,
       [tenantId, id, evidence.map((r) => r.answer_id)],
     );
+    if (notes.length > 0) {
+      await client.query(
+        `INSERT INTO finding_notes (tenant_id, finding_id, note_id) SELECT $1, $2, unnest($3::uuid[])`,
+        [tenantId, id, notes],
+      );
+    }
     const people = new Set(evidence.map((r) => r.submission_id)).size;
     await audit(client, tenantId, actor, 'finding.create', id, {
       engagementId,
       answers: evidence.length,
+      notes: notes.length,
       people,
     });
     await ensureOpportunity(client, tenantId, actor, engagementId, id);
@@ -447,4 +532,96 @@ export const decideFinding = (
       );
     }
     return { engagementId: f.engagement_id, opportunity: false };
+  });
+
+// ---------------------------------------------------------------------------------------------
+// The referent's review (A8)
+// ---------------------------------------------------------------------------------------------
+
+export interface ReviewItem {
+  readonly id: string;
+  readonly label: string;
+  /** People behind it, or 0 when it rests on the visit only. */
+  readonly people: number;
+  readonly review: FindingReview | null;
+}
+
+/**
+ * What the referent reviews: the approved, reportable findings of the mission, labels and counts
+ * only (no statement, no evidence), while the working report is in review. Empty otherwise.
+ */
+export const reviewItemsWith = async (
+  client: pg.PoolClient,
+  tenantId: string,
+  engagementId: string,
+): Promise<ReviewItem[]> => {
+  if (!(await tableReady(client, 'finding_reviews'))) return [];
+  const report = await client.query<{ status: string }>(
+    'SELECT status FROM audit_reports WHERE tenant_id = $1 AND engagement_id = $2',
+    [tenantId, engagementId],
+  );
+  if (report.rows[0]?.status !== 'in_review') return [];
+  return ((await listFindingsWith(client, tenantId, engagementId)) ?? [])
+    .filter((f) => f.status === 'approved' && isReportable(f))
+    .map((f) => ({
+      id: f.id,
+      label: f.label,
+      people: f.people >= MIN_GROUP_SIZE ? f.people : 0,
+      review: f.review,
+    }));
+};
+
+export const reviewItems = (tenantId: TenantId, engagementId: string) =>
+  withTenant(tenantId, (c) => reviewItemsWith(c, tenantId, engagementId));
+
+/** The referent confirms or disputes one finding of their mission; a new verdict replaces the old. */
+export const reviewFinding = (
+  tenantId: TenantId,
+  actor: string,
+  engagementId: string,
+  findingId: string,
+  verdict: 'confirmed' | 'disputed',
+  comment: string,
+): Promise<void> =>
+  withTenant(tenantId, async (client) => {
+    const items = await reviewItemsWith(client, tenantId, engagementId);
+    if (!items.some((i) => i.id === findingId)) throw new FindingError('not_found');
+    if (verdict === 'disputed' && comment.trim().length < 3) {
+      throw new FindingError('bad_input');
+    }
+    await client.query(
+      `INSERT INTO finding_reviews (finding_id, tenant_id, verdict, comment, reviewed_by)
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (finding_id) DO UPDATE
+         SET verdict = EXCLUDED.verdict, comment = EXCLUDED.comment,
+             reviewed_by = EXCLUDED.reviewed_by, reviewed_at = now(),
+             resolution = NULL, resolved_by = NULL, resolved_at = NULL`,
+      [findingId, tenantId, verdict, comment.trim().slice(0, 300), actor],
+    );
+    await audit(
+      client,
+      tenantId,
+      actor,
+      verdict === 'confirmed' ? 'finding.confirm' : 'finding.dispute',
+      findingId,
+      { engagementId },
+    );
+  });
+
+/** The auditor answers a dispute: corrected (the finding was changed) or kept as it is. */
+export const resolveDispute = (
+  tenantId: TenantId,
+  actor: string,
+  findingId: string,
+  resolution: 'corrected' | 'kept',
+): Promise<void> =>
+  withTenant(tenantId, async (client) => {
+    if (!(await tableReady(client, 'finding_reviews'))) throw new FindingError('not_found');
+    const res = await client.query(
+      `UPDATE finding_reviews SET resolution = $3, resolved_by = $4, resolved_at = now()
+        WHERE tenant_id = $1 AND finding_id = $2 AND verdict = 'disputed'`,
+      [tenantId, findingId, resolution, actor],
+    );
+    if ((res.rowCount ?? 0) === 0) throw new FindingError('not_found');
+    await audit(client, tenantId, actor, 'finding.resolve', findingId, { resolution });
   });

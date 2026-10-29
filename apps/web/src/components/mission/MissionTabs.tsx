@@ -8,7 +8,14 @@ import { AppIcon } from '@evolai/ui';
 import { useI18n } from '@/components/I18nProvider';
 import { missionHref, type MissionTab } from '@/lib/missionStatus';
 
-const TABS: readonly MissionTab[] = ['overview', 'invitations', 'answers', 'report', 'settings'];
+const TABS: readonly MissionTab[] = [
+  'overview',
+  'invitations',
+  'answers',
+  'visit',
+  'report',
+  'settings',
+];
 
 /** The tab a mission path belongs to; the questionnaire preview sits under Settings. */
 export const tabOfPath = (pathname: string, engagementId: string): MissionTab => {

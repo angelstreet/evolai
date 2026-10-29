@@ -2,13 +2,18 @@ import { expect, test } from '@playwright/test';
 import { dbQuery, freshInvitation } from './helpers';
 
 /**
- * Questionnaire v1 end to end (TASK-Z2, ADR 0046): the neutral choice questions with an honest
- * "I don't know / It depends", the three optional free-text questions (counter, hint, 400
- * characters, skip) and the coarse role question, answered and read back on a phone.
+ * Questionnaire end to end (TASK-Z2, ADR 0046; v2 since TASK-AJ A5, ADR 0059): the neutral choice
+ * questions with an honest "I don't know / It depends", the three optional free-text questions
+ * (counter, hint, 400 characters, skip), the four task-inventory choices after the first text and
+ * the coarse role question, answered and read back on a phone. The file name is historical.
  *
  * Each test mints its own synthetic invitation (tenant B), so nothing is shared with other specs.
  */
 const FIRST_TEXT = 6;
+/** The task inventory (v2) sits between the first and the second free text. */
+const INVENTORY = ['v2_task_frequency', 'v2_task_duration', 'v2_task_tool', 'v2_task_data'];
+const SECOND_TEXT = FIRST_TEXT + 1 + INVENTORY.length;
+const ROLE = SECOND_TEXT + 2;
 const TEXT = 'Chaque lundi je recopie les commandes du mail vers le tableur, à la main.';
 
 test.describe('questionnaire v1 on a phone', () => {
@@ -22,9 +27,9 @@ test.describe('questionnaire v1 on a phone', () => {
 
   test('English copy matches', async ({ page, context, baseURL }) => {
     await context.addCookies([{ name: 'evolai_locale', value: 'en', url: baseURL as string }]);
-    // Ten questions, about seven minutes, stated honestly before the first tap.
+    // Fourteen questions, about eight minutes, stated honestly before the first tap.
     await page.goto(`/s/${token}`);
-    await expect(page.locator('main')).toContainText('10 questions · about 7 min');
+    await expect(page.locator('main')).toContainText('14 questions · about 8 min');
     await page.goto(`/s/${token}/q/${FIRST_TEXT}`);
     await expect(page.getByRole('heading', { level: 1 })).toContainText(
       'repeated task took the most time',
@@ -47,7 +52,7 @@ test.describe('questionnaire v1 on a phone', () => {
     expect((await post({ index: 0, choice: 'unsure' })).status()).toBe(200);
   });
 
-  test('answers all ten questions in French, with free text and a skip, and reads them back', async ({
+  test('answers all fourteen questions in French, with free text and a skip, and reads them back', async ({
     page,
     context,
     baseURL,
@@ -96,23 +101,31 @@ test.describe('questionnaire v1 on a phone', () => {
     expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 1);
     await page.locator('button.text-next').click();
 
+    // The task inventory: four quick choices about that task, no text box.
+    for (let i = FIRST_TEXT + 1; i < SECOND_TEXT; i += 1) {
+      await expect(page).toHaveURL(new RegExp(`/q/${i}$`));
+      await expect(page.locator('textarea')).toHaveCount(0);
+      await page.locator('button.ck-opt').first().click();
+      await page.locator('button.text-next').click();
+    }
+
     // Free text 2: skipped with the Skip link, nothing is saved.
-    await expect(page).toHaveURL(new RegExp(`/q/${FIRST_TEXT + 1}$`));
+    await expect(page).toHaveURL(new RegExp(`/q/${SECOND_TEXT}$`));
     await page.getByTestId('survey-skip').click();
 
     // Free text 3: empty box + Next is also a skip.
-    await expect(page).toHaveURL(new RegExp(`/q/${FIRST_TEXT + 2}$`));
+    await expect(page).toHaveURL(new RegExp(`/q/${SECOND_TEXT + 1}$`));
     await page.locator('button.text-next').click();
 
     // Read back before finishing: the typed answer is there, the skipped one is empty.
     await page.goto(`/s/${token}/q/${FIRST_TEXT}`);
     await expect(page.locator('textarea.text-answer-input')).toHaveValue(TEXT);
-    await page.goto(`/s/${token}/q/${FIRST_TEXT + 1}`);
+    await page.goto(`/s/${token}/q/${SECOND_TEXT}`);
     await expect(page.locator('textarea.text-answer-input')).toHaveValue('');
-    await page.goto(`/s/${token}/q/${FIRST_TEXT + 3}`);
+    await page.goto(`/s/${token}/q/${ROLE}`);
 
     // Role question: coarse categories only, no text box.
-    await expect(page).toHaveURL(new RegExp(`/q/${FIRST_TEXT + 3}$`));
+    await expect(page).toHaveURL(new RegExp(`/q/${ROLE}$`));
     await expect(page.locator('textarea')).toHaveCount(0);
     expect(await page.locator('button.ck-opt').count()).toBeLessThanOrEqual(8);
     await page.locator('button.ck-opt').last().click();
@@ -134,12 +147,15 @@ test.describe('questionnaire v1 on a phone', () => {
         WHERE i.token_reference = $1 ORDER BY a.sequence`,
       [reference],
     );
-    expect(rows).toHaveLength(10);
+    expect(rows).toHaveLength(14);
     expect(rows.slice(0, 6).every((r) => r.kind === 'scenario_choice')).toBe(true);
     expect(rows[FIRST_TEXT]).toMatchObject({ code: 'v1_repeat_task', kind: 'short_text' });
     expect(rows[FIRST_TEXT]?.text).toContain('recopie les commandes');
-    expect(rows[FIRST_TEXT + 1]).toMatchObject({ code: 'v1_missing_tool', kind: 'skipped' });
-    expect(rows[FIRST_TEXT + 2]).toMatchObject({ code: 'v1_assistant_wish', kind: 'skipped' });
-    expect(rows[FIRST_TEXT + 3]).toMatchObject({ code: 'v1_job_family', kind: 'single_choice' });
+    INVENTORY.forEach((code, i) =>
+      expect(rows[FIRST_TEXT + 1 + i]).toMatchObject({ code, kind: 'single_choice' }),
+    );
+    expect(rows[SECOND_TEXT]).toMatchObject({ code: 'v1_missing_tool', kind: 'skipped' });
+    expect(rows[SECOND_TEXT + 1]).toMatchObject({ code: 'v1_assistant_wish', kind: 'skipped' });
+    expect(rows[ROLE]).toMatchObject({ code: 'v1_job_family', kind: 'single_choice' });
   });
 });

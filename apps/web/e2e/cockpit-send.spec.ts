@@ -16,7 +16,7 @@ test.beforeEach(({}, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop-admin', 'one viewport is enough for this flow');
 });
 
-/** All ten questions answered in the browser, as the front page keeps them. */
+/** All fourteen questions answered in the browser, as the front page keeps them. */
 const fillBrowser = async (page: Page) => {
   await page.addInitScript(() => {
     if (localStorage.getItem('evolai-cockpit-v1')) return;
@@ -31,12 +31,16 @@ const fillBrowser = async (page: Page) => {
           v1_repeat_data: 1,
           v1_repeat_time: 1,
           v1_repeat_task: 'Copying orders by hand',
+          v2_task_frequency: 0,
+          v2_task_duration: 2,
+          v2_task_tool: 0,
+          v2_task_data: 1,
           v1_missing_tool: 'A shared order list',
           v1_assistant_wish: 'Sorting emails',
           v1_job_family: 2,
         },
         seen: [],
-        qi: 10,
+        qi: 14,
         sent: false,
       }),
     );

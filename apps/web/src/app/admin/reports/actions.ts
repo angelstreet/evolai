@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import {
+  day90StatusSchema,
   horizonSchema,
   improvementCategorySchema,
   levelSchema,
@@ -25,6 +26,7 @@ import {
   publishReport,
   savePlan,
   setReviewState,
+  setStepMeasure,
   setStepStatus,
   startNewVersion,
   suggestSteps,
@@ -54,6 +56,8 @@ const methodWords = (t: ReturnType<typeof createTranslator>): MethodWords => ({
   themes: (v) => t('report.sections.methodThemes', v),
   opportunities: (v) => t('report.sections.methodOpportunities', v),
   unreviewed: t('report.sections.methodUnreviewed'),
+  visit: (v) => t('report.sections.methodVisit', v),
+  disputed: (v) => t('report.sections.methodDisputed', v),
 });
 
 const str = (fd: FormData, k: string, max: number): string =>
@@ -108,6 +112,9 @@ export async function startReportAction(
           answered: inputs.answered,
           themes: inputs.findings.length,
           opportunities: inputs.opportunities.length,
+          visit: inputs.visit,
+          disputed: inputs.review.disputed,
+          corrected: inputs.review.corrected,
         },
         MIN_GROUP_SIZE,
         methodWords(t),
@@ -184,6 +191,9 @@ export async function draftSummaryAction(
           answered: bundle.inputs.answered,
           themes: bundle.inputs.findings.length,
           opportunities: bundle.inputs.opportunities.length,
+          visit: bundle.inputs.visit,
+          disputed: bundle.inputs.review.disputed,
+          corrected: bundle.inputs.review.corrected,
         },
         MIN_GROUP_SIZE,
         methodWords(t),
@@ -233,6 +243,37 @@ export async function updateStepAction(
     const step = parseStep(fd);
     if (!isUuid(stepId) || !step) return { ok: false, code: 'bad_input' };
     await updateStep(g.tenantId, g.actor, stepId, step);
+    return { ok: true, code: 'saved' };
+  });
+}
+
+/** Baseline and day-90 follow-up of an accepted action (TASK-AJ A9). Empty fields clear. */
+export async function measureStepAction(
+  _prev: ReportActionState,
+  fd: FormData,
+): Promise<ReportActionState> {
+  return run(fd, async (g) => {
+    const stepId = String(fd.get('stepId') ?? '');
+    const rawValue = str(fd, 'baselineValue', 20).replace(',', '.');
+    const value = rawValue === '' ? null : Number(rawValue);
+    const followUpOn = str(fd, 'followUpOn', 10);
+    const status = str(fd, 'day90Status', 20);
+    const day90 = status === '' ? null : day90StatusSchema.safeParse(status);
+    if (
+      !isUuid(stepId) ||
+      (value !== null && (!Number.isFinite(value) || value < 0)) ||
+      (followUpOn !== '' && !/^\d{4}-\d{2}-\d{2}$/.test(followUpOn)) ||
+      (day90 !== null && !day90.success)
+    ) {
+      return { ok: false, code: 'bad_input' };
+    }
+    await setStepMeasure(g.tenantId, g.actor, stepId, {
+      baselineValue: value,
+      baselineUnit: str(fd, 'baselineUnit', 40),
+      baselineSource: str(fd, 'baselineSource', 200),
+      followUpOn: followUpOn || null,
+      day90Status: day90?.success ? day90.data : null,
+    });
     return { ok: true, code: 'saved' };
   });
 }

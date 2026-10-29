@@ -9,7 +9,7 @@ import { parseAnswerValue } from './answerParser';
 
 /**
  * The survey the mobile web flow shows (M5, TASK-Z2). The questions come from the versioned
- * definition in `@evolai/contracts` (`questionnaires/pilot-v1.json`), so changing the questions
+ * definition in `@evolai/contracts` (`questionnaires/pilot-v2.json`), so changing the questions
  * means editing that file, not this one. The file name is historical. Plain words, one idea per
  * question, French and English side by side. No PII, no real client data.
  */

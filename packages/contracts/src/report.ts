@@ -80,10 +80,34 @@ export const reportFindingSchema = z
     key: z.string().min(1).max(240),
     axis: z.string().min(1).max(40),
     label: z.string().min(1).max(240),
-    people: z.number().int().min(1),
+    /** People behind it; 0 when it rests on the visit only (a count under the minimum is never shown). */
+    people: z.number().int().min(0),
+    /** Seen on the visit: it cites visit notes (TASK-AJ A6). */
+    visit: z.boolean().optional(),
+    /** The referent disputed it and the auditor kept it (TASK-AJ A8). */
+    disputed: z.boolean().optional(),
   })
   .strict();
 export type ReportFinding = z.infer<typeof reportFindingSchema>;
+
+export const DAY90_STATUSES = ['validated', 'mixed', 'no_benefit', 'not_implemented'] as const;
+export const day90StatusSchema = z.enum(DAY90_STATUSES);
+export type Day90Status = z.infer<typeof day90StatusSchema>;
+
+export const stepMeasureSchema = z
+  .object({
+    baselineValue: z.number().min(0).nullable(),
+    baselineUnit: z.string().max(40),
+    baselineSource: z.string().max(200),
+    /** YYYY-MM-DD. */
+    followUpOn: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .nullable(),
+    day90Status: day90StatusSchema.nullable(),
+  })
+  .strict();
+export type StepMeasure = z.infer<typeof stepMeasureSchema>;
 
 export const reportStepSchema = z
   .object({
@@ -98,6 +122,8 @@ export const reportStepSchema = z
     owner: z.string().max(120),
     horizon: horizonSchema,
     prerequisites: z.array(z.string().min(1).max(300)).max(8),
+    /** Baseline and day-90 follow-up (TASK-AJ A9, PRD §30.1). Absent on older snapshots. */
+    measure: stepMeasureSchema.optional(),
   })
   .strict();
 export type ReportStep = z.infer<typeof reportStepSchema>;

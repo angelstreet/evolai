@@ -69,6 +69,9 @@ export const reportEn = {
     locked: 'This version is published. Start a new version first.',
     not_found: 'Not found.',
     not_in_review: 'Mark the report ready for review first.',
+    unavailable: 'This is not set up on this server yet.',
+    disputed:
+      'The client’s referent disputed a finding. Mark it corrected or keep it first, under Findings.',
     not_published: 'There is nothing published.',
     duplicate: 'This action is already there.',
     confirm_required: 'Please confirm first.',
@@ -104,6 +107,10 @@ export const reportEn = {
       '{count, plural, one {The EvolAI team checked and approved # finding.} other {The EvolAI team checked and approved # findings.}}',
     methodOpportunities:
       '{count, plural, one {The EvolAI team approved # action.} other {The EvolAI team approved # actions.}}',
+    methodVisit:
+      'On-site visit: {interviews, plural, one {# interview} other {# interviews}}, {observations, plural, one {# observation} other {# observations}}, {workshops, plural, one {# workshop} other {# workshops}}.',
+    methodDisputed:
+      '{count, plural, one {The client’s referent disputed # finding} other {The client’s referent disputed # findings}}; {corrected} corrected, the others kept with the dispute noted.',
     methodUnreviewed: 'The EvolAI team has not approved any finding or action yet.',
     methodRefreshed: 'The method note was rewritten from the current counts.',
   },
@@ -170,8 +177,10 @@ export const reportEn = {
   },
   findings: {
     title: 'Key findings',
-    subtitle: 'Approved findings raised by at least {n} people.',
+    subtitle: 'Approved findings raised by at least {n} people, or seen on the visit.',
     people: '{count, plural, one {raised by # person} other {raised by # people}}',
+    visit: 'seen on the visit',
+    disputed: 'disputed by the client, kept',
     empty: 'No finding to show.',
     work: {
       title: 'Findings',
@@ -187,7 +196,16 @@ export const reportEn = {
       withdraw: 'Withdraw',
       status: { draft: 'To review', approved: 'Approved', rejected: 'Rejected' },
       source: { rule: 'Proposed from the answers', auditor: 'Written by you' },
-      staffOnly: 'Staff only: under {n} people, never in the report.',
+      staffOnly: 'Staff only: under {n} people and no visit note, never in the report.',
+      visit: '{n, plural, one {# visit note} other {# visit notes}}',
+      review: {
+        confirmed: 'Confirmed by the referent',
+        disputed: 'Disputed by the referent: {comment}',
+        corrected: 'Dispute answered: corrected',
+        kept: 'Dispute answered: kept, the report notes it',
+        markCorrected: 'Mark corrected',
+        keep: 'Keep as is',
+      },
       rejectedTitle: 'Rejected',
     },
     result: {
@@ -197,6 +215,8 @@ export const reportEn = {
       approved: 'Approved.',
       approvedWithActions: 'Approved. Suggested actions are under Actions.',
       rejected: 'Rejected.',
+      corrected: 'Marked corrected.',
+      kept: 'Kept. The report notes the dispute.',
       few_people: 'Findings need at least {n} finished surveys.',
       no_evidence: 'Tick at least one answer or choice the finding rests on.',
       bad_input: 'Write a title of 3 to 200 characters and pick an axis.',
@@ -234,6 +254,30 @@ export const reportEn = {
           label: 'Repeated tasks take 3 hours or more a week',
           statement: '{count} of {total} people spend 3 hours or more a week on repeated tasks.',
         },
+        v2_task_frequency: {
+          label: 'The main repeated task comes back every day',
+          statement: '{count} of {total} people do their main repeated task every day.',
+        },
+        v2_task_duration: {
+          label: 'The main repeated task takes over an hour each time',
+          statement:
+            '{count} of {total} people spend over an hour each time on their main repeated task.',
+        },
+        v2_task_tool: {
+          label: 'The main repeated task is done in spreadsheets, email or on paper',
+          statement:
+            '{count} of {total} people do their main repeated task in a spreadsheet, in email or on paper.',
+        },
+        v2_task_data: {
+          label: 'The main repeated task handles personal or client data',
+          statement:
+            '{count} of {total} people handle personal or confidential client data in their main repeated task.',
+        },
+        v2_task_heavy: {
+          label: 'A heavy repeated task every day or week',
+          statement:
+            '{count} of {total} people repeat a task every day or every week that takes over an hour each time.',
+        },
       },
       unsure: {
         label: 'Unsure: {question}',
@@ -252,6 +296,27 @@ export const reportEn = {
     noOpportunity: 'No approved finding yet. You can write your own action here.',
     suggestAgain: 'Suggest again',
     why: 'Why: {tags}',
+    measure: {
+      title: 'Measure',
+      help: 'What you measure now, and how it stands at day 90.',
+      baseline: 'Baseline',
+      value: 'Baseline value',
+      unit: 'Unit',
+      unitHelp: 'For example: minutes per order',
+      source: 'Source',
+      sourceHelp: 'Where the number comes from',
+      followUp: 'Follow-up',
+      followUpOn: 'Follow-up date',
+      day90: 'Day 90',
+      none: 'Not yet',
+      status: {
+        validated: 'Validated',
+        mixed: 'Mixed',
+        no_benefit: 'No benefit',
+        not_implemented: 'Not implemented',
+      },
+      save: 'Save the measure',
+    },
     whyPicked: 'Picked from the catalogue.',
     whyAuditor: 'Written by you.',
     status: {
@@ -360,6 +425,30 @@ export const reportEn = {
       d90: 'Decide for each change: keep, adapt or stop, and report every result.',
     },
     checkpointOwner: 'Referent with the EvolAI team',
+  },
+  clientReview: {
+    title: 'Check the findings',
+    intro:
+      'Before the report is published, tell us whether each finding matches your teams. Disputes go to the EvolAI team.',
+    people: '{count, plural, one {# person} other {# people}}',
+    visit: 'seen on the visit',
+    confirm: 'Confirm',
+    dispute: 'Dispute',
+    comment: 'Why, in one line',
+    commentHelp: 'Needed to dispute. No names.',
+    confirmed: 'Confirmed',
+    disputed: 'Disputed: {comment}',
+    resolved: 'The EvolAI team answered your dispute.',
+    readOnly: 'View only: the referent confirms or disputes.',
+    result: {
+      confirmed: 'Thank you. Confirmed.',
+      disputed: 'Thank you. The EvolAI team will look at it.',
+      bad_input: 'Say in one line why you dispute it.',
+      read_only: 'View only.',
+      not_found: 'This finding is no longer open for review.',
+      forbidden: 'You cannot review these findings.',
+      error: 'Something went wrong. Please try again.',
+    },
   },
   view: {
     draftBanner: 'Preview. The client does not see this until you publish.',

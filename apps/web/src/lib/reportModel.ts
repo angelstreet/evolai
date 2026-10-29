@@ -7,6 +7,7 @@ import {
   type ReportFinding,
   type ReportSnapshot,
   type ReportStep,
+  type StepMeasure,
 } from '@evolai/contracts';
 import { findingKey, rankOpportunities, uniqueLines } from '@evolai/domain';
 import type { Translator } from '@evolai/i18n';
@@ -50,6 +51,8 @@ export interface StepRow {
   readonly horizon: Horizon;
   readonly prerequisites: readonly string[];
   readonly tags: readonly string[];
+  /** Baseline and day-90 follow-up (A9); null when nothing was entered. */
+  readonly measure?: StepMeasure | null;
 }
 
 export interface OpportunityInput {
@@ -188,6 +191,15 @@ export const buildSnapshot = (input: SnapshotInput, leaks: LeakSources): Publish
       owner: s.owner.trim(),
       horizon: s.horizon,
       prerequisites: uniqueLines(s.prerequisites).slice(0, 8),
+      ...(s.measure
+        ? {
+            measure: {
+              ...s.measure,
+              baselineUnit: s.measure.baselineUnit.trim(),
+              baselineSource: s.measure.baselineSource.trim(),
+            },
+          }
+        : {}),
     }));
 
   const candidate: ReportSnapshot = {
@@ -217,7 +229,14 @@ export const buildSnapshot = (input: SnapshotInput, leaks: LeakSources): Publish
       candidate.methodology,
       ...candidate.risks,
       ...candidate.plan.flatMap((p) => [p.text, p.owner]),
-      ...candidate.steps.flatMap((s) => [s.title, s.description, s.owner, ...s.prerequisites]),
+      ...candidate.steps.flatMap((s) => [
+        s.title,
+        s.description,
+        s.owner,
+        ...s.prerequisites,
+        s.measure?.baselineUnit ?? '',
+        s.measure?.baselineSource ?? '',
+      ]),
       ...candidate.opportunities.map((o) => o.title),
     ],
     leaks,
@@ -274,6 +293,19 @@ export interface MethodWords {
   readonly themes: (vars: { count: number }) => string;
   readonly opportunities: (vars: { count: number }) => string;
   readonly unreviewed: string;
+  /** The visit (A6): interviews, observations and workshops noted. */
+  readonly visit: (vars: { interviews: number; observations: number; workshops: number }) => string;
+  /** The referent's review (A8): findings disputed, and how many were corrected. */
+  readonly disputed: (vars: { count: number; corrected: number }) => string;
+}
+
+export interface MethodCounts {
+  readonly answered: number;
+  readonly themes: number;
+  readonly opportunities: number;
+  readonly visit?: { interview: number; observation: number; workshop: number };
+  readonly disputed?: number;
+  readonly corrected?: number;
 }
 
 /**
@@ -281,13 +313,54 @@ export interface MethodWords {
  * approved themes or opportunities when there are none.
  */
 export const methodologyNote = (
-  counts: { answered: number; themes: number; opportunities: number },
+  counts: MethodCounts,
   minGroupSize: number,
   w: MethodWords,
 ): string => {
   const parts = [w.base({ people: counts.answered, n: minGroupSize })];
+  const v = counts.visit;
+  if (v && v.interview + v.observation + v.workshop > 0) {
+    parts.push(
+      w.visit({ interviews: v.interview, observations: v.observation, workshops: v.workshop }),
+    );
+  }
   if (counts.themes > 0) parts.push(w.themes({ count: counts.themes }));
   if (counts.opportunities > 0) parts.push(w.opportunities({ count: counts.opportunities }));
   if (counts.themes === 0 && counts.opportunities === 0) parts.push(w.unreviewed);
+  if ((counts.disputed ?? 0) > 0) {
+    parts.push(w.disputed({ count: counts.disputed ?? 0, corrected: counts.corrected ?? 0 }));
+  }
   return parts.join(' ');
+};
+
+/** The line under a key finding: people, "seen on the visit", "disputed, kept" (A6, A8). */
+export const findingLine = (t: Translator, f: ReportFinding): string =>
+  [
+    f.people > 0 ? t('report.findings.people', { count: f.people }) : null,
+    f.visit ? t('report.findings.visit') : null,
+    f.disputed ? t('report.findings.disputed') : null,
+  ]
+    .filter((x): x is string => x !== null)
+    .join(' · ');
+
+/** The measure line of an action (A9), or null when nothing was entered. */
+export const measureLine = (
+  t: Translator,
+  m: StepMeasure | null | undefined,
+  colon: string,
+): string | null => {
+  if (!m) return null;
+  const parts: string[] = [];
+  const value = [m.baselineValue ?? '', m.baselineUnit].join(' ').trim();
+  if (value) {
+    const source = m.baselineSource ? ` (${m.baselineSource})` : '';
+    parts.push(`${t('report.steps.measure.baseline')}${colon}${value}${source}`);
+  }
+  if (m.followUpOn) parts.push(`${t('report.steps.measure.followUp')}${colon}${m.followUpOn}`);
+  if (m.day90Status) {
+    parts.push(
+      `${t('report.steps.measure.day90')}${colon}${t(`report.steps.measure.status.${m.day90Status}`)}`,
+    );
+  }
+  return parts.length > 0 ? parts.join(' · ') : null;
 };

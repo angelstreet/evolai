@@ -76,6 +76,9 @@ export const reportFr: Shape<typeof reportEn> = {
     locked: 'Cette version est publiée. Commencez d’abord une nouvelle version.',
     not_found: 'Introuvable.',
     not_in_review: 'Marquez d’abord le rapport prêt pour relecture.',
+    unavailable: 'Ce n’est pas encore disponible sur ce serveur.',
+    disputed:
+      'Le référent du client a contesté un constat. Marquez-le corrigé ou maintenez-le d’abord, sous Constats.',
     not_published: 'Rien n’est publié.',
     duplicate: 'Cette action est déjà présente.',
     confirm_required: 'Veuillez d’abord confirmer.',
@@ -114,6 +117,10 @@ export const reportFr: Shape<typeof reportEn> = {
       '{count, plural, one {L’équipe EvolAI a vérifié et approuvé # constat.} other {L’équipe EvolAI a vérifié et approuvé # constats.}}',
     methodOpportunities:
       '{count, plural, one {L’équipe EvolAI a approuvé # action.} other {L’équipe EvolAI a approuvé # actions.}}',
+    methodVisit:
+      'Visite sur site : {interviews, plural, one {# entretien} other {# entretiens}}, {observations, plural, one {# observation} other {# observations}}, {workshops, plural, one {# atelier} other {# ateliers}}.',
+    methodDisputed:
+      '{count, plural, one {Le référent du client a contesté # constat} other {Le référent du client a contesté # constats}} ; {corrected, plural, one {# corrigé} other {# corrigés}}, les autres maintenus avec la contestation notée.',
     methodUnreviewed: 'L’équipe EvolAI n’a encore approuvé aucun constat ni aucune action.',
     methodRefreshed: 'La note de méthode a été réécrite à partir des chiffres actuels.',
   },
@@ -183,8 +190,10 @@ export const reportFr: Shape<typeof reportEn> = {
   },
   findings: {
     title: 'Constats clés',
-    subtitle: 'Constats approuvés, cités par au moins {n} personnes.',
+    subtitle: 'Constats approuvés, cités par au moins {n} personnes ou vus pendant la visite.',
     people: '{count, plural, one {cité par # personne} other {cité par # personnes}}',
+    visit: 'vu pendant la visite',
+    disputed: 'contesté par le client, maintenu',
     empty: 'Aucun constat à afficher.',
     work: {
       title: 'Constats',
@@ -200,7 +209,17 @@ export const reportFr: Shape<typeof reportEn> = {
       withdraw: 'Retirer',
       status: { draft: 'À relire', approved: 'Approuvé', rejected: 'Refusé' },
       source: { rule: 'Proposé à partir des réponses', auditor: 'Écrit par vous' },
-      staffOnly: 'Interne : moins de {n} personnes, jamais dans le rapport.',
+      staffOnly:
+        'Interne : moins de {n} personnes et aucune note de visite, jamais dans le rapport.',
+      visit: '{n, plural, one {# note de visite} other {# notes de visite}}',
+      review: {
+        confirmed: 'Confirmé par le référent',
+        disputed: 'Contesté par le référent : {comment}',
+        corrected: 'Contestation traitée : corrigé',
+        kept: 'Contestation traitée : maintenu, le rapport le signale',
+        markCorrected: 'Marquer corrigé',
+        keep: 'Maintenir tel quel',
+      },
       rejectedTitle: 'Refusés',
     },
     result: {
@@ -210,6 +229,8 @@ export const reportFr: Shape<typeof reportEn> = {
       approved: 'Approuvé.',
       approvedWithActions: 'Approuvé. Les actions suggérées sont sous Actions.',
       rejected: 'Refusé.',
+      corrected: 'Marqué corrigé.',
+      kept: 'Maintenu. Le rapport signale la contestation.',
       few_people: 'Les constats demandent au moins {n} questionnaires terminés.',
       no_evidence: 'Cochez au moins une réponse ou un choix sur lequel repose le constat.',
       bad_input: 'Écrivez un titre de 3 à 200 caractères et choisissez un axe.',
@@ -249,6 +270,31 @@ export const reportFr: Shape<typeof reportEn> = {
           statement:
             '{count} personnes sur {total} passent 3 heures ou plus par semaine sur des tâches répétitives.',
         },
+        v2_task_frequency: {
+          label: 'La principale tâche répétitive revient chaque jour',
+          statement:
+            '{count} personnes sur {total} font leur principale tâche répétitive chaque jour.',
+        },
+        v2_task_duration: {
+          label: 'La principale tâche répétitive prend plus d’une heure à chaque fois',
+          statement:
+            '{count} personnes sur {total} passent plus d’une heure à chaque fois sur leur principale tâche répétitive.',
+        },
+        v2_task_tool: {
+          label: 'La principale tâche répétitive se fait au tableur, par e-mail ou sur papier',
+          statement:
+            '{count} personnes sur {total} font leur principale tâche répétitive dans un tableur, par e-mail ou sur papier.',
+        },
+        v2_task_data: {
+          label: 'La principale tâche répétitive touche des données personnelles ou clients',
+          statement:
+            '{count} personnes sur {total} manipulent des données personnelles ou des données clients confidentielles dans leur principale tâche répétitive.',
+        },
+        v2_task_heavy: {
+          label: 'Une tâche répétitive lourde, chaque jour ou chaque semaine',
+          statement:
+            '{count} personnes sur {total} répètent chaque jour ou chaque semaine une tâche qui prend plus d’une heure à chaque fois.',
+        },
       },
       unsure: {
         label: 'Incertitude : {question}',
@@ -268,6 +314,27 @@ export const reportFr: Shape<typeof reportEn> = {
       'Aucun constat approuvé pour l’instant. Vous pouvez rédiger votre propre action ici.',
     suggestAgain: 'Proposer à nouveau',
     why: 'Pourquoi : {tags}',
+    measure: {
+      title: 'Mesure',
+      help: 'Ce que vous mesurez aujourd’hui, et où en est la mesure au jour 90.',
+      baseline: 'Point de départ',
+      value: 'Valeur de départ',
+      unit: 'Unité',
+      unitHelp: 'Par exemple : minutes par commande',
+      source: 'Source',
+      sourceHelp: 'D’où vient le chiffre',
+      followUp: 'Suivi',
+      followUpOn: 'Date de suivi',
+      day90: 'Jour 90',
+      none: 'Pas encore',
+      status: {
+        validated: 'Validé',
+        mixed: 'Mitigé',
+        no_benefit: 'Sans bénéfice',
+        not_implemented: 'Non mis en œuvre',
+      },
+      save: 'Enregistrer la mesure',
+    },
     whyPicked: 'Choisie dans le catalogue.',
     whyAuditor: 'Rédigée par vous.',
     status: {
@@ -376,6 +443,30 @@ export const reportFr: Shape<typeof reportEn> = {
       d90: 'Décider pour chaque changement : garder, adapter ou arrêter, et rendre compte de chaque résultat.',
     },
     checkpointOwner: 'Référent avec l’équipe EvolAI',
+  },
+  clientReview: {
+    title: 'Vérifiez les constats',
+    intro:
+      'Avant la publication du rapport, dites-nous si chaque constat correspond à vos équipes. Les contestations vont à l’équipe EvolAI.',
+    people: '{count, plural, one {# personne} other {# personnes}}',
+    visit: 'vu pendant la visite',
+    confirm: 'Confirmer',
+    dispute: 'Contester',
+    comment: 'Pourquoi, en une ligne',
+    commentHelp: 'Nécessaire pour contester. Pas de noms.',
+    confirmed: 'Confirmé',
+    disputed: 'Contesté : {comment}',
+    resolved: 'L’équipe EvolAI a répondu à votre contestation.',
+    readOnly: 'Lecture seule : le référent confirme ou conteste.',
+    result: {
+      confirmed: 'Merci. Confirmé.',
+      disputed: 'Merci. L’équipe EvolAI va l’examiner.',
+      bad_input: 'Dites en une ligne pourquoi vous le contestez.',
+      read_only: 'Lecture seule.',
+      not_found: 'Ce constat n’est plus ouvert à la vérification.',
+      forbidden: 'Vous ne pouvez pas vérifier ces constats.',
+      error: 'Une erreur est survenue. Veuillez réessayer.',
+    },
   },
   view: {
     draftBanner: 'Aperçu. Le client ne le voit pas avant la publication.',

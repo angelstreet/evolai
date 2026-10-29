@@ -1,45 +1,21 @@
 'use client';
 
-import Link from 'next/link';
 import { useState } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useFormState } from 'react-dom';
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
-import MenuItem from '@mui/material/MenuItem';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import type { MessageKey } from '@evolai/i18n';
-import { AppIcon, StatusText } from '@evolai/ui';
 import { useI18n } from '@/components/I18nProvider';
+import FindingFields from '@/components/mission/FindingFields';
 import { makeFindingAction } from '@/app/admin/findings/actions';
 import { CHOICE_SEP, findingIdle } from '@/app/admin/findings/state';
-import { enumLabelOf } from '@/lib/enumLabel';
 import type { AnswersView } from '@/lib/answersData';
 
 const FORM_ID = 'write-finding-form';
 const CARD_SX = { p: { xs: 4, sm: 6 }, borderRadius: 3, mb: 5 } as const;
-const AXES = ['literacy', 'practice', 'readiness', 'opportunity', 'context'] as const;
-
-function Save() {
-  const { t } = useI18n();
-  const { pending } = useFormStatus();
-  return (
-    <Button
-      type="submit"
-      variant="contained"
-      disabled={pending}
-      startIcon={<AppIcon name="add" size={20} />}
-      data-testid="finding-save"
-      sx={{ minHeight: 44, alignSelf: 'flex-start' }}
-    >
-      {t('admin.answers.make.submit')}
-    </Button>
-  );
-}
 
 /**
  * Free texts with a tick box each, and "Write a finding" (TASK-AJ A1, ADR 0058): the auditor ticks
@@ -176,55 +152,12 @@ export default function FindingPicker({
           >
             {t('admin.answers.make.picked', { n: picked })}
           </Typography>
-          <TextField
-            name="label"
-            label={t('admin.answers.make.label')}
-            helperText={t('admin.answers.make.labelHelp')}
-            required
-            inputProps={{ minLength: 3, maxLength: 200 }}
+          <FindingFields
+            state={state}
+            tenantId={tenantId}
+            engagementId={engagementId}
+            minGroup={minGroup}
           />
-          <TextField
-            name="statement"
-            label={t('admin.answers.make.statement')}
-            multiline
-            minRows={2}
-            inputProps={{ maxLength: 600 }}
-          />
-          <TextField
-            select
-            name="axis"
-            label={t('admin.answers.make.axis')}
-            defaultValue="opportunity"
-            sx={{ maxWidth: 280 }}
-          >
-            {AXES.map((a) => (
-              <MenuItem key={a} value={a}>
-                {enumLabelOf(t, 'axis', a)}
-              </MenuItem>
-            ))}
-          </TextField>
-          <Save />
-          <Box aria-live="polite" sx={{ minHeight: 24 }}>
-            {state.code !== 'idle' ? (
-              <Stack direction="row" spacing={2} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-                <StatusText status={state.ok ? 'success' : 'error'}>
-                  <span data-testid="finding-result">
-                    {t(`report.findings.result.${state.code}` as MessageKey, { n: minGroup })}
-                  </span>
-                </StatusText>
-                {state.ok ? (
-                  <Button
-                    component={Link}
-                    href={`/admin/engagements/${engagementId}/report?tenant=${tenantId}#report-findings`}
-                    variant="text"
-                    sx={{ minHeight: 44 }}
-                  >
-                    {t('report.findings.work.title')}
-                  </Button>
-                ) : null}
-              </Stack>
-            ) : null}
-          </Box>
         </Stack>
       </Paper>
     </>

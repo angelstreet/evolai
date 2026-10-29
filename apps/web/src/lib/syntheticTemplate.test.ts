@@ -8,12 +8,14 @@ import {
   totalQuestionCount,
 } from './syntheticTemplate';
 
-describe('survey template (questionnaire v1)', () => {
-  it('has ten questions in a fixed order: six choices, three free-text, one role', () => {
-    expect(totalQuestionCount()).toBe(10);
+describe('survey template (questionnaire v2)', () => {
+  it('has fourteen questions in a fixed order: six choices, the repeated task and its inventory, two free-text, one role', () => {
+    expect(totalQuestionCount()).toBe(14);
     expect(SYNTHETIC_QUESTIONS.map((q) => q.kind)).toEqual([
       ...Array<string>(6).fill('scenario_choice'),
-      ...Array<string>(3).fill('short_text'),
+      'short_text',
+      ...Array<string>(4).fill('single_choice'),
+      ...Array<string>(2).fill('short_text'),
       'single_choice',
     ]);
     expect(surveyEstimatedMinutes()).toBeGreaterThanOrEqual(6);
@@ -28,7 +30,7 @@ describe('survey template (questionnaire v1)', () => {
   });
 
   it('throws for an index outside the survey', () => {
-    expect(() => questionByIndex(10)).toThrow();
+    expect(() => questionByIndex(14)).toThrow();
   });
 });
 
@@ -58,7 +60,8 @@ describe('isAllowedInput', () => {
   it('accepts only the question’s own option values for a choice', () => {
     expect(isAllowedInput(questionByIndex(0), 'check_source')).toBe(true);
     expect(isAllowedInput(questionByIndex(0), 'verify_source')).toBe(false);
-    expect(isAllowedInput(questionByIndex(9), 'operations')).toBe(true);
+    expect(isAllowedInput(questionByIndex(13), 'operations')).toBe(true);
+    expect(isAllowedInput(questionByIndex(7), 'daily')).toBe(true);
   });
   it('accepts text of 1 to 400 characters for a free-text question, and nothing else', () => {
     const q = questionByIndex(6);

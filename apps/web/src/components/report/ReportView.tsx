@@ -12,7 +12,7 @@ import type { Horizon, Quadrant, ReadinessGroup, ReportSnapshot } from '@evolai/
 import { formatDate } from '@evolai/i18n';
 import { enumLabelOf } from '@/lib/enumLabel';
 import { getT } from '@/lib/i18n';
-import { weightsSentence } from '@/lib/reportModel';
+import { findingLine, measureLine, weightsSentence } from '@/lib/reportModel';
 
 /**
  * The audit report as the client reads it (TASK-V, ADR 0041). Renders a frozen snapshot only, so
@@ -237,8 +237,7 @@ export default function ReportView({
                 </Typography>
                 <Typography variant="body2" color="text.secondary" component="span">
                   {' · '}
-                  {enumLabelOf(t, 'axis', f.axis)} ·{' '}
-                  {t('report.findings.people', { count: f.people })}
+                  {enumLabelOf(t, 'axis', f.axis)} · {findingLine(t, f)}
                 </Typography>
               </Box>
             ))}
@@ -336,6 +335,15 @@ export default function ReportView({
                           .join(' · ')
                           .replace(' : ', locale === 'fr' ? ' : ' : ': ')}
                       </Typography>
+                      {measureLine(t, st.measure, colon) ? (
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          data-testid="report-step-measure"
+                        >
+                          {measureLine(t, st.measure, colon)}
+                        </Typography>
+                      ) : null}
                     </Box>
                   ))}
               </Box>

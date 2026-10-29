@@ -150,7 +150,7 @@ title, pairs of capitalised words and the names on the client's list become `[em
 
 ## Change the questions (TASK-Z2, ADR 0046)
 
-The whole questionnaire is one file: `packages/contracts/src/questionnaires/pilot-v1.json` (French and English side
+The whole questionnaire is one file: `packages/contracts/src/questionnaires/pilot-v2.json` (French and English side
 by side). No migration is involved.
 
 1. Edit the file: wording (`prompt`, `helper`, option `label`), option order (for scored choices, from the least to

@@ -13,6 +13,7 @@ import {
   type ReportFinding,
   type ReportSnapshot,
   type ReportStatus,
+  type StepMeasure,
   type TenantId,
 } from '@evolai/contracts';
 import {
@@ -24,7 +25,7 @@ import {
   scoreSubmission,
   type ScoredSubmission,
 } from '@evolai/domain';
-import { linkedFindingWords, loadApprovedFindings } from './findingsData';
+import { linkedFindingWords, loadApprovedFindings, reviewCountsWith } from './findingsData';
 import { withTenant } from './db';
 import { MIN_GROUP_SIZE } from './invitationTracking';
 import {
@@ -34,6 +35,7 @@ import {
   type PublishCheck,
   type StepRow,
 } from './reportModel';
+import { countNotesWith, type NoteKind } from './visitData';
 
 /**
  * Audit report data layer (TASK-V, ADR 0041).
@@ -159,10 +161,44 @@ interface StepDbRow {
   horizon: Horizon;
   prerequisites: unknown;
   match_json: unknown;
+  baseline_value?: string | null;
+  baseline_unit?: string;
+  baseline_source?: string;
+  follow_up_on?: string | null;
+  day90_status?: StepMeasure['day90Status'];
 }
 
 const STEP_COLS = `id, opportunity_id, catalogue_id, source, status, category, title, description,
   effort, impact, risk, owner, horizon, prerequisites, match_json`;
+/** The measure columns of migration 0030 (TASK-AJ A9). */
+const MEASURE_COLS = `, baseline_value, baseline_unit, baseline_source,
+  to_char(follow_up_on, 'YYYY-MM-DD') AS follow_up_on, day90_status`;
+
+const measureReady = async (client: pg.PoolClient): Promise<boolean> =>
+  (
+    await client.query(
+      `SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'report_steps' AND column_name = 'day90_status'`,
+    )
+  ).rowCount === 1;
+
+const measureOf = (r: StepDbRow): StepMeasure | null => {
+  const m: StepMeasure = {
+    baselineValue:
+      r.baseline_value === null || r.baseline_value === undefined ? null : Number(r.baseline_value),
+    baselineUnit: r.baseline_unit ?? '',
+    baselineSource: r.baseline_source ?? '',
+    followUpOn: r.follow_up_on ?? null,
+    day90Status: r.day90_status ?? null,
+  };
+  const empty =
+    m.baselineValue === null &&
+    m.baselineUnit === '' &&
+    m.baselineSource === '' &&
+    m.followUpOn === null &&
+    m.day90Status === null;
+  return empty ? null : m;
+};
 
 const fromStepRow = (r: StepDbRow): StepRow => ({
   id: r.id,
@@ -180,6 +216,7 @@ const fromStepRow = (r: StepDbRow): StepRow => ({
   horizon: r.horizon,
   prerequisites: strings(r.prerequisites),
   tags: strings((r.match_json as { tags?: unknown } | null)?.tags),
+  measure: measureOf(r),
 });
 
 const audit = async (
@@ -211,9 +248,16 @@ export interface ReportInputs {
   readonly readiness: ReadinessReport;
   /** People who finished the survey (a count only; the score still needs the minimum group). */
   readonly answered: number;
+  /** Visit notes per kind (A6): the method note counts the visit. */
+  readonly visit: Record<NoteKind, number>;
+  /** The referent's review (A8): disputed, corrected, and still open. */
+  readonly review: { disputed: number; corrected: number; open: number };
 }
 
-/** Approved findings cited by at least the minimum group (TASK-AJ, ADR 0058), most people first. */
+/**
+ * Approved findings cited by at least the minimum group or seen on the visit (TASK-AJ, ADR 0058 and
+ * 0059), most people first.
+ */
 const loadFindings = async (
   client: pg.PoolClient,
   tenantId: string,
@@ -224,6 +268,8 @@ const loadFindings = async (
     axis: f.axis,
     label: f.label,
     people: f.people,
+    ...(f.visit ? { visit: true } : {}),
+    ...(f.disputed ? { disputed: true } : {}),
   }));
 
 const loadReadiness = async (
@@ -348,6 +394,8 @@ const loadInputsWith = async (
         )
       ).rows[0]?.n ?? 0,
     ),
+    visit: await countNotesWith(client, tenantId, engagementId),
+    review: await reviewCountsWith(client, tenantId, engagementId),
   };
 };
 
@@ -431,8 +479,9 @@ const loadSteps = async (
   tenantId: string,
   reportId: string,
 ): Promise<StepRow[]> => {
+  const cols = STEP_COLS + ((await measureReady(client)) ? MEASURE_COLS : '');
   const { rows } = await client.query<StepDbRow>(
-    `SELECT ${STEP_COLS} FROM report_steps WHERE tenant_id = $1 AND report_id = $2
+    `SELECT ${cols} FROM report_steps WHERE tenant_id = $1 AND report_id = $2
       ORDER BY position, created_at, id`,
     [tenantId, reportId],
   );
@@ -691,6 +740,34 @@ export const updateStep = (tenantId: TenantId, actor: string, stepId: string, s:
       impact: s.impact,
       risk: s.risk,
       horizon: s.horizon,
+    });
+  });
+
+/** Baseline and day-90 follow-up of an accepted action (A9). Editable until published. */
+export const setStepMeasure = (tenantId: TenantId, actor: string, stepId: string, m: StepMeasure) =>
+  withTenant(tenantId, async (client) => {
+    if (!(await measureReady(client))) throw new ReportError('unavailable');
+    const reportId = await stepReport(client, tenantId, stepId);
+    await client.query(
+      `UPDATE report_steps SET baseline_value = $3, baseline_unit = $4, baseline_source = $5,
+              follow_up_on = $6, day90_status = $7, updated_at = now()
+        WHERE tenant_id = $1 AND id = $2`,
+      [
+        tenantId,
+        stepId,
+        m.baselineValue,
+        m.baselineUnit,
+        m.baselineSource,
+        m.followUpOn,
+        m.day90Status,
+      ],
+    );
+    await touch(client, tenantId, reportId, actor);
+    await audit(client, tenantId, actor, 'report_step.measure', 'report_step', stepId, {
+      reportId,
+      baseline: m.baselineValue !== null,
+      followUp: m.followUpOn !== null,
+      day90Status: m.day90Status,
     });
   });
 
@@ -972,6 +1049,9 @@ export const publishReport = (tenantId: TenantId, actor: string, reportId: strin
     const r = await loadReportRow(client, tenantId, reportId, true);
     if (!r) throw new ReportError('not_found');
     if (r.status !== 'in_review') throw new ReportError('not_in_review');
+    if ((await reviewCountsWith(client, tenantId, r.engagementId)).open > 0) {
+      throw new ReportError('disputed');
+    }
     const check = await checkWith(client, tenantId, r, new Date().toISOString());
     if (!check.ok) throw new ReportError(check.code);
     await client.query(

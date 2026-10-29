@@ -61,6 +61,12 @@ export const AUDIT_GROUPS = {
     'finding.propose',
     'finding.approve',
     'finding.reject',
+    'finding.confirm',
+    'finding.dispute',
+    'finding.resolve',
+    'report_step.measure',
+    'visit_note.create',
+    'visit_note.delete',
   ],
 } as const;
 

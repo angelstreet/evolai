@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import pilotV1 from './questionnaires/pilot-v1.json' with { type: 'json' };
+import pilotV2 from './questionnaires/pilot-v2.json' with { type: 'json' };
 import { competencyAxisSchema, sensitivitySchema } from './template.js';
 
 /**
@@ -80,8 +81,15 @@ export type QuestionnaireDefinition = z.infer<typeof questionnaireDefinitionSche
 export const parseQuestionnaireDefinition = (raw: unknown): QuestionnaireDefinition =>
   questionnaireDefinitionSchema.parse(raw);
 
-/** The questionnaire the pilot survey uses. Validated once at import time. */
-export const PILOT_QUESTIONNAIRE: QuestionnaireDefinition = parseQuestionnaireDefinition(pilotV1);
+/** Questionnaire v1, kept for the record: answers given on it keep their codes. */
+export const PILOT_QUESTIONNAIRE_V1: QuestionnaireDefinition =
+  parseQuestionnaireDefinition(pilotV1);
+
+/**
+ * The questionnaire the survey uses: v2 is v1 plus the task inventory (TASK-AJ A5, ADR 0059).
+ * Validated once at import time.
+ */
+export const PILOT_QUESTIONNAIRE: QuestionnaireDefinition = parseQuestionnaireDefinition(pilotV2);
 
 /** The `question_items` columns a definition question is stored as (French source text). */
 export const toItemRow = (q: DefinitionQuestion) => ({

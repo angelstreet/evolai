@@ -1,6 +1,6 @@
 /**
  * Front page cockpit, Workbench look (TASK-AH, docs/mockups/glowup-c-workbench.html). Every label
- * is a short word that shows in full at 390 px. The ten questions come from the questionnaire JSON.
+ * is a short word that shows in full at 390 px. The questions come from the questionnaire JSON.
  * Mirrored by `cockpit.fr.ts`.
  */
 export const cockpitEn = {
@@ -15,7 +15,7 @@ export const cockpitEn = {
   },
   header: {
     lesson: 'Lesson {n} of 5',
-    question: 'Question {n} of 10',
+    question: 'Question {n} of {total}',
     done: 'Done',
   },
   back: 'Previous',
@@ -26,7 +26,7 @@ export const cockpitEn = {
     start: 'Start learning',
     team: 'Your team: {team}',
     space: 'Open your space',
-    understand: { title: 'Understand', line: 'Each team answers ten questions.' },
+    understand: { title: 'Understand', line: 'Each team answers 14 short questions.' },
     adapt: { title: 'Adapt', line: 'We meet the teams on site.' },
     evolve: { title: 'Evolve', line: 'A score and a 90-day plan.' },
   },
@@ -59,7 +59,7 @@ export const cockpitEn = {
     how: {
       title: 'How it works',
       lede: 'Survey, visit, report. You see counts, never names.',
-      p1: { title: 'Survey', line: 'Ten questions, about 7 minutes.' },
+      p1: { title: 'Survey', line: '14 questions, about 8 minutes.' },
       p2: { title: 'Visit', line: 'We come on site after it closes.' },
       p3: { title: 'Report', line: 'Follows the visit.' },
     },
@@ -109,7 +109,7 @@ export const cockpitEn = {
   },
   tryIt: {
     title: 'Try it',
-    count: '{n} of 10',
+    count: '{n} of {total}',
     goTo: 'Go to question {n}',
     next: 'Next',
     finish: 'Finish',
@@ -117,7 +117,7 @@ export const cockpitEn = {
     write: 'Write a few words to continue.',
     kept: 'Answer kept on this device.',
     placeholder: 'Your answer, in a few words',
-    complete: 'You answered {n} of 10 questions.',
+    complete: 'You answered {n} of {total} questions.',
     stays: 'Your answers stay in this browser until you send them.',
     review: 'Review answers',
   },

@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { getSession, requestPath } from '@/lib/authServer';
 import { loadClientSurvey } from '@/lib/clientData';
+import { FindingError, reviewFinding } from '@/lib/findingsData';
 import { isUuid } from '@/lib/invitationForm';
 import { ensureTeamAddresses, parseTeamSize, setExpectedSize } from '@/lib/teamAddresses';
 import { effectiveContext } from '@/lib/tenantAccess';
@@ -50,5 +51,53 @@ export async function setTeamSizeAction(
     return { ok: true, code: 'saved' };
   } catch {
     return { ok: false, code: 'failed' };
+  }
+}
+
+export interface ReviewState {
+  readonly ok: boolean;
+  readonly code: string;
+}
+
+/**
+ * The referent confirms or disputes a finding before the report is published (TASK-AJ A8, ADR
+ * 0059). Tenant and engagement come from the session's teams; the form carries only the finding,
+ * the verdict and one line. A view-as session is refused: read only.
+ */
+export async function reviewFindingAction(_prev: ReviewState, fd: FormData): Promise<ReviewState> {
+  const session = await getSession();
+  if (!session) return { ok: false, code: 'forbidden' };
+  const ctx = effectiveContext(session);
+  if (ctx.kind !== 'client') return { ok: false, code: 'forbidden' };
+  if (ctx.viewAs || ctx.readOnly) {
+    if (ctx.viewAs) {
+      await auditViewAs(session, ctx.viewAs, 'view_as.refused', { path: requestPath() }).catch(
+        () => undefined,
+      );
+    }
+    return { ok: false, code: 'read_only' };
+  }
+  const findingId = String(fd.get('findingId') ?? '');
+  const verdict = String(fd.get('verdict') ?? '');
+  const comment = String(fd.get('comment') ?? '').slice(0, 300);
+  if (!isUuid(findingId) || (verdict !== 'confirmed' && verdict !== 'disputed')) {
+    return { ok: false, code: 'forbidden' };
+  }
+  try {
+    const survey = await loadClientSurvey(ctx.tenantId, ctx.teamIds);
+    if (!survey) return { ok: false, code: 'forbidden' };
+    await reviewFinding(
+      ctx.tenantId as TenantId,
+      session.sub,
+      survey.engagementId,
+      findingId,
+      verdict,
+      comment,
+    );
+    revalidatePath('/client/report');
+    return { ok: true, code: verdict };
+  } catch (err) {
+    if (err instanceof FindingError) return { ok: false, code: err.code };
+    return { ok: false, code: 'error' };
   }
 }

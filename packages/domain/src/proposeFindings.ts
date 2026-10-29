@@ -50,7 +50,10 @@ interface ChoiceRule {
   readonly tags: readonly EvidenceTag[];
 }
 
-/** The weak practice of each scored scenario of questionnaire v1 (pilot-v1.json). */
+/**
+ * The weak practice of each scored scenario of questionnaire v1, and the task inventory answers of
+ * v2 that point at work worth changing (pilot-v2.json).
+ */
 export const CHOICE_RULES: readonly ChoiceRule[] = [
   {
     code: 'v1_source_check',
@@ -83,7 +86,36 @@ export const CHOICE_RULES: readonly ChoiceRule[] = [
     axis: 'opportunity',
     tags: ['repetitive_task'],
   },
+  { code: 'v2_task_frequency', values: ['daily'], axis: 'opportunity', tags: ['repetitive_task'] },
+  {
+    code: 'v2_task_duration',
+    values: ['1_3h', 'gt_3h'],
+    axis: 'opportunity',
+    tags: ['repetitive_task'],
+  },
+  {
+    code: 'v2_task_tool',
+    values: ['spreadsheet', 'email', 'paper'],
+    axis: 'opportunity',
+    tags: ['manual_reentry'],
+  },
+  {
+    code: 'v2_task_data',
+    values: ['personal', 'client_confidential'],
+    axis: 'readiness',
+    tags: ['policy_unclear'],
+  },
 ];
+
+/**
+ * The heavy repeated task (v2): done every day or every week and over an hour each time. The
+ * evidence is both answers of each person.
+ */
+export const HEAVY_TASK = {
+  code: 'v2_task_heavy',
+  frequency: ['daily', 'weekly'],
+  duration: ['1_3h', 'gt_3h'],
+} as const;
 
 export const UNSURE = 'unsure';
 
@@ -139,6 +171,21 @@ export const proposeFindings = (
     );
     push(`choice:${r.code}`, { kind: 'choice', code: r.code }, r.axis, r.tags, hits);
   }
+
+  const pick = (code: string, values: readonly string[]) =>
+    answers.filter((a) => a.kind === 'choice' && a.code === code && values.includes(a.value));
+  const often = pick('v2_task_frequency', HEAVY_TASK.frequency);
+  const long = pick('v2_task_duration', HEAVY_TASK.duration);
+  const longBy = new Set(long.map((a) => a.submissionId));
+  const heavy = often.filter((a) => longBy.has(a.submissionId));
+  const heavyBy = new Set(heavy.map((a) => a.submissionId));
+  push(
+    `choice:${HEAVY_TASK.code}`,
+    { kind: 'choice', code: HEAVY_TASK.code },
+    'opportunity',
+    ['repetitive_task'],
+    [...heavy, ...long.filter((a) => heavyBy.has(a.submissionId))],
+  );
 
   const choiceCodes = [
     ...new Set(answers.filter((a) => a.kind === 'choice').map((a) => a.code)),

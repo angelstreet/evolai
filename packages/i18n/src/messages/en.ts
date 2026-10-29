@@ -88,7 +88,7 @@ export const en = {
     lede: 'EvolAI helps organisations find where AI already helps, where it is risky, and what to do next. A short anonymous survey, then a visit and a plan.',
     stepsAria: 'How it works, in three steps',
     step1Title: 'Understand',
-    step1Body: 'Your teams answer ten questions, anonymously, in seven minutes.',
+    step1Body: 'Your teams answer 14 short questions, anonymously, in eight minutes.',
     step2Title: 'Adapt',
     step2Body: 'We come on site with the picture already clear and work with your teams.',
     step3Title: 'Evolve',

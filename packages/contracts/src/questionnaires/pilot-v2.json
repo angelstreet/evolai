@@ -1,0 +1,605 @@
+{
+  "$comment": "Questionnaire v2: v1 plus the task inventory after the repeated task (TASK-AJ A5, ADR 0059). This file is the single place to edit the questions (see docs/RUNBOOK.md, 'Change the questions'). Codes are never reused: change a question's meaning = new code + new version. Option order for scored choices runs from the least to the most established practice; 'unsure' is never scored. 'theme' is the analysis theme the question feeds (friction, tooling, opportunity, context); 'axis' is the stored axis (the database allows literacy, practice, readiness, opportunity, context). Public repository: no client names, no personal data.",
+  "id": "pilot-v2",
+  "version": 2,
+  "estimatedMinutes": 8,
+  "freeTextMaxLength": 400,
+  "freeTextHint": {
+    "fr": "Pas de noms, ni e-mails, ni numéros. Nous les masquons.",
+    "en": "No names, emails or numbers. We mask them."
+  },
+  "questions": [
+    {
+      "code": "v1_source_check",
+      "axis": "literacy",
+      "theme": "context",
+      "kind": "scenario_choice",
+      "sensitivity": "internal",
+      "weight": 1,
+      "prompt": {
+        "fr": "Une réponse d’IA n’a pas de source. En général, que faites-vous ?",
+        "en": "An AI answer has no source. What do you usually do?"
+      },
+      "helper": {
+        "fr": null,
+        "en": null
+      },
+      "options": [
+        {
+          "value": "use_as_is",
+          "label": {
+            "fr": "Je l’utilise telle quelle",
+            "en": "I use it as is"
+          }
+        },
+        {
+          "value": "reread",
+          "label": {
+            "fr": "Je la relis, sans plus",
+            "en": "I reread it, nothing more"
+          }
+        },
+        {
+          "value": "check_source",
+          "label": {
+            "fr": "Je vérifie ailleurs",
+            "en": "I check another source"
+          }
+        },
+        {
+          "value": "unsure",
+          "label": {
+            "fr": "Je ne sais pas / Ça dépend",
+            "en": "I don’t know / It depends"
+          }
+        }
+      ]
+    },
+    {
+      "code": "v1_data_sharing",
+      "axis": "literacy",
+      "theme": "context",
+      "kind": "scenario_choice",
+      "sensitivity": "internal",
+      "weight": 1,
+      "prompt": {
+        "fr": "Données clients et IA publique : en général, que faites-vous ?",
+        "en": "Client data and a public AI: what do you usually do?"
+      },
+      "helper": {
+        "fr": null,
+        "en": null
+      },
+      "options": [
+        {
+          "value": "paste_directly",
+          "label": {
+            "fr": "Je les colle telles quelles",
+            "en": "I paste it as is"
+          }
+        },
+        {
+          "value": "remove_names",
+          "label": {
+            "fr": "J’enlève d’abord les données personnelles",
+            "en": "I remove personal data first"
+          }
+        },
+        {
+          "value": "check_rules",
+          "label": {
+            "fr": "Je vérifie d’abord les règles internes",
+            "en": "I check company rules first"
+          }
+        },
+        {
+          "value": "unsure",
+          "label": {
+            "fr": "Je ne sais pas / Ça dépend",
+            "en": "I don’t know / It depends"
+          }
+        }
+      ]
+    },
+    {
+      "code": "v1_request_style",
+      "axis": "literacy",
+      "theme": "context",
+      "kind": "scenario_choice",
+      "sensitivity": "internal",
+      "weight": 1,
+      "prompt": {
+        "fr": "Résumer des avis clients avec l’IA : en général, comment le demandez-vous ?",
+        "en": "Summing up client reviews with AI: how do you usually ask?"
+      },
+      "helper": {
+        "fr": null,
+        "en": null
+      },
+      "options": [
+        {
+          "value": "one_line",
+          "label": {
+            "fr": "Une phrase courte",
+            "en": "One short line"
+          }
+        },
+        {
+          "value": "some_context",
+          "label": {
+            "fr": "Une phrase avec un peu de contexte",
+            "en": "A line with some context"
+          }
+        },
+        {
+          "value": "full_brief",
+          "label": {
+            "fr": "But, public et format",
+            "en": "Goal, audience and format"
+          }
+        },
+        {
+          "value": "unsure",
+          "label": {
+            "fr": "Je ne sais pas / Ça dépend",
+            "en": "I don’t know / It depends"
+          }
+        }
+      ]
+    },
+    {
+      "code": "v1_report_flow",
+      "axis": "context",
+      "theme": "context",
+      "kind": "scenario_choice",
+      "sensitivity": "internal",
+      "weight": 1,
+      "prompt": {
+        "fr": "Un rapport manuel passe par 4 outils. Pour le simplifier, par où commencer ?",
+        "en": "A manual report goes through 4 tools. Where would you start?"
+      },
+      "helper": {
+        "fr": null,
+        "en": null
+      },
+      "options": [
+        {
+          "value": "look_for_tool",
+          "label": {
+            "fr": "Chercher un outil pour l’automatiser",
+            "en": "Find a tool to automate it"
+          }
+        },
+        {
+          "value": "ask_colleagues",
+          "label": {
+            "fr": "En parler aux collègues concernés",
+            "en": "Talk to the colleagues involved"
+          }
+        },
+        {
+          "value": "list_steps",
+          "label": {
+            "fr": "Lister les étapes et ce qui est lent",
+            "en": "List the steps and slow parts"
+          }
+        },
+        {
+          "value": "unsure",
+          "label": {
+            "fr": "Je ne sais pas / Ça dépend",
+            "en": "I don’t know / It depends"
+          }
+        }
+      ]
+    },
+    {
+      "code": "v1_repeat_data",
+      "axis": "literacy",
+      "theme": "context",
+      "kind": "scenario_choice",
+      "sensitivity": "internal",
+      "weight": 1,
+      "prompt": {
+        "fr": "Chaque jour, quelqu’un recopie les mêmes données. Comment faire autrement ?",
+        "en": "Every day, someone copies the same data. How would you change that?"
+      },
+      "helper": {
+        "fr": null,
+        "en": null
+      },
+      "options": [
+        {
+          "value": "ai_assistant",
+          "label": {
+            "fr": "Avec un assistant d’IA",
+            "en": "With an AI assistant"
+          }
+        },
+        {
+          "value": "simple_automation",
+          "label": {
+            "fr": "Avec une automatisation simple, sans IA",
+            "en": "With a simple automation, no AI"
+          }
+        },
+        {
+          "value": "unsure",
+          "label": {
+            "fr": "Je ne sais pas / Ça dépend",
+            "en": "I don’t know / It depends"
+          }
+        }
+      ]
+    },
+    {
+      "code": "v1_repeat_time",
+      "axis": "practice",
+      "theme": "friction",
+      "kind": "scenario_choice",
+      "sensitivity": "internal",
+      "weight": 0,
+      "prompt": {
+        "fr": "Combien d’heures par semaine pour des tâches répétitives ?",
+        "en": "How many hours a week go on repeated tasks?"
+      },
+      "helper": {
+        "fr": "Une estimation suffit.",
+        "en": "A guess is fine."
+      },
+      "options": [
+        {
+          "value": "lt_1h",
+          "label": {
+            "fr": "Moins d’une heure",
+            "en": "Less than 1 hour"
+          }
+        },
+        {
+          "value": "1_3h",
+          "label": {
+            "fr": "1 à 3 heures",
+            "en": "1 to 3 hours"
+          }
+        },
+        {
+          "value": "3_6h",
+          "label": {
+            "fr": "3 à 6 heures",
+            "en": "3 to 6 hours"
+          }
+        },
+        {
+          "value": "gt_6h",
+          "label": {
+            "fr": "Plus de 6 heures",
+            "en": "More than 6 hours"
+          }
+        },
+        {
+          "value": "unsure",
+          "label": {
+            "fr": "Je ne sais pas / Ça dépend",
+            "en": "I don’t know / It depends"
+          }
+        }
+      ]
+    },
+    {
+      "code": "v1_repeat_task",
+      "axis": "practice",
+      "theme": "friction",
+      "kind": "short_text",
+      "sensitivity": "internal",
+      "weight": 0,
+      "prompt": {
+        "fr": "La semaine dernière, quelle tâche répétitive a pris le plus de temps ?",
+        "en": "Last week, which repeated task took the most time?"
+      },
+      "helper": {
+        "fr": null,
+        "en": null
+      },
+      "options": []
+    },
+    {
+      "code": "v2_task_frequency",
+      "axis": "opportunity",
+      "theme": "friction",
+      "kind": "single_choice",
+      "sensitivity": "internal",
+      "weight": 0,
+      "prompt": {
+        "fr": "Cette tâche, vous la faites tous les combien ?",
+        "en": "How often do you do this task?"
+      },
+      "helper": {
+        "fr": null,
+        "en": null
+      },
+      "options": [
+        {
+          "value": "daily",
+          "label": {
+            "fr": "Tous les jours",
+            "en": "Every day"
+          }
+        },
+        {
+          "value": "weekly",
+          "label": {
+            "fr": "Chaque semaine",
+            "en": "Every week"
+          }
+        },
+        {
+          "value": "monthly",
+          "label": {
+            "fr": "Chaque mois",
+            "en": "Every month"
+          }
+        },
+        {
+          "value": "rarely",
+          "label": {
+            "fr": "Plus rarement",
+            "en": "Less often"
+          }
+        }
+      ]
+    },
+    {
+      "code": "v2_task_duration",
+      "axis": "opportunity",
+      "theme": "friction",
+      "kind": "single_choice",
+      "sensitivity": "internal",
+      "weight": 0,
+      "prompt": {
+        "fr": "Une fois, elle prend combien de temps ?",
+        "en": "How long does it take each time?"
+      },
+      "helper": {
+        "fr": null,
+        "en": null
+      },
+      "options": [
+        {
+          "value": "lt_15m",
+          "label": {
+            "fr": "Moins de 15 minutes",
+            "en": "Under 15 minutes"
+          }
+        },
+        {
+          "value": "15_60m",
+          "label": {
+            "fr": "15 minutes à 1 heure",
+            "en": "15 minutes to 1 hour"
+          }
+        },
+        {
+          "value": "1_3h",
+          "label": {
+            "fr": "1 à 3 heures",
+            "en": "1 to 3 hours"
+          }
+        },
+        {
+          "value": "gt_3h",
+          "label": {
+            "fr": "Plus de 3 heures",
+            "en": "Over 3 hours"
+          }
+        }
+      ]
+    },
+    {
+      "code": "v2_task_tool",
+      "axis": "readiness",
+      "theme": "tooling",
+      "kind": "single_choice",
+      "sensitivity": "internal",
+      "weight": 0,
+      "prompt": {
+        "fr": "Avec quel outil, surtout ?",
+        "en": "Which tool do you mostly use for it?"
+      },
+      "helper": {
+        "fr": null,
+        "en": null
+      },
+      "options": [
+        {
+          "value": "spreadsheet",
+          "label": {
+            "fr": "Un tableur",
+            "en": "A spreadsheet"
+          }
+        },
+        {
+          "value": "email",
+          "label": {
+            "fr": "La messagerie",
+            "en": "Email"
+          }
+        },
+        {
+          "value": "business_app",
+          "label": {
+            "fr": "Un logiciel métier",
+            "en": "A business application"
+          }
+        },
+        {
+          "value": "paper",
+          "label": {
+            "fr": "Papier ou PDF",
+            "en": "Paper or PDF"
+          }
+        },
+        {
+          "value": "ai_assistant",
+          "label": {
+            "fr": "Un assistant IA",
+            "en": "An AI assistant"
+          }
+        },
+        {
+          "value": "other",
+          "label": {
+            "fr": "Autre",
+            "en": "Something else"
+          }
+        }
+      ]
+    },
+    {
+      "code": "v2_task_data",
+      "axis": "readiness",
+      "theme": "context",
+      "kind": "single_choice",
+      "sensitivity": "internal",
+      "weight": 0,
+      "prompt": {
+        "fr": "Quelles données touche-t-elle ?",
+        "en": "What data does it involve?"
+      },
+      "helper": {
+        "fr": null,
+        "en": null
+      },
+      "options": [
+        {
+          "value": "none",
+          "label": {
+            "fr": "Aucune donnée sensible",
+            "en": "No sensitive data"
+          }
+        },
+        {
+          "value": "internal",
+          "label": {
+            "fr": "Données internes",
+            "en": "Internal data"
+          }
+        },
+        {
+          "value": "personal",
+          "label": {
+            "fr": "Données personnelles",
+            "en": "Personal data"
+          }
+        },
+        {
+          "value": "client_confidential",
+          "label": {
+            "fr": "Données clients confidentielles",
+            "en": "Confidential client data"
+          }
+        }
+      ]
+    },
+    {
+      "code": "v1_missing_tool",
+      "axis": "readiness",
+      "theme": "tooling",
+      "kind": "short_text",
+      "sensitivity": "internal",
+      "weight": 0,
+      "prompt": {
+        "fr": "Qu’est-ce qui vous a manqué cette semaine pour bien travailler ?",
+        "en": "What did you miss this week to work well?"
+      },
+      "helper": {
+        "fr": null,
+        "en": null
+      },
+      "options": []
+    },
+    {
+      "code": "v1_assistant_wish",
+      "axis": "opportunity",
+      "theme": "opportunity",
+      "kind": "short_text",
+      "sensitivity": "internal",
+      "weight": 0,
+      "prompt": {
+        "fr": "Si un assistant faisait une seule chose pour vous, laquelle ?",
+        "en": "If an assistant did one thing for you, what would it be?"
+      },
+      "helper": {
+        "fr": null,
+        "en": null
+      },
+      "options": []
+    },
+    {
+      "code": "v1_job_family",
+      "axis": "context",
+      "theme": "context",
+      "kind": "single_choice",
+      "sensitivity": "internal",
+      "weight": 0,
+      "prompt": {
+        "fr": "Dans quel domaine travaillez-vous ?",
+        "en": "Which area do you work in?"
+      },
+      "helper": {
+        "fr": "Facultatif. Montré par domaine dès 5 personnes.",
+        "en": "Optional. Shown by area from 5 people."
+      },
+      "options": [
+        {
+          "value": "operations",
+          "label": {
+            "fr": "Opérations / production",
+            "en": "Operations / production"
+          }
+        },
+        {
+          "value": "admin_support",
+          "label": {
+            "fr": "Administration / support",
+            "en": "Administration / support"
+          }
+        },
+        {
+          "value": "sales_service",
+          "label": {
+            "fr": "Ventes / relation client",
+            "en": "Sales / customer service"
+          }
+        },
+        {
+          "value": "finance_legal_hr",
+          "label": {
+            "fr": "Finance, juridique, RH",
+            "en": "Finance, legal, HR"
+          }
+        },
+        {
+          "value": "tech_data",
+          "label": {
+            "fr": "Technique / données / informatique",
+            "en": "Technical / data / IT"
+          }
+        },
+        {
+          "value": "management",
+          "label": {
+            "fr": "Encadrement / direction",
+            "en": "Management"
+          }
+        },
+        {
+          "value": "other",
+          "label": {
+            "fr": "Autre",
+            "en": "Other"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -172,7 +172,7 @@ export const seedClient = async (client, raw) => {
           ),
       ),
     );
-    // The pilot questionnaire (packages/contracts/src/questionnaires/pilot-v1.json): its items,
+    // The pilot questionnaire (packages/contracts/src/questionnaires/pilot-v2.json): its items,
     // then the version that holds them, found by its change-note marker so a rerun adds nothing.
     const def = loadDefinition();
     const { ids: itemIds } = await ensureQuestionItems(client, tenantId, def);

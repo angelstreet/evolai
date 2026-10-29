@@ -3,6 +3,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import {
   PILOT_QUESTIONNAIRE,
+  PILOT_QUESTIONNAIRE_V1,
   UNSURE_VALUE,
   parseQuestionnaireDefinition,
   toItemRow,
@@ -12,13 +13,37 @@ import {
 const JUDGEMENT =
   /bonne demande|mauvaise|pas toujours la bonne|good request|wrong|not always the (right )?answer/i;
 
-describe('pilot questionnaire v1', () => {
+describe('pilot questionnaire v2', () => {
   const q = PILOT_QUESTIONNAIRE;
 
-  it('is valid and has six choices, three free-text questions and one role question', () => {
+  it('is valid and has six choices, three free-text questions, the task inventory and one role question', () => {
     expect(q.questions.filter((x) => x.kind === 'scenario_choice')).toHaveLength(6);
     expect(q.questions.filter((x) => x.kind === 'short_text')).toHaveLength(3);
-    expect(q.questions.filter((x) => x.kind === 'single_choice')).toHaveLength(1);
+    expect(q.questions.filter((x) => x.kind === 'single_choice')).toHaveLength(5);
+  });
+
+  it('asks the task inventory right after the repeated task, unscored', () => {
+    const codes = q.questions.map((x) => x.code);
+    const at = codes.indexOf('v1_repeat_task');
+    expect(codes.slice(at + 1, at + 5)).toEqual([
+      'v2_task_frequency',
+      'v2_task_duration',
+      'v2_task_tool',
+      'v2_task_data',
+    ]);
+    for (const x of q.questions.filter((c) => c.code.startsWith('v2_'))) {
+      expect(x.weight).toBe(0);
+      expect(x.options.length).toBeGreaterThanOrEqual(4);
+    }
+  });
+
+  it('keeps every v1 question and its meaning', () => {
+    const now = new Map(q.questions.map((x) => [x.code, x]));
+    for (const old of PILOT_QUESTIONNAIRE_V1.questions) {
+      expect(now.get(old.code)?.prompt).toEqual(old.prompt);
+      expect(now.get(old.code)?.options).toEqual(old.options);
+    }
+    expect(q.version).toBe(PILOT_QUESTIONNAIRE_V1.version + 1);
   });
 
   it('tags the three free-text questions with friction, tooling and opportunity', () => {

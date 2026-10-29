@@ -105,7 +105,7 @@ test.describe('respondent path is short, plain and in one language', () => {
         if (page.url().endsWith('/done')) break;
       }
       // One tap to start plus one per question (a text answer is typed, then one tap on Next).
-      expect(taps).toBeLessThanOrEqual(11);
+      expect(taps).toBeLessThanOrEqual(15);
 
       // Done: team progress at a glance and what happens next; it ends calm, no quiz (TASK-AD2).
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible();

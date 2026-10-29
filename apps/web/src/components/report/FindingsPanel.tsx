@@ -9,9 +9,14 @@ import Typography from '@mui/material/Typography';
 import type { MessageKey } from '@evolai/i18n';
 import { AppIcon, StatusText, type Status } from '@evolai/ui';
 import { useI18n } from '@/components/I18nProvider';
-import { decideFindingAction, proposeFindingsAction } from '@/app/admin/findings/actions';
+import {
+  decideFindingAction,
+  proposeFindingsAction,
+  resolveDisputeAction,
+} from '@/app/admin/findings/actions';
 import { findingIdle, type FindingActionState } from '@/app/admin/findings/state';
 import { enumLabelOf } from '@/lib/enumLabel';
+import { isOpenDispute, isReportable } from '@/lib/findingRules';
 import type { FindingRow } from '@/lib/findingsData';
 
 interface Ids {
@@ -111,6 +116,71 @@ function DecideForm({
   );
 }
 
+function ResolveForm({
+  ids,
+  f,
+  to,
+  minGroup,
+}: {
+  ids: Ids;
+  f: FindingRow;
+  to: 'corrected' | 'kept';
+  minGroup: number;
+}) {
+  const { t } = useI18n();
+  const [state, action] = useFormState(resolveDisputeAction, findingIdle);
+  return (
+    <Box component="form" action={action}>
+      <input type="hidden" name="tenantId" value={ids.tenantId} />
+      <input type="hidden" name="findingId" value={f.id} />
+      <input type="hidden" name="to" value={to} />
+      <Submit
+        variant={to === 'corrected' ? 'outlined' : 'text'}
+        icon={to === 'corrected' ? 'edit' : 'success'}
+        testId={`finding-${to}`}
+      >
+        {t(
+          to === 'corrected'
+            ? 'report.findings.work.review.markCorrected'
+            : 'report.findings.work.review.keep',
+        )}
+      </Submit>
+      <Result state={state} minGroup={minGroup} />
+    </Box>
+  );
+}
+
+/** The referent's verdict (A8), and the auditor's answer to an open dispute. */
+function Review({ ids, f, minGroup }: { ids: Ids; f: FindingRow; minGroup: number }) {
+  const { t } = useI18n();
+  const r = f.review;
+  if (!r || f.status !== 'approved') return null;
+  if (r.verdict === 'confirmed') {
+    return (
+      <Box sx={{ mb: 2 }} data-testid="finding-review">
+        <StatusText status="success">{t('report.findings.work.review.confirmed')}</StatusText>
+      </Box>
+    );
+  }
+  return (
+    <Box sx={{ mb: 2 }} data-testid="finding-review">
+      <StatusText status={r.resolution ? 'info' : 'warning'}>
+        {t('report.findings.work.review.disputed', { comment: r.comment })}
+      </StatusText>
+      {r.resolution ? (
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+          {t(`report.findings.work.review.${r.resolution}`)}
+        </Typography>
+      ) : (
+        <Stack direction="row" spacing={2} sx={{ mt: 2, flexWrap: 'wrap' }}>
+          <ResolveForm ids={ids} f={f} to="corrected" minGroup={minGroup} />
+          <ResolveForm ids={ids} f={f} to="kept" minGroup={minGroup} />
+        </Stack>
+      )}
+    </Box>
+  );
+}
+
 /** Draft: approve or reject. Approved: withdraw. Rejected: approve again. */
 function Decide({ ids, f, minGroup }: { ids: Ids; f: FindingRow; minGroup: number }) {
   return (
@@ -139,6 +209,7 @@ function FindingItem({ ids, f, minGroup }: { ids: Ids; f: FindingRow; minGroup: 
       }}
       data-testid="finding"
       data-status={f.status}
+      data-open-dispute={isOpenDispute(f) ? 'true' : undefined}
     >
       <Typography variant="cardTitle" component="h3" sx={{ m: 0 }}>
         {f.label}
@@ -159,11 +230,16 @@ function FindingItem({ ids, f, minGroup }: { ids: Ids; f: FindingRow; minGroup: 
         <Typography variant="body2" color="text.secondary" data-testid="finding-people">
           {t('report.findings.people', { count: f.people })}
         </Typography>
+        {f.notes > 0 ? (
+          <Typography variant="body2" color="text.secondary" data-testid="finding-notes">
+            {t('report.findings.work.visit', { n: f.notes })}
+          </Typography>
+        ) : null}
         <Typography variant="body2" color="text.secondary">
           {enumLabelOf(t, 'axis', f.axis)} · {t(`report.findings.work.source.${f.source}`)}
         </Typography>
       </Stack>
-      {f.people < minGroup && f.status !== 'rejected' ? (
+      {!isReportable(f, minGroup) && f.status !== 'rejected' ? (
         <Typography
           variant="body2"
           color="text.secondary"
@@ -173,6 +249,7 @@ function FindingItem({ ids, f, minGroup }: { ids: Ids; f: FindingRow; minGroup: 
           {t('report.findings.work.staffOnly', { n: minGroup })}
         </Typography>
       ) : null}
+      <Review ids={ids} f={f} minGroup={minGroup} />
       <Decide ids={ids} f={f} minGroup={minGroup} />
     </Box>
   );

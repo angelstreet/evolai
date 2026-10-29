@@ -31,9 +31,9 @@ survey, and the same browser comes back to its own answers. The referent can ent
 "N of M answered" (words instead of figures under 5 people), sends one **reminder** on the day we suggest, and reads
 the report when it is published.
 
-## What the survey asks (questionnaire v1)
+## What the survey asks (questionnaire v2)
 
-About 7 minutes, 10 questions, in French or English, on a phone. Every question can be skipped. The wording is the
+About 8 minutes, 14 questions, in French or English, on a phone. Every question can be skipped. The wording is the
 same for everyone and never hints at a right answer.
 
 - **Six short choice questions** about what the person usually does in a situation: an AI answer with no source,
@@ -45,6 +45,9 @@ same for everyone and never hints at a right answer.
   this week, and the one thing an assistant could help with. These are what the analysis turns into themes and draft
   opportunities, each with the person's own words as the citation. Names, emails, phone numbers and the words on
   your "Names to hide" list are masked before the text is saved.
+- **Four quick choices about that repeated task** (questionnaire v2, ADR 0059): how often, how long each time,
+  with which kind of tool, and which kind of data. They are not scored; they show per team in the brief and feed
+  the proposed findings ("a heavy repeated task every day or week").
 - **One optional role question**: the area the person works in, in seven broad categories. There is no seniority
   question and no free text: in a team of fewer than 5, area plus seniority could point to one person. Results by
   area only appear for groups of 5 or more.
@@ -68,6 +71,16 @@ by a native speaker before the pilot (ADR 0046).
    free texts), each with the people behind it. Approve what you stand behind, reject the rest. In the Answers
    tab you can also tick free texts and choices and "Write a finding" yourself. An approved finding of 5 people
    or more gets suggested actions under Actions; under 5 people it stays internal. No AI is used (ADR 0058).
+   The **Overview** then lists **Ask on site**: one question per finding to check during the visit, and a
+   standard question for the axis with the least evidence. Print it with the brief.
+
+## The visit
+
+6b. In the **Visit** tab, write a note for each interview, observation or workshop: the date, the team (or the
+    whole mission) and what you saw or heard. No names: they, emails and numbers are masked when you save. Notes
+    stay internal. Tick notes and "Write a finding from the notes": a finding seen on the visit can reach the
+    report even under 5 people, and the report says "seen on the visit" instead of a count. The method note
+    counts the interviews, observations and workshops (ADR 0059).
 
 ## Build the audit report
 
@@ -90,7 +103,10 @@ by a native speaker before the pilot (ADR 0046).
 
 ## Check and publish
 
-13. "Mark ready for review", then **Preview as the client**. You see exactly what the client will see, or the
+13. "Mark ready for review": the referent now sees the findings (titles and counts only) in their Report tab and
+    confirms or disputes each one, with one line. A dispute shows under Findings; answer it with **Mark
+    corrected** (after you changed the finding) or **Keep as is**. You cannot publish while a dispute is
+    unanswered; a kept dispute is noted in the report. Then **Preview as the client**. You see exactly what the client will see, or the
     reason it is not ready (for example: no finding ticked, a name from the list, words copied from an answer).
 14. **Publish** and confirm. The referent now sees it in the **Report** tab of their space and can download the
     PDF. Download it yourself from the editor to send it to the sponsor.
@@ -105,6 +121,7 @@ Every step above is written to the **Audit trail** (who, when, what), without th
 
 ## After the report
 
-16. Follow the 30/60/90-day checkpoints with the sponsor. Pilot tracking and measured benefits in the app are a
-    later phase; until then, keep the measures with the client and start a new report version if the plan changes.
+16. Each accepted action has **Measure**: the baseline value, its unit and source (for example "40 minutes per
+    order, time sheet"), the follow-up date and, at day 90, the status (validated, mixed, no benefit, not
+    implemented). Set the baseline before publishing; at day 90 start a new version, set the status and publish.
 17. Retention and erasure requests: workspace **Settings, Data and erasure**.

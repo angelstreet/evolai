@@ -2,7 +2,7 @@
  * Questionnaire v1 on the database (TASK-Z2, ADR 0046). Pure functions over a connected pg client,
  * shared by the CLI (questionnaire.mjs), the first-client seed (client-seed-lib.mjs) and the tests.
  *
- * The questions live in packages/contracts/src/questionnaires/pilot-v1.json (the one file the
+ * The questions live in packages/contracts/src/questionnaires/pilot-v2.json (the one file the
  * owner edits). Nothing here edits an applied migration: it creates `question_items` rows (frozen
  * once created) and a new `questionnaire_versions` row, then points an engagement that has no
  * answers yet at it. The survey pages read the same JSON; the `question_items` rows are what the
@@ -12,7 +12,7 @@ import { randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 
 const DEFINITION_URL = new URL(
-  '../../../packages/contracts/src/questionnaires/pilot-v1.json',
+  '../../../packages/contracts/src/questionnaires/pilot-v2.json',
   import.meta.url,
 );
 const KINDS = ['scenario_choice', 'single_choice', 'short_text'];

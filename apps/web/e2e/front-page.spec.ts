@@ -77,7 +77,7 @@ for (const size of SIZES) {
         await expect(page.getByTestId('ck-video')).toHaveCount(10);
         await expect(page.getByTestId('ck-video').first()).toContainText('Coming soon');
         await menu(page, 'survey').click();
-        await expect(page.getByTestId('ck-question-row')).toHaveCount(10);
+        await expect(page.getByTestId('ck-question-row')).toHaveCount(14);
         await menu(page, 'report').click();
         await expect(main).toContainText('Your report');
         await expect(main).not.toContainText('Demo Client');
@@ -94,24 +94,24 @@ for (const size of SIZES) {
         await setLocale(page, 'en', baseURL as string);
         await page.goto('/');
         const next = page.getByTestId('ck-next');
-        await expect(page.getByTestId('ck-try-count')).toHaveText('1 of 10');
+        await expect(page.getByTestId('ck-try-count')).toHaveText('1 of 14');
         await expect(next).toBeDisabled();
         await expect(page.getByTestId('ck-hint')).toContainText('Pick one answer');
         await page.getByTestId('ck-option').first().click();
         await expect(next).toBeEnabled();
         await expect(page.getByTestId('ck-hint')).toContainText('kept on this device');
         await next.click();
-        await expect(page.getByTestId('ck-try-count')).toHaveText('2 of 10');
+        await expect(page.getByTestId('ck-try-count')).toHaveText('2 of 14');
         // back by Previous, then forward again by the progress segment
         const segs = page.getByTestId('ck-qbar-step');
         await expect(segs.nth(5)).toBeDisabled();
         await page.getByTestId('ck-prev').click();
-        await expect(page.getByTestId('ck-try-count')).toHaveText('1 of 10');
+        await expect(page.getByTestId('ck-try-count')).toHaveText('1 of 14');
         await expect(page.getByTestId('ck-prev')).toHaveCount(0);
         await segs.nth(1).click();
-        await expect(page.getByTestId('ck-try-count')).toHaveText('2 of 10');
+        await expect(page.getByTestId('ck-try-count')).toHaveText('2 of 14');
         await segs.first().click();
-        await expect(page.getByTestId('ck-try-count')).toHaveText('1 of 10');
+        await expect(page.getByTestId('ck-try-count')).toHaveText('1 of 14');
         await expect(page.getByTestId('ck-option').first()).toHaveAttribute('aria-checked', 'true');
         await segs.nth(1).click();
         await menu(page, 'survey').click();
@@ -145,30 +145,30 @@ for (const size of SIZES) {
         await expect(page.locator('.ck-path :text("Done")')).toHaveCount(0);
       });
 
-      test('survey: ten questions, answers kept in the browser, ends at the sign-in step', async ({
+      test('survey: fourteen questions, answers kept in the browser, ends at the sign-in step', async ({
         page,
         baseURL,
       }) => {
         await setLocale(page, 'en', baseURL as string);
         await page.goto('/');
-        for (let i = 1; i <= 10; i++) {
-          await expect(page.getByTestId('ck-try-count')).toHaveText(`${i} of 10`);
+        for (let i = 1; i <= 14; i++) {
+          await expect(page.getByTestId('ck-try-count')).toHaveText(`${i} of 14`);
           const option = page.getByTestId('ck-option').first();
           if (await option.count()) await option.click();
           else await page.locator('.ck-try textarea').first().fill('Copy the same lines by hand.');
           await page.getByTestId('ck-next').click();
         }
         await expect(page.getByTestId('ck-send')).toHaveText('Sign in');
-        await expect(page.getByTestId('ck-try-done')).toContainText('You answered 10 of 10');
+        await expect(page.getByTestId('ck-try-done')).toContainText('You answered 14 of 14');
         // Nothing asked for an email or a sign-in before this point.
         await expect(page.getByRole('dialog')).toHaveCount(0);
         await page.reload();
-        await expect(page.getByTestId('ck-try-done')).toContainText('You answered 10 of 10');
+        await expect(page.getByTestId('ck-try-done')).toContainText('You answered 14 of 14');
         await expect(page.getByTestId('ck-path-count')).toHaveText('0 / 7');
         await page.getByTestId('ck-send').click();
         const sheet = page.getByRole('dialog');
         await expect(sheet).toContainText('Sign in to send');
-        await expect(sheet).toContainText('Your 10 answers stay in this browser');
+        await expect(sheet).toContainText('Your 14 answers stay in this browser');
         await page.keyboard.press('Escape');
         await expect(page.getByRole('dialog')).toHaveCount(0);
       });
@@ -304,7 +304,7 @@ for (const size of SIZES) {
           'L’audit IA par équipe',
         );
         await expect(page.getByTestId('ck-next')).toHaveText('Suivant');
-        await expect(page.getByTestId('ck-try-count')).toHaveText('1 sur 10');
+        await expect(page.getByTestId('ck-try-count')).toHaveText('1 sur 14');
         await expect(menu(page, 'survey')).toContainText('Questionnaire');
         await page.getByTestId('switch-en').click();
         await expect(page.locator('html')).toHaveAttribute('lang', 'en');

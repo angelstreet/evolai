@@ -110,7 +110,70 @@ export const adminFr: AdminMessages = {
       pick: 'Utiliser comme preuve',
     },
   },
+  visit: {
+    intro:
+      'Notes de la visite : entretiens, observations, ateliers. Réservées à l’équipe, jamais montrées au client.',
+    unavailable: 'Les notes de visite ne sont pas encore disponibles.',
+    addTitle: 'Ajouter une note',
+    addHint: 'Pas de noms, ni e-mails, ni numéros. Nous les masquons à l’enregistrement.',
+    kind: 'Type',
+    kinds: { interview: 'Entretien', observation: 'Observation', workshop: 'Atelier' },
+    date: 'Date',
+    team: 'Équipe',
+    wholeMission: 'Toute la mission',
+    body: 'Ce que vous avez vu ou entendu',
+    add: 'Enregistrer la note',
+    listTitle: 'Notes',
+    empty: 'Aucune note pour l’instant. Ajoutez ce que vous voyez et entendez sur place.',
+    cited: '{n, plural, one {Citée par # constat} other {Citée par # constats}}',
+    delete: 'Supprimer',
+    deleteAria: 'Supprimer cette note',
+    makeTitle: 'Rédiger un constat à partir des notes',
+    makeSubtitle:
+      'Cochez les notes qui le montrent, puis formulez-le avec vos mots. Un constat vu pendant la visite peut figurer dans le rapport.',
+    picked: '{n, plural, =0 {Aucune note cochée} one {# note cochée} other {# notes cochées}}',
+    result: {
+      added: 'Note enregistrée.',
+      deleted: 'Note supprimée.',
+      bad_input: 'Écrivez au moins 3 caractères et choisissez une date.',
+      not_found: 'Introuvable.',
+      unavailable: 'Les notes de visite ne sont pas encore disponibles.',
+      forbidden: 'Vous ne pouvez pas modifier ces notes.',
+      error: 'Une erreur est survenue. Veuillez réessayer.',
+    },
+  },
   brief: {
+    askTitle: 'À demander sur place',
+    askIntro: 'Une question par constat à vérifier pendant la visite, les plus cités d’abord.',
+    askNone:
+      'Aucun constat pour l’instant. Proposez des constats dans l’onglet Rapport pour obtenir des questions ici.',
+    askStandard: 'Question standard, axe le moins documenté',
+    ask: {
+      tag: {
+        manual_reentry:
+          'Qui saisit deux fois la même information, de quoi vers quoi, et combien de temps par cas ?',
+        repetitive_task:
+          'Quelle tâche revient le plus souvent ? Montrez-la une fois : étapes, outils, temps par cas.',
+        policy_unclear:
+          'Que dit-on aux équipes sur les données clients et les outils d’IA ? Où est-ce écrit ?',
+        literacy_gap:
+          'Comment vérifie-t-on une réponse d’IA avant de l’utiliser ? Demandez un exemple récent.',
+        writing_drafting:
+          'Quels textes sont rédigés à partir de zéro à chaque fois ? Qui les lit, et sous quelle forme ?',
+        unclear_process:
+          'Qui est responsable de ce processus ? Déroulez-le de la demande au résultat.',
+        document_review: 'Quels documents sont lus ou vérifiés à la main ? Combien par semaine ?',
+      },
+      axis: {
+        literacy:
+          'Que voudraient savoir les équipes sur les outils d’IA ? Qu’est-ce qui les inquiète ?',
+        practice: 'Quels outils d’IA sont utilisés aujourd’hui, pour quoi, et à quelle fréquence ?',
+        readiness:
+          'Quels outils et données sont utilisables sans demander à l’informatique ? Qu’est-ce qui bloque ?',
+        opportunity: 'Si une tâche disparaissait demain, laquelle ferait gagner le plus de temps ?',
+        context: 'Comment le travail arrive-t-il à l’équipe, et où attend-il ?',
+      },
+    },
     title: 'Synthèse avant la visite',
     intro: 'Ce que chaque équipe a répondu, à lire avant la visite.',
     print: 'Imprimer',
@@ -156,6 +219,7 @@ export const adminFr: AdminMessages = {
       overview: 'Vue d’ensemble',
       invitations: 'Équipe',
       answers: 'Réponses',
+      visit: 'Visite',
       report: 'Rapport',
       settings: 'Paramètres',
     },

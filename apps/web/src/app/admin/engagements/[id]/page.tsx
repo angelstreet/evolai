@@ -14,8 +14,10 @@ import { getT } from '@/lib/i18n';
 import { isUuid } from '@/lib/invitationForm';
 import { MIN_GROUP_SIZE } from '@/lib/invitationTracking';
 import { listEngagements } from '@/lib/adminData';
+import { listFindings } from '@/lib/findingsData';
 import { findMission } from '@/lib/missionData';
 import { missionHref } from '@/lib/missionStatus';
+import { sitePrompts } from '@/lib/sitePrompts';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,16 +27,18 @@ const CARD_SX = { p: { xs: 4, sm: 6 }, borderRadius: 3, mb: 5, breakInside: 'avo
  * Overview = the pre-visit brief (TASK-AD2, review §3). Before a team reaches five answers it shows
  * only the counts (the next step is the header button); from five answers, per team: answers out
  * of headcount, closing date, one bar chart per choice question, the role mix and a link to the
- * free texts. Printable with the browser.
+ * free texts. Printable with the browser. Then "Ask on site" (TASK-AJ A7): one question per open
+ * finding with the count behind it, and the standard question of the least documented axis.
  */
 export default async function MissionOverviewPage({ params }: { params: { id: string } }) {
   const { t, locale } = getT();
   if (!isUuid(params.id)) notFound();
   const mission = await findMission(await sessionTenantIds(), params.id);
   if (!mission) notFound();
-  const [teams, summaries] = await Promise.all([
+  const [teams, summaries, findings] = await Promise.all([
     briefFor(mission.tenantId, params.id as EngagementId),
     listEngagements(mission.tenantId),
+    listFindings(mission.tenantId, params.id),
   ]);
   const links = summaries.find((s) => s.engagement.id === mission.id)?.invitationsTotal ?? 0;
   const anyShown = teams.some((x) => !x.hidden);
@@ -63,6 +67,36 @@ export default async function MissionOverviewPage({ params }: { params: { id: st
         })}
         {closes ? ` ${closes}.` : null}
       </Typography>
+      {anyShown && findings !== null ? (
+        <Paper
+          variant="outlined"
+          component="section"
+          aria-labelledby="ask-title"
+          data-testid="brief-ask"
+          sx={CARD_SX}
+        >
+          <Typography id="ask-title" variant="sectionTitle" component="h3" sx={{ m: 0 }}>
+            {t('admin.brief.askTitle')}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 4 }}>
+            {findings.some((f) => f.status !== 'rejected')
+              ? t('admin.brief.askIntro')
+              : t('admin.brief.askNone')}
+          </Typography>
+          <Stack component="ol" spacing={3} sx={{ m: 0, pl: 6 }}>
+            {sitePrompts(t, findings).map((p, i) => (
+              <li key={i} data-testid="brief-ask-item">
+                <Typography variant="body1">{p.question}</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {p.finding
+                    ? `${p.finding} · ${t('report.findings.people', { count: p.people })}`
+                    : t('admin.brief.askStandard')}
+                </Typography>
+              </li>
+            ))}
+          </Stack>
+        </Paper>
+      ) : null}
       {teams.length === 0 ? (
         <EmptyState icon="team" title={t('admin.brief.noTeams')} />
       ) : (

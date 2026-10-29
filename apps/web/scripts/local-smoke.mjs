@@ -124,7 +124,7 @@ const main = async () => {
   //    sentence for each free-text question.
   const definition = JSON.parse(
     readFileSync(
-      new URL('../../../packages/contracts/src/questionnaires/pilot-v1.json', import.meta.url),
+      new URL('../../../packages/contracts/src/questionnaires/pilot-v2.json', import.meta.url),
       'utf8',
     ),
   );

@@ -564,6 +564,17 @@ html:has(.ck) {
   height: 24px;
   margin: -10px 0;
 }
+/* More than ten questions: two rows of seven, so each target stays at least 24 px wide on a phone. */
+.ck-qbar.ck-qbar-rows {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--space-1);
+}
+.ck-qbar.ck-qbar-rows > button,
+.ck-qbar.ck-qbar-rows > a,
+.ck-qbar.ck-qbar-rows > span {
+  margin: 0;
+}
 .ck-qbar button:disabled {
   cursor: default;
 }
@@ -906,6 +917,24 @@ html:has(.ck) {
 .ck-solo .ck-qbar > span {
   height: 44px;
   margin: -20px 0;
+}
+/* two rows (more than ten questions): 44 px targets that do not overlap; the lines sit at the
+   inner edges so the two rows still read as one bar */
+.ck-solo .ck-qbar.ck-qbar-rows {
+  row-gap: 0;
+  margin: -20px 0 calc(var(--space-4) - 20px);
+}
+.ck-solo .ck-qbar.ck-qbar-rows > a,
+.ck-solo .ck-qbar.ck-qbar-rows > span {
+  height: 44px;
+  margin: 0;
+}
+.ck-solo .ck-qbar.ck-qbar-rows > :nth-child(-n + 7) {
+  align-items: end;
+}
+.ck-solo .ck-qbar.ck-qbar-rows > :nth-child(n + 8) {
+  align-items: start;
+  padding-top: var(--space-1);
 }
 
 /* Survey welcome and thank-you cards (TASK-AI): one column of sections inside the card body */

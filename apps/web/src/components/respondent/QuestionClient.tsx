@@ -165,7 +165,10 @@ export default function QuestionClient(props: Props) {
         </span>
       </div>
       <div className="ck-try-body">
-        <nav className="ck-qbar" aria-label={L.progress}>
+        <nav
+          className={props.segments.length > 10 ? 'ck-qbar ck-qbar-rows' : 'ck-qbar'}
+          aria-label={L.progress}
+        >
           {props.segments.map((seg, i) =>
             seg.href && i !== props.index ? (
               <Link

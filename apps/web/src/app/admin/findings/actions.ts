@@ -12,6 +12,7 @@ import {
   createFinding,
   decideFinding,
   proposeMissionFindings,
+  resolveDispute,
 } from '@/lib/findingsData';
 import { isUuid } from '@/lib/invitationForm';
 import { ReportError, loadReportForEngagement, suggestSteps } from '@/lib/reportData';
@@ -139,6 +140,11 @@ export async function makeFindingAction(
       const [code, choice] = v.split(CHOICE_SEP);
       return code && choice ? [{ code, label: choice }] : [];
     });
+  const noteIds = fd
+    .getAll('note')
+    .map(String)
+    .filter((id) => isUuid(id))
+    .slice(0, 200);
   try {
     await createFinding(g.tenantId, g.actor, engagementId, {
       label,
@@ -146,10 +152,31 @@ export async function makeFindingAction(
       axis,
       answerIds,
       choices,
+      noteIds,
     });
     await suggestInReport(g.tenantId, g.actor, engagementId);
     done();
     return { ok: true, code: 'created' };
+  } catch (err) {
+    return { ok: false, code: codeOf(err) };
+  }
+}
+
+/** The auditor answers the referent's dispute (A8): corrected, or kept with the dispute noted. */
+export async function resolveDisputeAction(
+  _prev: FindingActionState,
+  fd: FormData,
+): Promise<FindingActionState> {
+  const findingId = String(fd.get('findingId') ?? '');
+  const to = String(fd.get('to') ?? '');
+  const g = await guard(fd);
+  if (!g || !isUuid(findingId) || (to !== 'corrected' && to !== 'kept')) {
+    return { ok: false, code: 'forbidden' };
+  }
+  try {
+    await resolveDispute(g.tenantId, g.actor, findingId, to);
+    done();
+    return { ok: true, code: to };
   } catch (err) {
     return { ok: false, code: codeOf(err) };
   }

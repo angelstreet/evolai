@@ -41,6 +41,28 @@ describe('proposeFindings', () => {
     expect(out[0]?.people).toBe(7);
   });
 
+  it('proposes the task inventory findings of questionnaire v2, the heavy task with both answers', () => {
+    const out: MissionAnswer[] = [];
+    for (let p = 1; p <= 8; p += 1) {
+      const s = `s${p}`;
+      const c = (code: string, value: string) =>
+        out.push({ answerId: `${s}-${code}`, submissionId: s, code, kind: 'choice', value });
+      c('v2_task_frequency', p <= 4 ? 'daily' : p <= 6 ? 'weekly' : 'monthly');
+      c('v2_task_duration', p <= 5 ? '1_3h' : 'lt_15m');
+      c('v2_task_tool', p <= 3 ? 'spreadsheet' : 'business_app');
+      c('v2_task_data', p <= 6 ? 'personal' : 'none');
+    }
+    const by = new Map(proposeFindings(out).map((f) => [f.ruleKey, f]));
+    expect(by.get('choice:v2_task_frequency')).toMatchObject({ people: 4, total: 8 });
+    expect(by.get('choice:v2_task_duration')).toMatchObject({ people: 5 });
+    expect(by.get('choice:v2_task_tool')).toMatchObject({ people: 3, tags: ['manual_reentry'] });
+    expect(by.get('choice:v2_task_data')).toMatchObject({ people: 6, axis: 'readiness' });
+    // Daily or weekly and over an hour: people 1 to 5, with both of their answers.
+    const heavy = by.get('choice:v2_task_heavy');
+    expect(heavy).toMatchObject({ people: 5, axis: 'opportunity' });
+    expect(heavy?.answerIds).toHaveLength(10);
+  });
+
   it('counts people, not answers', () => {
     const a = (id: string, s: string): MissionAnswer => ({
       answerId: id,
