@@ -33,3 +33,5 @@ notes, finding notes and finding reviews with row-level security, and the measur
 Follow-up 2026-10-29 (ADR 0060): a full dry run of one audit (`apps/web/e2e/dry-run.spec.ts`, off by default),
 the "time on repeated tasks" section, editing findings, and seven fixes the dry run found. Editing needs
 migration `0031_finding_update.sql` on production.
+
+Production: migration `0031_finding_update.sql` applied to Neon on 2026-10-29 (owner approval): editing findings is on.
