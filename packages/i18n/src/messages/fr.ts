@@ -131,7 +131,7 @@ export const fr: Messages = {
     answerOptions: 'Choix de réponse',
     back: 'Retour',
     previous: 'Précédent',
-    pick: 'Choisissez une réponse. Anonyme.',
+    pick: 'Choisissez une réponse, ou passez. Anonyme.',
     savedHint: 'Enregistré pour votre équipe. Anonyme.',
     goTo: 'Aller à la question {n}',
     skip: 'Passer',

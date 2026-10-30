@@ -232,11 +232,12 @@ export const reportFr: Shape<typeof reportEn> = {
     title: 'Temps passé sur les tâches répétitives',
     subtitle:
       'Ce que les personnes ont dit de leur principale tâche répétitive : à quelle fréquence, et combien de temps à chaque fois. Déclaratif et arrondi : un ordre de grandeur, pas une mesure.',
-    overall: '{people} personnes : environ {hours} heures par semaine au total.',
-    team: '{team} : environ {hours} heures par semaine, {people} personnes',
+    overall:
+      '{people} personnes : environ {each, plural, =0 {moins d’une demi-heure} one {# heure} other {# heures}} par semaine et par personne, {hours, plural, one {# heure} other {# heures}} au total.',
+    team: '{team} : environ {each, plural, =0 {moins d’une demi-heure} one {# heure} other {# heures}} par semaine et par personne ({people} personnes)',
     tool: 'surtout {tool}',
     hidden:
-      '{count, plural, one {# équipe n’est pas affichée} other {# équipes ne sont pas affichées}} : moins de {n} réponses chacune.',
+      '{count, plural, one {# équipe n’est pas affichée} other {# équipes ne sont pas affichées}} pour protéger la confidentialité.',
     toolName: {
       spreadsheet: 'dans un tableur',
       email: 'par e-mail',
@@ -280,6 +281,11 @@ export const reportFr: Shape<typeof reportEn> = {
         keep: 'Maintenir tel quel',
       },
       rejectedTitle: 'Refusés',
+      autoPicked: 'choisi par l’application pour l’instant',
+      pick: 'Soumettre au référent',
+      pickHelp:
+        'Le référent confirme ou conteste jusqu’à {max} constats que vous cochez. Si vous n’en cochez aucun, l’application en choisit jusqu’à {max} et laisse de côté les thèmes de mots.',
+      picked: '{count} sur {max} cochés pour le référent',
     },
     result: {
       proposed:
@@ -289,7 +295,12 @@ export const reportFr: Shape<typeof reportEn> = {
       approvedWithActions: 'Approuvé. Les actions suggérées sont sous Actions.',
       rejected: 'Refusé.',
       corrected: 'Marqué corrigé.',
-      updated: 'Enregistré. L’action qui en découle dit désormais la même chose.',
+      updated:
+        'Enregistré. L’action issue de ce constat prend le nouveau titre ; ses preuves et ses étapes restent. Vérifiez-les sous Actions.',
+      picked: 'Coché pour le référent.',
+      unpicked: 'N’est plus soumis au référent.',
+      too_many: 'Au plus {count} constats vont au référent. Décochez-en un d’abord.',
+      locked: 'Le rapport est publié. Commencez d’abord une nouvelle version.',
       unavailable: 'La modification des constats n’est pas encore disponible sur ce serveur.',
       kept: 'Maintenu. Le rapport signale la contestation.',
       few_people: 'Les constats demandent au moins {n} questionnaires terminés.',
@@ -302,29 +313,29 @@ export const reportFr: Shape<typeof reportEn> = {
     rule: {
       choice: {
         v1_source_check: {
-          label: 'Les réponses d’IA sont utilisées sans vérifier la source',
+          label: 'Pas d’habitude commune pour vérifier les réponses d’IA',
           statement:
-            '{count} personnes sur {total} utilisent une réponse d’IA telle quelle ou la relisent seulement, sans vérifier une autre source.',
+            '{count} personnes sur {total} utilisent une réponse d’IA telle quelle ou la relisent seulement : il n’y a pas de façon commune de vérifier une source.',
         },
         v1_data_sharing: {
-          label: 'Des données clients vont telles quelles dans des IA publiques',
+          label: 'Pas de règle claire sur les données clients dans les IA publiques',
           statement:
-            '{count} personnes sur {total} collent des données clients telles quelles dans une IA publique.',
+            '{count} personnes sur {total} colleraient des données clients telles quelles dans une IA publique : la règle n’est pas claire pour elles.',
         },
         v1_request_style: {
-          label: 'Les demandes à l’IA sont trop courtes',
+          label: 'Pas de façon commune de briefer une IA',
           statement:
-            '{count} personnes sur {total} formulent leur demande à l’IA en une ligne, sans but, public ni format.',
+            '{count} personnes sur {total} demandent à une IA en une ligne courte : il n’y a pas de façon commune de donner le but, le public et le format.',
         },
         v1_report_flow: {
-          label: 'On cherche un outil avant de décrire le travail',
+          label: 'Le travail n’est pas décrit avant de choisir un outil',
           statement:
-            '{count} personnes sur {total} chercheraient un outil avant de lister les étapes d’un rapport manuel.',
+            '{count} personnes sur {total} chercheraient un outil avant de lister les étapes : décrire le travail d’abord n’est pas encore une habitude.',
         },
         v1_repeat_data: {
-          label: 'L’IA vient en premier pour une simple recopie',
+          label: 'L’automatisation simple ne vient pas en premier pour recopier',
           statement:
-            '{count} personnes sur {total} utiliseraient un assistant d’IA là où une automatisation simple suffirait.',
+            '{count} personnes sur {total} prendraient un assistant d’IA là où une automatisation simple suffirait.',
         },
         v1_repeat_time: {
           label: 'Les tâches répétitives prennent 3 heures ou plus par semaine',
@@ -445,11 +456,11 @@ export const reportFr: Shape<typeof reportEn> = {
     },
     ownerRole: {
       team_lead: 'Responsable d’équipe',
-      process_owner: 'Responsable du processus',
-      it: 'Informatique',
-      data_owner: 'Responsable des données',
-      training: 'Responsable formation',
-      security_privacy: 'Sécurité et confidentialité',
+      process_owner: 'La personne qui pilote la tâche',
+      it: 'La personne qui gère les outils',
+      data_owner: 'La personne qui tient les données',
+      training: 'La personne qui organise les formations',
+      security_privacy: 'La direction, avec le référent données personnelles',
       sponsor: 'Référent',
     },
     tag: {
@@ -471,6 +482,11 @@ export const reportFr: Shape<typeof reportEn> = {
       document_review: 'contrôle de documents',
       translation: 'traduction',
       scheduling: 'planification',
+      cv_profiles: 'CV et dossiers de compétences',
+      tender_response: 'appels d’offres',
+      timesheet_billing: 'temps et facturation',
+      staffing: 'staffing',
+      recruiting: 'recrutement',
     },
   },
   ranking: {
@@ -566,6 +582,7 @@ export const reportFr: Shape<typeof reportEn> = {
       'Pour le transmettre, téléchargez le PDF ou imprimez cette page, puis envoyez-le par e-mail.',
     clientTitle: 'Rapport',
     clientSubtitle: 'Ce qu’EvolAI a constaté et ce qu’il faut faire ensuite. Lecture seule.',
+    reportLanguage: '{language, select, fr {Rédigé en français.} other {Rédigé en anglais.}}',
     aggregateNote: 'Un seul rapport pour toute la mission, toutes équipes réunies.',
     page: 'Page {page} sur {pages}',
     contents: 'Sommaire',

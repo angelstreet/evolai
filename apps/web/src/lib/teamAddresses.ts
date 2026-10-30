@@ -15,22 +15,32 @@ const SLUG_SHAPE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const LINK_DAYS_AFTER_CLOSE = 30;
 const OPENABLE = new Set(['draft', 'scheduled', 'in_field']);
 
-/** Lower-case ASCII words joined by `-`, at most `max` characters, without accents. */
-export const slugPart = (raw: string, max: number): string =>
-  raw
+/**
+ * Lower-case ASCII words joined by `-`, at most `max` characters, without accents. Whole words
+ * only: "recrutement-et-rh" stays readable instead of "recrutement-et-r" (ESN rehearsal); a
+ * single word longer than `max` is cut.
+ */
+export const slugPart = (raw: string, max: number): string => {
+  const words = raw
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '')
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, max)
-    .replace(/-+$/g, '');
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean);
+  let out = '';
+  for (const w of words) {
+    const next = out ? `${out}-${w}` : w;
+    if (next.length > max) break;
+    out = next;
+  }
+  return out || (words[0] ?? '').slice(0, max);
+};
 
 /** `<organisation-short>-<team-short>`, e.g. `demo-sales` for "Demo Client" and "Sales team". */
 export const baseSlug = (organisation: string, team: string): string => {
   const org = slugPart(organisation.replace(/^synthetic-/i, ''), 12).split('-')[0] ?? '';
-  const parts = [org, slugPart(team, 16)].filter(Boolean).join('-');
-  const slug = parts.length >= 3 ? parts : `team-${slugPart(team, 16) || 'x'}`;
+  const parts = [org, slugPart(team, 24)].filter(Boolean).join('-');
+  const slug = parts.length >= 3 ? parts : `team-${slugPart(team, 24) || 'x'}`;
   return slug.slice(0, 40);
 };
 

@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useFormState, useFormStatus } from 'react-dom';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Checkbox from '@mui/material/Checkbox';
+import FormControlLabel from '@mui/material/FormControlLabel';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import type { MessageKey } from '@evolai/i18n';
@@ -11,12 +13,13 @@ import { AppIcon, StatusText, type Status } from '@evolai/ui';
 import { useI18n } from '@/components/I18nProvider';
 import {
   decideFindingAction,
+  pickForReviewAction,
   proposeFindingsAction,
   resolveDisputeAction,
 } from '@/app/admin/findings/actions';
 import { findingIdle, type FindingActionState } from '@/app/admin/findings/state';
 import { enumLabelOf } from '@/lib/enumLabel';
-import { isOpenDispute, isReportable } from '@/lib/findingRules';
+import { isOpenDispute, isReportable, REVIEW_MAX, reviewShortlist } from '@/lib/findingRules';
 import type { FindingRow } from '@/lib/findingsData';
 import FindingEditDialog from './FindingEditDialog';
 
@@ -151,6 +154,50 @@ function ResolveForm({
   );
 }
 
+/** Tick a finding for the referent's review (ADR 0062); the form sends on change. */
+function PickForm({
+  ids,
+  f,
+  shortlisted,
+  full,
+  minGroup,
+}: {
+  ids: Ids;
+  f: FindingRow;
+  shortlisted: boolean;
+  full: boolean;
+  minGroup: number;
+}) {
+  const { t } = useI18n();
+  const [state, action] = useFormState(pickForReviewAction, findingIdle);
+  return (
+    <Box component="form" action={action} data-testid="finding-pick-form">
+      <input type="hidden" name="tenantId" value={ids.tenantId} />
+      <input type="hidden" name="findingId" value={f.id} />
+      <input type="hidden" name="pick" value={f.forReview ? 'false' : 'true'} />
+      <FormControlLabel
+        control={
+          <Checkbox
+            checked={f.forReview}
+            disabled={!f.forReview && full}
+            onChange={(e) => e.currentTarget.form?.requestSubmit()}
+            inputProps={{ 'aria-describedby': 'pick-help' }}
+            data-testid="finding-pick"
+          />
+        }
+        label={t('report.findings.work.pick')}
+        sx={{ minHeight: 44, mr: 0 }}
+      />
+      {shortlisted && !f.forReview ? (
+        <Typography variant="body2" color="text.secondary" component="span" sx={{ ml: 1 }}>
+          ({t('report.findings.work.autoPicked')})
+        </Typography>
+      ) : null}
+      <Result state={state} minGroup={minGroup} />
+    </Box>
+  );
+}
+
 /** The referent's verdict (A8), and the auditor's answer to an open dispute. */
 function Review({ ids, f, minGroup }: { ids: Ids; f: FindingRow; minGroup: number }) {
   const { t } = useI18n();
@@ -214,11 +261,14 @@ function FindingItem({
   f,
   minGroup,
   canEdit,
+  pick,
 }: {
   ids: Ids;
   f: FindingRow;
   minGroup: number;
   canEdit: boolean;
+  /** Shown when picking is on (migration 0033) and the finding can reach the report. */
+  pick?: { shortlisted: boolean; full: boolean } | null;
 }) {
   const { t } = useI18n();
   return (
@@ -274,6 +324,9 @@ function FindingItem({
         </Typography>
       ) : null}
       <Review ids={ids} f={f} minGroup={minGroup} />
+      {pick && f.status === 'approved' && isReportable(f, minGroup) ? (
+        <PickForm ids={ids} f={f} minGroup={minGroup} {...pick} />
+      ) : null}
       <Decide ids={ids} f={f} minGroup={minGroup} canEdit={canEdit} />
     </Box>
   );
@@ -290,6 +343,7 @@ export function FindingsPanel({
   minGroup,
   disabled,
   canEdit = false,
+  canPick = false,
 }: {
   ids: Ids;
   findings: readonly FindingRow[] | null;
@@ -297,6 +351,8 @@ export function FindingsPanel({
   disabled: boolean;
   /** Rewording is on once migration 0031 is applied (ADR 0060). */
   canEdit?: boolean;
+  /** Picking findings for the referent is on once migration 0033 is applied (ADR 0062). */
+  canPick?: boolean;
 }) {
   const { t } = useI18n();
   const [state, action] = useFormState(proposeFindingsAction, findingIdle);
@@ -304,6 +360,10 @@ export function FindingsPanel({
     return <Typography color="text.secondary">{t('report.findings.work.unavailable')}</Typography>;
   }
   const open = findings.filter((f) => f.status !== 'rejected');
+  const shortlist = new Set(reviewShortlist(findings, minGroup).map((f) => f.id));
+  const ticked = findings.filter((f) => f.forReview && f.status === 'approved').length;
+  const pickOf = (f: FindingRow) =>
+    canPick ? { shortlisted: shortlist.has(f.id), full: ticked >= REVIEW_MAX } : null;
   const rejected = findings.filter((f) => f.status === 'rejected');
   return (
     <Stack spacing={4} data-testid="findings-panel">
@@ -326,12 +386,25 @@ export function FindingsPanel({
         </Button>
       </Stack>
       <Result state={state} minGroup={minGroup} />
+      {canPick && open.some((f) => f.status === 'approved') ? (
+        <Typography variant="body2" color="text.secondary" id="pick-help" data-testid="pick-help">
+          {t('report.findings.work.pickHelp', { max: REVIEW_MAX })}{' '}
+          {t('report.findings.work.picked', { count: ticked, max: REVIEW_MAX })}
+        </Typography>
+      ) : null}
       {open.length === 0 ? (
         <Typography color="text.secondary">{t('report.findings.work.empty')}</Typography>
       ) : (
         <Stack component="ul" spacing={3} sx={{ m: 0, p: 0 }}>
           {open.map((f) => (
-            <FindingItem key={f.id} ids={ids} f={f} minGroup={minGroup} canEdit={canEdit} />
+            <FindingItem
+              key={f.id}
+              ids={ids}
+              f={f}
+              minGroup={minGroup}
+              canEdit={canEdit}
+              pick={pickOf(f)}
+            />
           ))}
         </Stack>
       )}

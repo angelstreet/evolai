@@ -60,6 +60,10 @@ describe('slug rules', () => {
     expect(baseSlug('Demo Client', 'Sales team')).toBe('demo-sales-team');
     expect(baseSlug('synthetic-client-c', 'Équipe Ventes')).toBe('client-equipe-ventes');
     expect(slugPart('  Ça va ?! ', 20)).toBe('ca-va');
+    // Whole words only (ESN rehearsal, 2026-10-30).
+    expect(baseSlug('ESN pilote', 'Recrutement et RH')).toBe('esn-recrutement-et-rh');
+    expect(baseSlug('ESN pilote', 'Business managers')).toBe('esn-business-managers');
+    expect(slugPart('Supercalifragilistic', 10)).toBe('supercalif');
     expect(isValidSlug('demo-sales')).toBe(true);
     for (const bad of ['', 'ab', 'Demo', 'a_b', '-demo', 'demo-', 'a--b', 'x'.repeat(61)]) {
       expect(isValidSlug(bad), bad).toBe(false);

@@ -43,3 +43,8 @@ follow-up records the value measured on the date, with the due follow-ups listed
 
 Production: migration `0032_follow_up_value.sql` applied to Neon on 2026-10-29 (owner approval): the value at
 follow-up is on.
+
+Pilot rehearsal 2026-10-30 (ADR 0062, owner choice "Fix all"): a local end-to-end run as the referent of a small
+IT consulting firm found three blockers and about twenty defects; all are fixed except the video placeholders
+(waiting on the owner's video ids). The referent's shortlist needs migration `0033_finding_for_review.sql`
+on production.

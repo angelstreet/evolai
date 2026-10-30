@@ -14,7 +14,7 @@ import { z } from 'zod';
  * the rule-based matcher in `@evolai/domain` uses them.
  */
 
-export const IMPROVEMENT_CATALOGUE_VERSION = '2026-10-19.1';
+export const IMPROVEMENT_CATALOGUE_VERSION = '2026-10-30.1';
 
 export const improvementCategorySchema = z.enum([
   'simplify',
@@ -64,6 +64,12 @@ export const EVIDENCE_TAGS = [
   'document_review',
   'translation',
   'scheduling',
+  // Professional-services work (ESN pilot rehearsal, ADR 0062).
+  'cv_profiles',
+  'tender_response',
+  'timesheet_billing',
+  'staffing',
+  'recruiting',
 ] as const;
 export const evidenceTagSchema = z.enum(EVIDENCE_TAGS);
 export type EvidenceTag = z.infer<typeof evidenceTagSchema>;
@@ -196,6 +202,53 @@ export const EVIDENCE_KEYWORDS: Readonly<Record<EvidenceTag, readonly string[]>>
   document_review: ['proofread', 'contract', 'compliance', 'relire', 'relecture', 'conformite'],
   translation: ['translat', 'tradu'],
   scheduling: ['schedule', 'calendar', 'planning', 'agenda', 'calendrier'],
+  cv_profiles: [
+    'cv',
+    'curriculum',
+    'dossier de competences',
+    'dossiers de competences',
+    'skills file',
+    'profil consultant',
+    'profils consultants',
+  ],
+  tender_response: [
+    'appel d offres',
+    'appels d offres',
+    'tender',
+    'rfp',
+    'proposition commerciale',
+    'propale',
+    'bid',
+  ],
+  timesheet_billing: [
+    'timesheet',
+    'feuille de temps',
+    'feuilles de temps',
+    'compte rendu d activite',
+    'comptes rendus d activite',
+    'factur',
+    'invoic',
+    'note de frais',
+    'notes de frais',
+    'expense',
+  ],
+  staffing: [
+    'staffing',
+    'affectation',
+    'intercontrat',
+    'inter-contrat',
+    'disponibilite des consultants',
+  ],
+  recruiting: [
+    'recrut',
+    'recruit',
+    'candidat',
+    'candidate',
+    'jobboard',
+    'job board',
+    'sourcing',
+    'onboarding',
+  ],
 };
 
 const textSchema = z.object({ fr: z.string().min(3), en: z.string().min(3) });
@@ -299,7 +352,7 @@ export const IMPROVEMENT_CATALOGUE: readonly ImprovementEntry[] = [
     risk: 'low',
     prerequisites: [],
     ownerRole: 'team_lead',
-    evidence: ['writing_drafting', 'repetitive_task'],
+    evidence: ['writing_drafting', 'repetitive_task', 'cv_profiles', 'tender_response'],
   },
   // ---- Automate ------------------------------------------------------------------------------
   {
@@ -324,7 +377,7 @@ export const IMPROVEMENT_CATALOGUE: readonly ImprovementEntry[] = [
       t('IT agrees', 'Accord de l’informatique'),
     ],
     ownerRole: 'it',
-    evidence: ['manual_reentry', 'repetitive_task'],
+    evidence: ['manual_reentry', 'repetitive_task', 'timesheet_billing'],
   },
   {
     id: 'automate.scheduled_report',
@@ -339,7 +392,7 @@ export const IMPROVEMENT_CATALOGUE: readonly ImprovementEntry[] = [
     risk: 'low',
     prerequisites: [t('Read access to the source data', 'Un accès en lecture aux données sources')],
     ownerRole: 'data_owner',
-    evidence: ['reporting', 'repetitive_task'],
+    evidence: ['reporting', 'repetitive_task', 'staffing'],
   },
   {
     id: 'automate.form_intake',
@@ -354,7 +407,7 @@ export const IMPROVEMENT_CATALOGUE: readonly ImprovementEntry[] = [
     risk: 'low',
     prerequisites: [],
     ownerRole: 'process_owner',
-    evidence: ['customer_requests', 'handover', 'unclear_process'],
+    evidence: ['customer_requests', 'handover', 'unclear_process', 'recruiting'],
   },
   {
     id: 'automate.reminders_and_routing',
@@ -369,7 +422,7 @@ export const IMPROVEMENT_CATALOGUE: readonly ImprovementEntry[] = [
     risk: 'low',
     prerequisites: [t('An agreed approval flow', 'Un circuit de validation convenu')],
     ownerRole: 'it',
-    evidence: ['approval_delay', 'customer_requests'],
+    evidence: ['approval_delay', 'customer_requests', 'timesheet_billing'],
   },
   {
     id: 'automate.scheduling_tool',
@@ -479,7 +532,7 @@ export const IMPROVEMENT_CATALOGUE: readonly ImprovementEntry[] = [
       t('Rules on what data may be used', 'Des règles sur les données utilisables'),
     ],
     ownerRole: 'team_lead',
-    evidence: ['writing_drafting', 'repetitive_task'],
+    evidence: ['writing_drafting', 'repetitive_task', 'tender_response', 'cv_profiles'],
   },
   {
     id: 'ai.meeting_notes',
@@ -497,7 +550,7 @@ export const IMPROVEMENT_CATALOGUE: readonly ImprovementEntry[] = [
       t('An approved AI tool', 'Un outil d’IA autorisé'),
     ],
     ownerRole: 'team_lead',
-    evidence: ['meeting_overload', 'writing_drafting'],
+    evidence: ['meeting_overload', 'writing_drafting', 'recruiting'],
   },
   {
     id: 'ai.knowledge_search',
@@ -617,7 +670,7 @@ export const IMPROVEMENT_CATALOGUE: readonly ImprovementEntry[] = [
     risk: 'low',
     prerequisites: [t('A data owner is named', 'Un responsable des données est désigné')],
     ownerRole: 'data_owner',
-    evidence: ['data_quality', 'manual_reentry', 'search_information'],
+    evidence: ['data_quality', 'manual_reentry', 'search_information', 'staffing'],
   },
   {
     id: 'data.clean_up',

@@ -87,6 +87,15 @@ export const estimateRepeatedTime = (
     const top = [...t.tools].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0];
     teams.push({ teamId, people: t.people, hoursPerWeek: round(t.hours), tool: top?.[0] ?? null });
   }
+  // Complementary suppression, as in the readiness score: the overall figure minus the visible
+  // teams must not describe a hidden group under the minimum (ESN rehearsal, 2026-10-30).
+  const overallShown = allPeople >= minGroup;
+  const remainder = () => allPeople - teams.reduce((n, t) => n + t.people, 0);
+  while (overallShown && teams.length > 0 && remainder() > 0 && remainder() < minGroup) {
+    teams.sort((a, b) => a.people - b.people || a.teamId.localeCompare(b.teamId));
+    teams.shift();
+    hiddenTeams += 1;
+  }
   teams.sort((a, b) => b.hoursPerWeek - a.hoursPerWeek || a.teamId.localeCompare(b.teamId));
   return {
     teams,

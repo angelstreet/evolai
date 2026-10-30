@@ -268,6 +268,17 @@ export interface SummaryWords {
 }
 
 /**
+ * A title placed inside a sentence after a colon starts lower case ("Ce qui ressort : les réponses…"),
+ * unless its first word is an acronym (IA, CV, RH).
+ */
+export const inList = (title: string): string => {
+  const first = title.split(/[\s’']/)[0] ?? '';
+  return first.length > 1 && first === first.toUpperCase()
+    ? title
+    : title.charAt(0).toLocaleLowerCase('fr') + title.slice(1);
+};
+
+/**
  * Rule-based first draft of the executive summary: the score, the three findings raised by the
  * most people (cited), the two first-ranked opportunities. A draft only: the auditor rewrites it.
  */
@@ -285,9 +296,11 @@ export const draftSummary = (
       ? w.intro({ people: o.people, score: o.overall, level: w.levelName(o.level) })
       : w.introNoScore,
   );
-  if (top.length > 0) parts.push(w.findings({ list: top.map((f) => f.label).join(w.listSep) }));
+  if (top.length > 0) {
+    parts.push(w.findings({ list: top.map((f) => inList(f.label)).join(w.listSep) }));
+  }
   if (rankedTitles.length > 0) {
-    parts.push(w.opportunities({ list: rankedTitles.slice(0, 2).join(w.listSep) }));
+    parts.push(w.opportunities({ list: rankedTitles.slice(0, 2).map(inList).join(w.listSep) }));
   }
   parts.push(rankedTitles.length > 0 ? w.closing : w.closingNoSteps);
   return { text: parts.join(' '), citations: top.map((f) => f.key) };
@@ -347,17 +360,18 @@ export const repeatedTimeLines = (
 ): string[] => {
   if (!r) return [];
   const lines: string[] = [];
+  // Per person, to the half hour: a team total reads as a big number that says little.
+  const each = (hours: number, people: number) => Math.round((hours / Math.max(1, people)) * 2) / 2;
   if (r.overall) {
-    lines.push(
-      t('report.time.overall', { people: r.overall.people, hours: r.overall.hoursPerWeek }),
-    );
+    const { people, hoursPerWeek: hours } = r.overall;
+    lines.push(t('report.time.overall', { people, hours, each: each(hours, people) }));
   }
   for (const tm of r.teams) {
     const tool = tm.tool
       ? `, ${t('report.time.tool', { tool: t(`report.time.toolName.${tm.tool as 'email'}`) })}`
       : '';
     lines.push(
-      `${t('report.time.team', { team: tm.team, hours: tm.hoursPerWeek, people: tm.people })}${tool}.`,
+      `${t('report.time.team', { team: tm.team, each: each(tm.hoursPerWeek, tm.people), people: tm.people })}${tool}.`,
     );
   }
   if (r.hiddenTeams > 0) {
@@ -381,6 +395,8 @@ export const measureLine = (
   t: Translator,
   m: StepMeasure | null | undefined,
   colon: string,
+  /** Formats the YYYY-MM-DD follow-up date for the reader; ISO when omitted. */
+  day: (iso: string) => string = (iso) => iso,
 ): string | null => {
   if (!m) return null;
   const parts: string[] = [];
@@ -389,7 +405,7 @@ export const measureLine = (
     const source = m.baselineSource ? ` (${m.baselineSource})` : '';
     parts.push(`${t('report.steps.measure.baseline')}${colon}${value}${source}`);
   }
-  if (m.followUpOn) parts.push(`${t('report.steps.measure.followUp')}${colon}${m.followUpOn}`);
+  if (m.followUpOn) parts.push(`${t('report.steps.measure.followUp')}${colon}${day(m.followUpOn)}`);
   if (m.followUpValue != null) {
     // Before → after (ADR 0061): the change in percent when there is a baseline to compare with.
     const after = [m.followUpValue, m.baselineUnit].join(' ').trim();
@@ -417,4 +433,21 @@ export const followUpsDue = (steps: readonly StepRow[], today: string): StepRow[
       s.measure?.followUpOn != null &&
       s.measure.followUpOn <= today &&
       s.measure.day90Status === null,
+  );
+
+/**
+ * What each action needs first, with the action it belongs to (ESN rehearsal, 2026-10-30): a bare
+ * "Both tools allow an export" says nothing without its action.
+ */
+export const prerequisiteLines = (
+  steps: ReadonlyArray<{ title: string; prerequisites: readonly string[] }>,
+  colon: string,
+): string[] =>
+  uniqueLines(
+    steps
+      .filter((st) => st.prerequisites.length > 0)
+      .map(
+        (st) =>
+          `${st.title}${colon}${uniqueLines(st.prerequisites).join(colon === ': ' ? '; ' : '\u00a0; ')}`,
+      ),
   );

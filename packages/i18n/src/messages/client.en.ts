@@ -107,7 +107,8 @@ export const clientEn = {
       greeting: 'Hello,',
       what: 'We are running a short survey on how our team works and uses AI tools.',
       time: 'It takes about {minutes} minutes, on your phone or computer.',
-      anonymous: 'It is anonymous: nobody at work sees your own answers.',
+      anonymous:
+        'It is anonymous: nobody at your company sees your own answers. Only the EvolAI team reads the written answers, with names masked.',
       closes: 'Please answer before {date}.',
       contact: 'Questions? Contact {contact}.',
       thanks: 'Thank you! The survey address:',

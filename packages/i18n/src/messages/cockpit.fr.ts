@@ -61,7 +61,7 @@ export const cockpitFr = {
     },
     questions: {
       title: 'Les questions',
-      lede: 'Dix questions, mot pour mot. Chacune peut être passée.',
+      lede: '14 questions, mot pour mot. Chacune peut être passée.',
       p1: { title: 'Anonyme', line: 'Ni nom, ni e-mail.' },
       p2: { title: 'Privé', line: 'Les noms en texte libre sont masqués.' },
       p3: { title: 'Groupes de 5', line: 'Les petits groupes ne sont jamais montrés.' },
@@ -99,7 +99,7 @@ export const cockpitFr = {
   },
   survey: {
     title: 'Le questionnaire',
-    lede: 'Dix questions, anonymes. Répondez ici ou dans À vous.',
+    lede: '14 questions, anonymes. Répondez ici ou dans À vous.',
     answered: 'Répondu',
     todo: 'À faire',
   },
@@ -109,7 +109,7 @@ export const cockpitFr = {
     goTo: 'Aller à la question {n}',
     next: 'Suivant',
     finish: 'Terminer',
-    pick: 'Choisissez une réponse. Anonyme.',
+    pick: 'Choisissez une réponse, ou passez. Anonyme.',
     write: 'Écrivez quelques mots pour continuer.',
     kept: 'Réponse gardée sur cet appareil.',
     placeholder: 'Votre réponse, en quelques mots',

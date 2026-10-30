@@ -265,20 +265,19 @@ export default function QuestionClient(props: Props) {
             {failed}
           </p>
         ) : null}
-        {props.text ? (
-          <div className="ck-try-nav">
-            <Button
-              variant="text"
-              color="inherit"
-              disabled={busy}
-              onClick={() => void saveAndContinue('/api/skip', {})}
-              sx={{ minHeight: 44, ml: 'auto' }}
-              data-testid="survey-skip"
-            >
-              {props.skipLabel}
-            </Button>
-          </div>
-        ) : null}
+        {/* Every question can be skipped, choices too (ESN pilot rehearsal, ADR 0062). */}
+        <div className="ck-try-nav">
+          <Button
+            variant="text"
+            color="inherit"
+            disabled={busy}
+            onClick={() => void saveAndContinue('/api/skip', {})}
+            sx={{ minHeight: 44, ml: 'auto' }}
+            data-testid="survey-skip"
+          >
+            {props.skipLabel}
+          </Button>
+        </div>
       </div>
     </section>
   );

@@ -10,9 +10,14 @@ import Typography from '@mui/material/Typography';
 import type { ReactNode } from 'react';
 import type { Horizon, Quadrant, ReadinessGroup, ReportSnapshot } from '@evolai/contracts';
 import { formatDate } from '@evolai/i18n';
-import { enumLabelOf } from '@/lib/enumLabel';
 import { getT } from '@/lib/i18n';
-import { findingLine, measureLine, repeatedTimeLines, weightsSentence } from '@/lib/reportModel';
+import {
+  findingLine,
+  measureLine,
+  prerequisiteLines,
+  repeatedTimeLines,
+  weightsSentence,
+} from '@/lib/reportModel';
 
 /**
  * The audit report as the client reads it (TASK-V, ADR 0041). Renders a frozen snapshot only, so
@@ -57,6 +62,9 @@ export default function ReportView({
     n === null ? t('report.readiness.noAxis') : t('report.readiness.scoreOf', { score: n });
   const lvl = (l: 'low' | 'medium' | 'high') => t(`report.steps.level.${l}`);
   const colon = locale === 'fr' ? '\u00a0: ' : ': ';
+  const day = (iso: string) =>
+    formatDate(locale, `${iso}T00:00:00Z`, { dateStyle: 'long', timeZone: 'UTC' });
+  const before = prerequisiteLines(s.steps, colon);
 
   const axisRows = (g: ReadinessGroup) => (
     <Box component="ul" sx={{ m: 0, p: 0, listStyle: 'none' }}>
@@ -112,6 +120,7 @@ export default function ReportView({
           })}
           {' · '}
           {t('report.view.aggregateNote')}
+          {s.locale !== locale ? ` ${t('report.view.reportLanguage', { language: s.locale })}` : ''}
         </Typography>
         {actions ? (
           <Stack direction="row" spacing={2} sx={{ mt: 4, displayPrint: 'none' }}>
@@ -175,7 +184,31 @@ export default function ReportView({
           </Typography>
         )}
         {s.readiness.teams.length > 1 ? (
-          <Box sx={{ overflowX: 'auto', mt: 4 }}>
+          // Phones: one card per team; the table needs more width than a phone has.
+          <Stack
+            spacing={2}
+            sx={{ mt: 4, display: { xs: 'flex', sm: 'none' } }}
+            data-testid="rv-team-cards"
+          >
+            {s.readiness.teams.map((tm) => (
+              <Box key={tm.team} sx={{ border: 1, borderColor: 'divider', borderRadius: 2, p: 3 }}>
+                <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                  {tm.team} · {t('report.readiness.people', { count: tm.people })}
+                </Typography>
+                <Typography variant="body2" sx={{ fontVariantNumeric: 'tabular-nums' }}>
+                  {[
+                    `${t('report.readiness.overall')}${colon}${tm.overall ?? '—'}`,
+                    ...tm.axes.map(
+                      (a) => `${t(`report.readiness.axis.${a.axis}`)}${colon}${a.score ?? '—'}`,
+                    ),
+                  ].join(' · ')}
+                </Typography>
+              </Box>
+            ))}
+          </Stack>
+        ) : null}
+        {s.readiness.teams.length > 1 ? (
+          <Box sx={{ overflowX: 'auto', mt: 4, display: { xs: 'none', sm: 'block' } }}>
             <Table size="small" aria-label={t('report.readiness.team')}>
               <TableHead>
                 <TableRow>
@@ -239,7 +272,7 @@ export default function ReportView({
                 </Typography>
                 <Typography variant="body2" color="text.secondary" component="span">
                   {' · '}
-                  {enumLabelOf(t, 'axis', f.axis)} · {findingLine(t, f)}
+                  {findingLine(t, f)}
                 </Typography>
               </Box>
             ))}
@@ -324,7 +357,10 @@ export default function ReportView({
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 {t(`report.ranking.quadrant.${o.quadrant}`)} ·{' '}
-                {t('report.ranking.impactEffort', { impact: lvl(o.impact), effort: lvl(o.effort) })}
+                {t('report.ranking.impactEffort', {
+                  impact: lvl(o.impact).toLowerCase(),
+                  effort: lvl(o.effort).toLowerCase(),
+                })}
               </Typography>
               <Box component="ul" sx={{ m: 0, mt: 1, pl: 5 }}>
                 {s.steps
@@ -354,13 +390,13 @@ export default function ReportView({
                           .join(' · ')
                           .replace(' : ', locale === 'fr' ? ' : ' : ': ')}
                       </Typography>
-                      {measureLine(t, st.measure, colon) ? (
+                      {measureLine(t, st.measure, colon, day) ? (
                         <Typography
                           variant="body2"
                           color="text.secondary"
                           data-testid="report-step-measure"
                         >
-                          {measureLine(t, st.measure, colon)}
+                          {measureLine(t, st.measure, colon, day)}
                         </Typography>
                       ) : null}
                     </Box>
@@ -416,13 +452,13 @@ export default function ReportView({
             ))}
           </Box>
         )}
-        {s.prerequisites.length > 0 ? (
+        {before.length > 0 ? (
           <>
             <Typography variant="cardTitle" component="h3" sx={{ m: 0, mt: 4 }}>
               {t('report.view.prerequisitesTitle')}
             </Typography>
             <Box component="ul" sx={{ m: 0, mt: 1, pl: 5 }}>
-              {s.prerequisites.map((p) => (
+              {before.map((p) => (
                 <Box component="li" key={p} sx={{ py: 0.5 }}>
                   {p}
                 </Box>

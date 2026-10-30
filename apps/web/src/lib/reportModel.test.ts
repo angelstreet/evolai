@@ -5,6 +5,8 @@ import {
   draftSummary,
   findingLine,
   followUpsDue,
+  inList,
+  repeatedTimeLines,
   measureLine,
   methodologyNote,
   findLeak,
@@ -225,7 +227,7 @@ describe('summary draft', () => {
   it('cites the findings it names, most raised first', () => {
     const d = draftSummary(readiness, findings, ['Automate the weekly report'], words);
     expect(d.text).toBe(
-      '12 people answered; readiness 48/100 (level L2). Main findings: Weekly report by hand; Unsure how to check answers. First steps: Automate the weekly report. Details follow.',
+      '12 people answered; readiness 48/100 (level L2). Main findings: weekly report by hand; unsure how to check answers. First steps: automate the weekly report. Details follow.',
     );
     expect(d.citations).toEqual(findings.map((f) => f.key));
   });
@@ -401,5 +403,28 @@ describe('findingLine and measureLine (TASK-AJ A6, A8, A9)', () => {
       '2027-01-31',
     );
     expect(due.map((s) => s.id)).toEqual(['a']);
+  });
+});
+
+describe('repeatedTimeLines (ESN rehearsal, 2026-10-30)', () => {
+  it('says hours per person, with plurals, and why teams are hidden', () => {
+    const r = {
+      overall: { people: 10, hoursPerWeek: 15 },
+      teams: [{ team: 'Back office', people: 6, hoursPerWeek: 6, tool: 'spreadsheet' }],
+      hiddenTeams: 1,
+    };
+    expect(repeatedTimeLines(createTranslator('en'), r, 5)).toEqual([
+      '10 people: about 1.5 hours a week per person, 15 hours in all.',
+      'Back office: about 1 hour a week per person (6 people), mostly in a spreadsheet.',
+      '1 team is not shown to protect privacy.',
+    ]);
+  });
+});
+
+describe('inList', () => {
+  it('lowers the first letter, keeps acronyms', () => {
+    expect(inList('Les réponses d’IA sont utilisées')).toBe('les réponses d’IA sont utilisées');
+    expect(inList('CV refaits à la main')).toBe('CV refaits à la main');
+    expect(inList('IA et données')).toBe('IA et données');
   });
 });

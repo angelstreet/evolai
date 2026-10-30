@@ -216,11 +216,12 @@ export const reportEn = {
     title: 'Time on repeated tasks',
     subtitle:
       'What people said about their main repeated task: how often, and how long each time. Self-reported and rounded: an order of magnitude, not a measurement.',
-    overall: '{people} people: about {hours} hours a week in all.',
-    team: '{team}: about {hours} hours a week, {people} people',
+    overall:
+      '{people} people: about {each, plural, =0 {less than half an hour} one {# hour} other {# hours}} a week per person, {hours, plural, one {# hour} other {# hours}} in all.',
+    team: '{team}: about {each, plural, =0 {less than half an hour} one {# hour} other {# hours}} a week per person ({people} people)',
     tool: 'mostly in {tool}',
     hidden:
-      '{count, plural, one {# team is not shown} other {# teams are not shown}}: under {n} answers each.',
+      '{count, plural, one {# team is not shown} other {# teams are not shown}} to protect privacy.',
     toolName: {
       spreadsheet: 'a spreadsheet',
       email: 'email',
@@ -263,6 +264,11 @@ export const reportEn = {
         keep: 'Keep as is',
       },
       rejectedTitle: 'Rejected',
+      autoPicked: 'picked by the app for now',
+      pick: 'Ask the referent',
+      pickHelp:
+        'The referent confirms or disputes up to {max} findings you tick. With none ticked, the app picks up to {max} and leaves out word themes.',
+      picked: '{count} of {max} ticked for the referent',
     },
     result: {
       proposed:
@@ -272,7 +278,12 @@ export const reportEn = {
       approvedWithActions: 'Approved. Suggested actions are under Actions.',
       rejected: 'Rejected.',
       corrected: 'Marked corrected.',
-      updated: 'Saved. The action made from it says the same now.',
+      updated:
+        'Saved. The action made from it has the new title; its evidence and steps stay. Check them under Actions.',
+      picked: 'Ticked for the referent.',
+      unpicked: 'No longer asked of the referent.',
+      too_many: 'At most {count} findings go to the referent. Untick one first.',
+      locked: 'The report is published. Start a new version first.',
       unavailable: 'Editing findings is not set up on this server yet.',
       kept: 'Kept. The report notes the dispute.',
       few_people: 'Findings need at least {n} finished surveys.',
@@ -285,28 +296,29 @@ export const reportEn = {
     rule: {
       choice: {
         v1_source_check: {
-          label: 'AI answers are used without checking a source',
+          label: 'No shared habit of checking AI answers',
           statement:
-            '{count} of {total} people use an AI answer as is or only reread it, without checking another source.',
+            '{count} of {total} people use an AI answer as is or only reread it: there is no shared way to check a source.',
         },
         v1_data_sharing: {
-          label: 'Client data goes into public AI tools as is',
-          statement: '{count} of {total} people paste client data into a public AI tool as is.',
+          label: 'No clear rule on client data in public AI tools',
+          statement:
+            '{count} of {total} people would paste client data into a public AI tool as is: the rule is not clear to them.',
         },
         v1_request_style: {
-          label: 'Requests to AI are too short',
+          label: 'No shared way to brief an AI tool',
           statement:
-            '{count} of {total} people ask an AI tool in one short line, with no goal, audience or format.',
+            '{count} of {total} people ask an AI tool in one short line: there is no shared way to give the goal, audience and format.',
         },
         v1_report_flow: {
-          label: 'A tool is sought before the work is mapped',
+          label: 'Work is not mapped before choosing a tool',
           statement:
-            '{count} of {total} people would look for a tool before listing the steps of a manual report.',
+            '{count} of {total} people would look for a tool before listing the steps: mapping the work first is not yet a habit.',
         },
         v1_repeat_data: {
-          label: 'AI is the first idea for simple copying work',
+          label: 'Simple automation does not come first for copying work',
           statement:
-            '{count} of {total} people would use an AI assistant where a simple automation would do.',
+            '{count} of {total} people would reach for an AI assistant where a simple automation would do.',
         },
         v1_repeat_time: {
           label: 'Repeated tasks take 3 hours or more a week',
@@ -424,11 +436,11 @@ export const reportEn = {
     },
     ownerRole: {
       team_lead: 'Team lead',
-      process_owner: 'Process owner',
-      it: 'IT',
-      data_owner: 'Data owner',
-      training: 'Training lead',
-      security_privacy: 'Security and privacy',
+      process_owner: 'Whoever runs the task',
+      it: 'Whoever manages the tools',
+      data_owner: 'Whoever keeps the data',
+      training: 'Whoever organises training',
+      security_privacy: 'Management, with whoever handles data protection',
       sponsor: 'Referent',
     },
     tag: {
@@ -450,6 +462,11 @@ export const reportEn = {
       document_review: 'document checks',
       translation: 'translation',
       scheduling: 'scheduling',
+      cv_profiles: 'CVs and skills files',
+      tender_response: 'tenders and proposals',
+      timesheet_billing: 'timesheets and billing',
+      staffing: 'staffing',
+      recruiting: 'recruiting',
     },
   },
   ranking: {
@@ -544,6 +561,7 @@ export const reportEn = {
     receiveForward: 'To forward it, download the PDF or print this page, then send it by email.',
     clientTitle: 'Report',
     clientSubtitle: 'What EvolAI found and what to do next. Read only.',
+    reportLanguage: '{language, select, fr {Written in French.} other {Written in English.}}',
     aggregateNote: 'One report for the whole mission, all teams together.',
     page: 'Page {page} of {pages}',
     contents: 'Contents',

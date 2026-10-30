@@ -31,15 +31,42 @@ const inputs: QualityInputs = {
   timeShown: true,
   risksNote: ' ',
   findings: [
-    { status: 'approved', people: 6, notes: 0, review: { verdict: 'confirmed', resolution: null } },
-    { status: 'approved', people: 0, notes: 1, review: { verdict: 'disputed', resolution: null } },
     {
       status: 'approved',
+      source: 'rule',
+      ruleKey: 'choice:a',
+      forReview: false,
+      people: 6,
+      notes: 0,
+      review: { verdict: 'confirmed', resolution: null },
+    },
+    {
+      status: 'approved',
+      source: 'auditor',
+      ruleKey: null,
+      forReview: false,
+      people: 0,
+      notes: 1,
+      review: { verdict: 'disputed', resolution: null },
+    },
+    {
+      status: 'approved',
+      source: 'rule',
+      ruleKey: 'tag:x',
+      forReview: false,
       people: 3,
       notes: 0,
       review: { verdict: 'disputed', resolution: 'kept' },
     },
-    { status: 'draft', people: 9, notes: 0, review: null },
+    {
+      status: 'draft',
+      source: 'rule',
+      ruleKey: 'choice:b',
+      forReview: false,
+      people: 9,
+      notes: 0,
+      review: null,
+    },
   ],
   steps: [
     step({
@@ -60,7 +87,9 @@ describe('audit facts (ADR 0061)', () => {
     const f = auditFacts(inputs);
     expect(f.approvedFindings).toBe(3);
     expect(f.reportableFindings).toBe(2);
-    expect(f.reviewedFindings).toBe(2);
+    // The shortlist leaves out the keyword theme and the finding under the minimum.
+    expect(f.reviewAsked).toBe(2);
+    expect(f.reviewedFindings).toBe(1);
     expect(f.openDisputes).toBe(1);
     expect(f.conditionsScored).toBe(true);
     expect(f.risksNote).toBe(false);

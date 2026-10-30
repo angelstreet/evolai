@@ -99,12 +99,13 @@ describe('QuestionClient, free-text question', () => {
     expect(html).toContain('23 sur 400 caractères');
   });
 
-  it('a choice question renders radio options, Next waits for a pick, no Previous on question 1', () => {
+  it('a choice question renders radio options, Next waits for a pick, Skip is there, no Previous on question 1', () => {
     const html = render('fr', 0);
     expect(html).toContain('role="radiogroup"');
-    expect(html).toContain('Choisissez une réponse. Anonyme.');
+    expect(html).toContain('Choisissez une réponse, ou passez. Anonyme.');
     expect(html).not.toContain('survey-prev');
-    expect(html).not.toContain('Passer');
+    // Every question can be skipped (ADR 0062).
+    expect(html).toContain('data-testid="survey-skip"');
     expect(html).not.toContain('<textarea');
     expect(html.match(/ck-opt/g)?.length).toBeGreaterThanOrEqual(4);
     expect(html.lastIndexOf('Je ne sais pas / Ça dépend')).toBeGreaterThan(

@@ -25,6 +25,7 @@ const full: AuditFacts = {
   timeShown: true,
   approvedFindings: 4,
   reportableFindings: 4,
+  reviewAsked: 4,
   reviewedFindings: 4,
   openDisputes: 0,
   conditionsScored: true,

@@ -65,7 +65,7 @@ export const cockpitEn = {
     },
     questions: {
       title: 'The questions',
-      lede: 'Ten questions, word for word. Skip any.',
+      lede: '14 questions, word for word. Skip any.',
       p1: { title: 'Anonymous', line: 'No name, no email.' },
       p2: { title: 'Private', line: 'Names in free text are hidden.' },
       p3: { title: 'Groups of 5', line: 'Smaller groups are never shown.' },
@@ -103,7 +103,7 @@ export const cockpitEn = {
   },
   survey: {
     title: 'The survey',
-    lede: 'Ten questions, anonymous. Answer here or in Try it.',
+    lede: '14 questions, anonymous. Answer here or in Try it.',
     answered: 'Answered',
     todo: 'To do',
   },
@@ -113,7 +113,7 @@ export const cockpitEn = {
     goTo: 'Go to question {n}',
     next: 'Next',
     finish: 'Finish',
-    pick: 'Pick one answer. Anonymous.',
+    pick: 'Pick one answer, or skip. Anonymous.',
     write: 'Write a few words to continue.',
     kept: 'Answer kept on this device.',
     placeholder: 'Your answer, in a few words',

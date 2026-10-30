@@ -9,10 +9,10 @@ import {
 import { answerValueText, submittedCounts } from './answersData';
 import { withTenant } from './db';
 import { MIN_GROUP_SIZE } from './invitationTracking';
-import { isOpenDispute, isReportable } from './findingRules';
+import { isOpenDispute, isReportable, REVIEW_MAX, reviewShortlist } from './findingRules';
 import { tableReady } from './visitData';
 
-export { isOpenDispute, isReportable };
+export { isOpenDispute, isReportable, REVIEW_MAX, reviewShortlist };
 
 /**
  * Findings of a mission (TASK-AJ A1 to A3, ADR 0058): engagement-level statements, each resting on
@@ -63,6 +63,10 @@ export interface FindingRow {
   readonly notes: number;
   /** The referent's confirm or dispute (A8). */
   readonly review: FindingReview | null;
+  /** Proposal rule (`tag:…` = keyword theme); null when written by the auditor. */
+  readonly ruleKey: string | null;
+  /** Picked for the referent's review (ADR 0062). */
+  readonly forReview: boolean;
   readonly opportunityId: string | null;
 }
 
@@ -94,15 +98,27 @@ const audit = (
 interface Ready {
   readonly findings: boolean;
   readonly visit: boolean;
+  readonly pick: boolean;
 }
 
 const readiness = async (client: pg.PoolClient): Promise<Ready> => ({
   findings: await tableReady(client, 'findings'),
   visit: await tableReady(client, 'finding_reviews'),
+  pick: await pickReady(client),
 });
 
+/** `findings.for_review` exists (migration 0033, ADR 0062). */
+const pickReady = async (client: pg.PoolClient): Promise<boolean> =>
+  (
+    await client.query(
+      `SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'findings' AND column_name = 'for_review'`,
+    )
+  ).rowCount === 1;
+
 const selectFindings = (ready: Ready) => `
-  SELECT f.id, f.axis, f.label, f.statement, f.status, f.source, f.tags,
+  SELECT f.id, f.axis, f.label, f.statement, f.status, f.source, f.tags, f.rule_key,
+         ${ready.pick ? 'f.for_review' : 'false AS for_review'},
          (SELECT count(DISTINCT a.submission_id)::int FROM finding_evidence fe
             JOIN answers a ON a.id = fe.answer_id
             JOIN submissions s ON s.id = a.submission_id AND s.status = 'submitted'
@@ -134,6 +150,8 @@ type DbFinding = {
   review_comment: string | null;
   resolution: 'corrected' | 'kept' | null;
   opportunity_id: string | null;
+  rule_key: string | null;
+  for_review: boolean;
 };
 
 const fromDb = (r: DbFinding): FindingRow => ({
@@ -150,6 +168,8 @@ const fromDb = (r: DbFinding): FindingRow => ({
     ? { verdict: r.verdict, comment: r.review_comment ?? '', resolution: r.resolution }
     : null,
   opportunityId: r.opportunity_id,
+  ruleKey: r.rule_key,
+  forReview: r.for_review === true,
 });
 
 /** Every finding of the mission, rejected ones last; `null` before migration 0029. */
@@ -561,15 +581,57 @@ export const reviewItemsWith = async (
     [tenantId, engagementId],
   );
   if (report.rows[0]?.status !== 'in_review') return [];
-  return ((await listFindingsWith(client, tenantId, engagementId)) ?? [])
-    .filter((f) => f.status === 'approved' && isReportable(f))
-    .map((f) => ({
+  return reviewShortlist((await listFindingsWith(client, tenantId, engagementId)) ?? []).map(
+    (f) => ({
       id: f.id,
       label: f.label,
       people: f.people >= MIN_GROUP_SIZE ? f.people : 0,
       review: f.review,
-    }));
+    }),
+  );
 };
+
+/** Whether the auditor can pick the findings for the referent's review (migration 0033). */
+export const canPickForReview = (tenantId: TenantId) => withTenant(tenantId, (c) => pickReady(c));
+
+/**
+ * Pick or unpick an approved finding for the referent's review (ADR 0062), at most `REVIEW_MAX`.
+ * Not once the report is published.
+ */
+export const setForReview = (
+  tenantId: TenantId,
+  actor: string,
+  findingId: string,
+  forReview: boolean,
+): Promise<void> =>
+  withTenant(tenantId, async (client) => {
+    if (!(await pickReady(client))) throw new FindingError('unavailable');
+    const { rows } = await client.query<{ engagement_id: string; status: string }>(
+      'SELECT engagement_id, status FROM findings WHERE tenant_id = $1 AND id = $2',
+      [tenantId, findingId],
+    );
+    const f = rows[0];
+    if (!f || f.status !== 'approved') throw new FindingError('not_found');
+    const report = await client.query<{ status: string }>(
+      'SELECT status FROM audit_reports WHERE tenant_id = $1 AND engagement_id = $2',
+      [tenantId, f.engagement_id],
+    );
+    if (report.rows[0]?.status === 'published') throw new FindingError('locked');
+    if (forReview) {
+      const picked = await client.query<{ n: number }>(
+        `SELECT count(*)::int AS n FROM findings
+          WHERE tenant_id = $1 AND engagement_id = $2 AND for_review AND id <> $3`,
+        [tenantId, f.engagement_id, findingId],
+      );
+      if ((picked.rows[0]?.n ?? 0) >= REVIEW_MAX) throw new FindingError('too_many');
+    }
+    await client.query('UPDATE findings SET for_review = $3 WHERE tenant_id = $1 AND id = $2', [
+      tenantId,
+      findingId,
+      forReview,
+    ]);
+    await audit(client, tenantId, actor, 'finding.update', findingId, { forReview });
+  });
 
 export const reviewItems = (tenantId: TenantId, engagementId: string) =>
   withTenant(tenantId, (c) => reviewItemsWith(c, tenantId, engagementId));

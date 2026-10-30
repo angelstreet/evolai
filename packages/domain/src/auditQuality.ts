@@ -50,7 +50,9 @@ export interface AuditFacts {
   readonly timeShown: boolean;
   readonly approvedFindings: number;
   readonly reportableFindings: number;
-  /** Approved findings the referent confirmed, or disputed and the auditor answered. */
+  /** Findings sent to the referent's review (the shortlist, ADR 0062). */
+  readonly reviewAsked: number;
+  /** Of those, the ones the referent confirmed, or disputed and the auditor answered. */
   readonly reviewedFindings: number;
   readonly openDisputes: number;
   /** The Conditions axis of the readiness score has a value. */
@@ -109,7 +111,7 @@ const dimensionScore = (d: QualityDimension, f: AuditFacts): number => {
       return clamp5((f.risksNote ? 2 : 0) + 2 * covered + (f.conditionsScored ? 1 : 0));
     }
     case 'validation':
-      return clamp5(5 * share(f.reviewedFindings, f.approvedFindings));
+      return clamp5(5 * share(f.reviewedFindings, f.reviewAsked));
     case 'measurement':
       return clamp5(5 * share(steps.filter((s) => s.measured).length, steps.length));
   }

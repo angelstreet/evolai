@@ -4,7 +4,13 @@ import PDFDocument from 'pdfkit';
 import type { Horizon, Quadrant, ReportSnapshot } from '@evolai/contracts';
 import { formatDate, type SupportedLocale, type Translator } from '@evolai/i18n';
 import { palette } from '@evolai/ui/palette';
-import { findingLine, measureLine, repeatedTimeLines, weightsSentence } from './reportModel';
+import {
+  findingLine,
+  measureLine,
+  prerequisiteLines,
+  repeatedTimeLines,
+  weightsSentence,
+} from './reportModel';
 
 /**
  * Server-side PDF of a published audit report (TASK-V, ADR 0042).
@@ -286,7 +292,9 @@ export const renderReportPdf = (
         ].join(' · '),
         { colour: C.muted, size: SIZE.small, indent: 14, gap: 0.5 },
       );
-      const measure = measureLine(t, st.measure, colon);
+      const measure = measureLine(t, st.measure, colon, (iso) =>
+        formatDate(locale, `${iso}T00:00:00Z`, { dateStyle: 'long', timeZone: 'UTC' }),
+      );
       if (measure) text(measure, { colour: C.muted, size: SIZE.small, indent: 14, gap: 0.5 });
     }
   }
@@ -306,10 +314,11 @@ export const renderReportPdf = (
   heading(t('report.view.risksTitle'));
   if (s.risks.length === 0) text(t('report.view.noRisks'));
   for (const r of s.risks) bullet(r);
-  if (s.prerequisites.length > 0) {
+  const before = prerequisiteLines(s.steps, colon);
+  if (before.length > 0) {
     doc.moveDown(0.4);
     text(t('report.view.prerequisitesTitle'), { bold: true, size: SIZE.card, gap: 0.2 });
-    for (const p of s.prerequisites) bullet(p);
+    for (const p of before) bullet(p);
   }
 
   // Method and privacy

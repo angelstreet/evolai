@@ -5,7 +5,7 @@
  *
  *   pnpm questionnaire:apply --engagement-id <uuid> [--expect-host <db host>]
  *
- * Edit the questions in packages/contracts/src/questionnaires/pilot-v2.json (see docs/RUNBOOK.md,
+ * Edit the questions in packages/contracts/src/questionnaires/pilot-v3.json (see docs/RUNBOOK.md,
  * "Change the questions"), deploy, then run this once per engagement that has no answers yet.
  */
 import pg from 'pg';

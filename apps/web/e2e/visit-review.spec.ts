@@ -145,7 +145,7 @@ test('a visit note becomes a finding; a dispute holds the report until answered'
     await own.getByTestId('finding-edit-save').click();
     const renamed = own.getByTestId('finding').filter({ hasText: `${LABEL}, night team` });
     await expect(renamed.getByTestId('finding-edit-result')).toHaveText(
-      'Saved. The action made from it says the same now.',
+      'Saved. The action made from it has the new title; its evidence and steps stay. Check them under Actions.',
     );
     await expect(
       own.getByTestId('report-opportunity').filter({ hasText: `${LABEL}, night team` }),

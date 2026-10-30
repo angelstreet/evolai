@@ -38,7 +38,7 @@ export interface RankInput {
   /** Auditor's 0..1 impact score on the opportunity, if set. */
   readonly impactScore: number | null;
   /** Accepted steps of this opportunity. */
-  readonly steps: readonly { impact: Level; effort: Level }[];
+  readonly steps: readonly { impact: Level; effort: Level; category?: string }[];
 }
 
 /**
@@ -71,9 +71,12 @@ export const rankOpportunities = (items: readonly RankInput[]): ReportOpportunit
         effort,
         order,
         priority: 2 * levelValue(impact) - levelValue(effort),
+        rules: o.steps.some((s) => s.category === 'governance') ? 1 : 0,
       };
     })
-    .sort((a, b) => b.priority - a.priority || a.order - b.order)
+    // At equal priority, rules on data come first: they protect clients before anything else
+    // changes (ESN pilot rehearsal, ADR 0062).
+    .sort((a, b) => b.priority - a.priority || b.rules - a.rules || a.order - b.order)
     .map((r, i) => ({
       id: r.o.id,
       rank: i + 1,
@@ -89,6 +92,7 @@ export interface PlanStepInput {
   readonly title: string;
   readonly owner: string;
   readonly horizon: Horizon;
+  readonly category?: string;
 }
 
 const HORIZONS: readonly Horizon[] = ['d30', 'd60', 'd90'];
@@ -103,7 +107,13 @@ export const buildPlan = (
 ): PlanItem[] => {
   const out: PlanItem[] = [];
   for (const h of HORIZONS) {
-    for (const s of steps.filter((x) => x.horizon === h)) {
+    // Rules first in each horizon (ADR 0062), then step order.
+    const inH = steps.filter((x) => x.horizon === h);
+    const ordered = [
+      ...inH.filter((x) => x.category === 'governance'),
+      ...inH.filter((x) => x.category !== 'governance'),
+    ];
+    for (const s of ordered) {
       out.push({ id: `step-${s.id}`.slice(0, 40), horizon: h, text: s.title, owner: s.owner });
     }
     out.push({

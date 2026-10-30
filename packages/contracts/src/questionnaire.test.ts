@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import {
   PILOT_QUESTIONNAIRE,
   PILOT_QUESTIONNAIRE_V1,
+  PILOT_QUESTIONNAIRE_V2,
   UNSURE_VALUE,
   parseQuestionnaireDefinition,
   toItemRow,
@@ -13,7 +14,7 @@ import {
 const JUDGEMENT =
   /bonne demande|mauvaise|pas toujours la bonne|good request|wrong|not always the (right )?answer/i;
 
-describe('pilot questionnaire v2', () => {
+describe('pilot questionnaire v3', () => {
   const q = PILOT_QUESTIONNAIRE;
 
   it('is valid and has six choices, three free-text questions, the task inventory and one role question', () => {
@@ -43,7 +44,20 @@ describe('pilot questionnaire v2', () => {
       expect(now.get(old.code)?.prompt).toEqual(old.prompt);
       expect(now.get(old.code)?.options).toEqual(old.options);
     }
-    expect(q.version).toBe(PILOT_QUESTIONNAIRE_V1.version + 1);
+    expect(q.version).toBe(PILOT_QUESTIONNAIRE_V1.version + 2);
+  });
+
+  it('keeps every v2 code, prompt and option value; only helpers and one label change (ADR 0062)', () => {
+    const v2 = PILOT_QUESTIONNAIRE_V2.questions;
+    expect(q.questions.map((x) => x.code)).toEqual(v2.map((x) => x.code));
+    for (const [i, old] of v2.entries()) {
+      const now = q.questions[i];
+      expect(now?.prompt).toEqual(old.prompt);
+      expect(now?.options.map((o) => o.value)).toEqual(old.options.map((o) => o.value));
+      expect(now?.weight).toBe(old.weight);
+    }
+    const task = q.questions.find((x) => x.code === 'v1_repeat_task');
+    expect(task?.helper.en).toContain('not a client assignment');
   });
 
   it('tags the three free-text questions with friction, tooling and opportunity', () => {

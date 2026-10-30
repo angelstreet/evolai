@@ -155,8 +155,12 @@ export interface TeamProgress {
  */
 export const teamProgress = async (invite: InvitationRecord): Promise<TeamProgress> =>
   withTenant(invite.tenantId, async (client) => {
+    // With one shared address per team (ADR 0052) an invitation exists only once someone opens
+    // it, so the team's headcount is the better total ("1 of 8", not "1 of 1").
     const counts = await client.query<{ invited: number; answered: number }>(
-      `SELECT COUNT(*)::int AS invited,
+      `SELECT GREATEST(COUNT(*)::int,
+                       COALESCE((SELECT expected_headcount FROM teams
+                                  WHERE tenant_id = $1 AND id = $3), 0)) AS invited,
               COUNT(*) FILTER (WHERE status = 'submitted')::int AS answered
          FROM invitations
         WHERE tenant_id = $1 AND engagement_id = $2 AND team_id = $3 AND status <> 'revoked'`,

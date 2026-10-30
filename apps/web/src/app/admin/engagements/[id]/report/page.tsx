@@ -25,7 +25,7 @@ import { qualityOf } from '@/lib/auditQualityFacts';
 import { sessionTenantFor } from '@/lib/authServer';
 import { enumLabelOf } from '@/lib/enumLabel';
 import { getT } from '@/lib/i18n';
-import { canEditFindings, listFindings } from '@/lib/findingsData';
+import { canEditFindings, canPickForReview, listFindings } from '@/lib/findingsData';
 import { isUuid } from '@/lib/invitationForm';
 import { MIN_GROUP_SIZE } from '@/lib/invitationTracking';
 import {
@@ -92,11 +92,12 @@ export default async function ReportEditorPage({
       </section>
     );
   }
-  const [bundle, findings, canEdit, followUpReady] = await Promise.all([
+  const [bundle, findings, canEdit, followUpReady, canPick] = await Promise.all([
     loadReportForEngagement(tenantId, params.id),
     listFindings(tenantId, params.id),
     canEditFindings(tenantId),
     canRecordFollowUpValue(tenantId),
+    canPickForReview(tenantId),
   ]);
   const findingsCard = (
     <Card
@@ -110,6 +111,7 @@ export default async function ReportEditorPage({
         minGroup={MIN_GROUP_SIZE}
         disabled={false}
         canEdit={canEdit}
+        canPick={canPick}
       />
     </Card>
   );

@@ -28,13 +28,21 @@ describe('estimateRepeatedTime', () => {
       ...person('c2', 'C', 'daily', 'gt_3h'),
     ].flat();
     const out = estimateRepeatedTime(answers, 5);
-    expect(out.teams).toEqual([
-      { teamId: 'A', people: 5, hoursPerWeek: 16, tool: 'email' },
-      { teamId: 'B', people: 5, hoursPerWeek: 10, tool: 'spreadsheet' },
-    ]);
-    expect(out.hiddenTeams).toBe(1);
+    // C is under 5; showing A and B would give C away (12 - 5 - 5 = 2), so A is hidden too.
+    expect(out.teams).toEqual([{ teamId: 'B', people: 5, hoursPerWeek: 10, tool: 'spreadsheet' }]);
+    expect(out.hiddenTeams).toBe(2);
     // Everyone with both answers, hidden team included: 15.625 + 10 + 40 = 65.6.
     expect(out.overall).toEqual({ people: 12, hoursPerWeek: 66 });
+  });
+
+  it('shows every team of 5 or more when no hidden group can be worked out', () => {
+    const answers = [
+      ...['a1', 'a2', 'a3', 'a4', 'a5'].map((id) => person(id, 'A', 'daily', '15_60m')),
+      ...['b1', 'b2', 'b3', 'b4', 'b5'].map((id) => person(id, 'B', 'weekly', '1_3h')),
+    ].flat();
+    const out = estimateRepeatedTime(answers, 5);
+    expect(out.teams.map((t) => t.teamId)).toEqual(['A', 'B']);
+    expect(out.hiddenTeams).toBe(0);
   });
 
   it('says nothing under the minimum group', () => {

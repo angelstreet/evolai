@@ -31,9 +31,10 @@ survey, and the same browser comes back to its own answers. The referent can ent
 "N of M answered" (words instead of figures under 5 people), sends one **reminder** on the day we suggest, and reads
 the report when it is published.
 
-## What the survey asks (questionnaire v2)
+## What the survey asks (questionnaire v3)
 
-About 8 minutes, 14 questions, in French or English, on a phone. Every question can be skipped. The wording is the
+About 8 minutes, 14 questions, in French or English, on a phone. Every question can be skipped. The questions on
+the repeated task ask about work for the person's own company, not a client assignment (questionnaire v3, ADR 0062). The wording is the
 same for everyone and never hints at a right answer.
 
 - **Six short choice questions** about what the person usually does in a situation: an AI answer with no source,
@@ -113,8 +114,9 @@ counts the interviews, observations and workshops (ADR 0059).
 
 ## Check and publish
 
-13. "Mark ready for review": the referent now sees the findings (titles and counts only) in their Report tab and
-    confirms or disputes each one, with one line. A dispute shows under Findings; answer it with **Mark
+13. Tick **Ask the referent** on the findings the referent should check (at most 7). With none ticked, the app
+    picks up to 7, leaving out word themes. "Mark ready for review": the referent now sees those findings
+    (titles and counts only) at the top of their Report tab and confirms or disputes each one, with one line. A dispute shows under Findings; answer it with **Mark
     corrected** (after you changed the finding; editing it with the pencil does this for you) or **Keep as
     is**. You cannot publish while a dispute is
     unanswered; a kept dispute is noted in the report. Then **Preview as the client**. You see exactly what the client will see, or the

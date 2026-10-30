@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import pilotV1 from './questionnaires/pilot-v1.json' with { type: 'json' };
 import pilotV2 from './questionnaires/pilot-v2.json' with { type: 'json' };
+import pilotV3 from './questionnaires/pilot-v3.json' with { type: 'json' };
 import { competencyAxisSchema, sensitivitySchema } from './template.js';
 
 /**
@@ -85,11 +86,15 @@ export const parseQuestionnaireDefinition = (raw: unknown): QuestionnaireDefinit
 export const PILOT_QUESTIONNAIRE_V1: QuestionnaireDefinition =
   parseQuestionnaireDefinition(pilotV1);
 
+/** Questionnaire v2, kept for the record: v1 plus the task inventory (TASK-AJ A5, ADR 0059). */
+export const PILOT_QUESTIONNAIRE_V2: QuestionnaireDefinition =
+  parseQuestionnaireDefinition(pilotV2);
+
 /**
- * The questionnaire the survey uses: v2 is v1 plus the task inventory (TASK-AJ A5, ADR 0059).
- * Validated once at import time.
+ * The questionnaire the survey uses: v3 is v2 with the same codes, the repeated task framed as work
+ * for one's own company and a clearer tool option (ADR 0062). Validated once at import time.
  */
-export const PILOT_QUESTIONNAIRE: QuestionnaireDefinition = parseQuestionnaireDefinition(pilotV2);
+export const PILOT_QUESTIONNAIRE: QuestionnaireDefinition = parseQuestionnaireDefinition(pilotV3);
 
 /** The `question_items` columns a definition question is stored as (French source text). */
 export const toItemRow = (q: DefinitionQuestion) => ({

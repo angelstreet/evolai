@@ -1,5 +1,5 @@
 import { auditQuality, type AuditFacts, type AuditQuality } from '@evolai/domain';
-import { isOpenDispute, isReportable } from './findingRules';
+import { isOpenDispute, isReportable, reviewShortlist } from './findingRules';
 import type { StepRow } from './reportModel';
 
 /**
@@ -21,6 +21,9 @@ export interface QualityInputs {
   readonly risksNote: string;
   readonly findings: ReadonlyArray<{
     status: 'draft' | 'approved' | 'rejected';
+    source: 'auditor' | 'rule';
+    ruleKey: string | null;
+    forReview: boolean;
     people: number;
     notes: number;
     review: { verdict: 'confirmed' | 'disputed'; resolution: 'corrected' | 'kept' | null } | null;
@@ -30,6 +33,7 @@ export interface QualityInputs {
 
 export const auditFacts = (i: QualityInputs): AuditFacts => {
   const approved = i.findings.filter((f) => f.status === 'approved');
+  const asked = reviewShortlist(i.findings, i.minGroup);
   return {
     expected: i.expected,
     answered: i.answered,
@@ -39,7 +43,8 @@ export const auditFacts = (i: QualityInputs): AuditFacts => {
     timeShown: i.timeShown,
     approvedFindings: approved.length,
     reportableFindings: approved.filter((f) => isReportable(f, i.minGroup)).length,
-    reviewedFindings: approved.filter(
+    reviewAsked: asked.length,
+    reviewedFindings: asked.filter(
       (f) => f.review?.verdict === 'confirmed' || f.review?.resolution != null,
     ).length,
     openDisputes: i.findings.filter((f) => isOpenDispute(f)).length,

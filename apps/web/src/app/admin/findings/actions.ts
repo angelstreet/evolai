@@ -12,7 +12,9 @@ import {
   createFinding,
   decideFinding,
   proposeMissionFindings,
+  REVIEW_MAX,
   resolveDispute,
+  setForReview,
   updateFinding,
 } from '@/lib/findingsData';
 import { isUuid } from '@/lib/invitationForm';
@@ -205,5 +207,23 @@ export async function editFindingAction(
     return { ok: true, code: 'updated' };
   } catch (err) {
     return { ok: false, code: codeOf(err) };
+  }
+}
+
+/** Tick or untick an approved finding for the referent's review (ADR 0062). */
+export async function pickForReviewAction(
+  _prev: FindingActionState,
+  fd: FormData,
+): Promise<FindingActionState> {
+  const findingId = String(fd.get('findingId') ?? '');
+  const g = await guard(fd);
+  if (!g || !isUuid(findingId)) return { ok: false, code: 'forbidden' };
+  const pick = fd.get('pick') === 'true';
+  try {
+    await setForReview(g.tenantId, g.actor, findingId, pick);
+    done();
+    return { ok: true, code: pick ? 'picked' : 'unpicked' };
+  } catch (err) {
+    return { ok: false, code: codeOf(err), count: REVIEW_MAX };
   }
 }

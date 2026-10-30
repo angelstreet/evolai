@@ -37,6 +37,10 @@ export default async function ClientReportPage() {
         title={t('report.view.clientTitle')}
         subtitle={t('report.view.clientSubtitle')}
       />
+      {/* The review is the referent's task right now, so it comes first (ESN rehearsal). */}
+      {toReview.length > 0 ? (
+        <FindingReview items={toReview} readOnly={ctx.readOnly || ctx.viewAs !== null} />
+      ) : null}
       <Paper
         variant="outlined"
         sx={{ p: 4, borderRadius: 3, mb: 4 }}
@@ -59,9 +63,6 @@ export default async function ClientReportPage() {
           {t('report.view.receiveForward')}
         </Typography>
       </Paper>
-      {toReview.length > 0 ? (
-        <FindingReview items={toReview} readOnly={ctx.readOnly || ctx.viewAs !== null} />
-      ) : null}
       {published ? (
         <ReportView
           snapshot={published.snapshot}

@@ -128,7 +128,7 @@ export const en = {
     answerOptions: 'Answer options',
     back: 'Back',
     previous: 'Previous',
-    pick: 'Pick one answer. Anonymous.',
+    pick: 'Pick one answer, or skip. Anonymous.',
     savedHint: 'Saved for your team. Anonymous.',
     goTo: 'Go to question {n}',
     skip: 'Skip',

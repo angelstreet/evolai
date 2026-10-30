@@ -52,7 +52,7 @@ interface ChoiceRule {
 
 /**
  * The weak practice of each scored scenario of questionnaire v1, and the task inventory answers of
- * v2 that point at work worth changing (pilot-v2.json).
+ * v2 that point at work worth changing (pilot-v3.json).
  */
 export const CHOICE_RULES: readonly ChoiceRule[] = [
   {

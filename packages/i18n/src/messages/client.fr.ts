@@ -107,7 +107,8 @@ export const clientFr: ClientMessages = {
       greeting: 'Bonjour,',
       what: 'Nous menons un court questionnaire sur notre façon de travailler et l’usage des outils d’IA.',
       time: 'Il prend environ {minutes} minutes, sur téléphone ou ordinateur.',
-      anonymous: 'Il est anonyme : personne au travail ne voit vos réponses.',
+      anonymous:
+        'Il est anonyme : personne dans votre entreprise ne voit vos réponses. Seule l’équipe EvolAI lit les réponses écrites, noms masqués.',
       closes: 'Merci de répondre avant le {date}.',
       contact: 'Une question ? Contactez {contact}.',
       thanks: 'Merci ! L’adresse du questionnaire :',

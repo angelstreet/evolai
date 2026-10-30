@@ -38,7 +38,8 @@ const BANNED = [
   'synthétique',
   'calibration',
 ];
-const BANNED_RE = new RegExp(`\\b(${BANNED.join('|')})s?\\b`, 'i');
+// Letter-aware edges: `\b` treats an accented letter as a boundary, so "métier" would match "tier".
+const BANNED_RE = new RegExp(`(?<!\\p{L})(${BANNED.join('|')})s?(?!\\p{L})`, 'iu');
 
 const SECRET = process.env['SURVEY_SIGNING_SECRET'] ?? 'dev-only-survey-signing-secret-change-me';
 const tokenFor = (reference: string): string =>
