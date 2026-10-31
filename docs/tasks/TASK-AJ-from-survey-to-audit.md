@@ -56,3 +56,7 @@ Pilot set-up 2026-10-31 (ADR 0063): the real mission is set up on the live site 
 notice, names to hide, questionnaire v3, the referent on all four teams). A worker review as the referent found
 a Team-tab crash, answers accepted before the opening day and copy gaps; all fixed. Left for the owner: the
 notice's contact address and the referent's real login.
+
+Use cases 2026-10-31 (ADR 0064, owner choice "Yes, 1 to 6"): the report is built on use cases measured during
+the visit, with an estimated saving; fixes from a content review of the rehearsal followed. Production:
+migration `0034_use_cases.sql` applied to Neon on 2026-10-31 (owner approval).
