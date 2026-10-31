@@ -33,6 +33,10 @@ export const useCaseSchema = z
     visitQuestions: z.array(textSchema).min(1).max(4),
     /** Rules first: always ranked before the others and planned in the first 30 days. */
     pinned: z.boolean().optional(),
+    /** Core work of a professional-services firm: proposed before general use cases. */
+    core: z.boolean().optional(),
+    /** Owner of a step for this use case, when the catalogue's role is too generic. */
+    owners: z.record(z.string(), textSchema).optional(),
   })
   .strict();
 export type UseCase = z.infer<typeof useCaseSchema>;
@@ -58,8 +62,21 @@ export const USE_CASES: readonly UseCase[] = [
       'Everyone knows which AI tools are allowed and what may go into them, at the firm and at clients.',
       'Chacun sait quels outils d’IA sont autorisés et ce qu’on peut y mettre, dans la société et chez les clients.',
     ),
-    evidence: ['policy_unclear'],
-    steps: ['governance.client_data_rule', 'governance.data_classification'],
+    // "AI answers used without checking" is a rule to set too (ESN content review).
+    evidence: ['policy_unclear', 'document_review'],
+    steps: [
+      'governance.client_data_rule',
+      'governance.approved_ai_tool',
+      'governance.human_review_rule',
+    ],
+    owners: {
+      'governance.client_data_rule': t(
+        'Management, with the data protection lead',
+        'La direction, avec le référent données personnelles',
+      ),
+      'governance.approved_ai_tool': t('IT lead', 'Responsable informatique'),
+      'governance.human_review_rule': t('Practice heads', 'Responsables de practice'),
+    },
     dataRule: t(
       'Until the rule exists, no client document goes into a public AI tool.',
       'En attendant la règle, aucun document client ne va dans un outil d’IA public.',
@@ -86,6 +103,13 @@ export const USE_CASES: readonly UseCase[] = [
     ),
     evidence: ['cv_profiles'],
     steps: ['data.cv_master_profiles', 'ai.cv_tailoring'],
+    owners: {
+      'data.cv_master_profiles': t(
+        'Sales lead (business managers)',
+        'Responsable commercial (business managers)',
+      ),
+      'ai.cv_tailoring': t('Business managers', 'Business managers'),
+    },
     dataRule: t(
       'Only the consultant’s own profile and the public part of the offer go into the AI tool.',
       'Seuls le profil du consultant et la partie publique de l’offre vont dans l’outil d’IA.',
@@ -98,6 +122,7 @@ export const USE_CASES: readonly UseCase[] = [
         'Où est gardée la dernière version de chaque profil ?',
       ),
     ],
+    core: true,
   },
   {
     id: 'uc.tender_drafting',
@@ -108,6 +133,10 @@ export const USE_CASES: readonly UseCase[] = [
     ),
     evidence: ['tender_response'],
     steps: ['simplify.tender_library', 'ai.tender_first_draft'],
+    owners: {
+      'simplify.tender_library': t('Bid lead', 'Responsable des réponses aux appels d’offres'),
+      'ai.tender_first_draft': t('Bid lead', 'Responsable des réponses aux appels d’offres'),
+    },
     dataRule: t(
       'The client’s tender documents go only into an approved tool, never a public one.',
       'Les documents de l’appel d’offres ne vont que dans un outil autorisé, jamais dans un outil public.',
@@ -124,6 +153,7 @@ export const USE_CASES: readonly UseCase[] = [
         'Quelles réponses passées réutiliseriez-vous d’abord ?',
       ),
     ],
+    core: true,
   },
   {
     id: 'uc.timesheet_billing',
@@ -137,6 +167,13 @@ export const USE_CASES: readonly UseCase[] = [
     ),
     evidence: ['timesheet_billing'],
     steps: ['automate.timesheet_once', 'automate.invoice_from_timesheet'],
+    owners: {
+      'automate.timesheet_once': t('Sales administration', 'Administration des ventes'),
+      'automate.invoice_from_timesheet': t(
+        'Sales administration, with IT',
+        'Administration des ventes, avec l’informatique',
+      ),
+    },
     dataRule: t(
       'Timesheets and rates stay in the firm’s own tools; no AI tool is needed for this.',
       'Comptes rendus et taux restent dans les outils de la société ; aucun outil d’IA n’est nécessaire.',
@@ -153,6 +190,7 @@ export const USE_CASES: readonly UseCase[] = [
         'Combien de relances pour obtenir les comptes rendus ?',
       ),
     ],
+    core: true,
   },
   {
     id: 'uc.staffing_view',
@@ -163,6 +201,10 @@ export const USE_CASES: readonly UseCase[] = [
     ),
     evidence: ['staffing'],
     steps: ['data.staffing_board', 'automate.scheduled_report'],
+    owners: {
+      'data.staffing_board': t('Operations lead', 'Responsable des opérations'),
+      'automate.scheduled_report': t('IT lead', 'Responsable informatique'),
+    },
     dataRule: t(
       'Internal data only; no AI tool is needed for this.',
       'Données internes uniquement ; aucun outil d’IA n’est nécessaire.',
@@ -175,6 +217,7 @@ export const USE_CASES: readonly UseCase[] = [
       ),
       t('How long does one update take?', 'Combien de temps prend une mise à jour ?'),
     ],
+    core: true,
   },
   {
     id: 'uc.candidate_screening',
@@ -188,6 +231,10 @@ export const USE_CASES: readonly UseCase[] = [
     ),
     evidence: ['recruiting'],
     steps: ['ai.candidate_screening', 'ai.interview_summary'],
+    owners: {
+      'ai.candidate_screening': t('HR and recruiting lead', 'Responsable RH et recrutement'),
+      'ai.interview_summary': t('Recruiters', 'Recruteurs'),
+    },
     dataRule: t(
       'Candidates’ data goes only into an approved tool, and nobody is rejected by a machine.',
       'Les données des candidats ne vont que dans un outil autorisé, et personne n’est écarté par une machine.',
@@ -200,6 +247,7 @@ export const USE_CASES: readonly UseCase[] = [
         'Combien de temps par candidature, et par compte rendu d’entretien ?',
       ),
     ],
+    core: true,
   },
   {
     id: 'uc.recurring_reports',
@@ -222,6 +270,7 @@ export const USE_CASES: readonly UseCase[] = [
       ...COMMON_QUESTIONS,
       t('Which tools does the data come from?', 'De quels outils viennent les données ?'),
     ],
+    core: true,
   },
   {
     id: 'uc.meeting_notes',

@@ -111,6 +111,9 @@ export const adminFr: AdminMessages = {
     },
   },
   visit: {
+    guideTitle: 'À mesurer pendant la visite',
+    guideIntro:
+      'Les chantiers que les constats approuvés désignent déjà. Pour chacun, posez ces questions et notez les chiffres : ils deviennent le temps actuel et le gain estimé du rapport.',
     intro:
       'Notes de la visite : entretiens, observations, ateliers. Réservées à l’équipe, jamais montrées au client.',
     unavailable: 'Les notes de visite ne sont pas encore disponibles.',

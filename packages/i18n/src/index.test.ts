@@ -173,3 +173,16 @@ describe('plural numbers', () => {
     expect(formatMessage(msg, 'fr', { n: 12000 })).toBe('12000 heures');
   });
 });
+
+describe('select and decimals', () => {
+  it('picks the branch of a select, else other', () => {
+    const msg = 'Written{lang, select, fr { in French} other { in English}}.';
+    expect(formatMessage(msg, 'en', { lang: 'fr' })).toBe('Written in French.');
+    expect(formatMessage(msg, 'en', { lang: 'en' })).toBe('Written in English.');
+  });
+  it('writes a decimal value in the locale form', () => {
+    expect(formatMessage('{h} h', 'fr', { h: 13.5 })).toBe('13,5 h');
+    expect(formatMessage('{h} h', 'en', { h: 13.5 })).toBe('13.5 h');
+    expect(formatMessage('{h} h', 'fr', { h: 2026 })).toBe('2026 h');
+  });
+});

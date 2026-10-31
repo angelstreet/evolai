@@ -7,7 +7,7 @@ import {
   type TenantId,
   type UseCaseQualification,
 } from '@evolai/contracts';
-import { proposeUseCases, tagsInText, type UseCaseFinding } from '@evolai/domain';
+import { estimateSaving, proposeUseCases, tagsInText, type UseCaseFinding } from '@evolai/domain';
 import { createTranslator } from '@evolai/i18n';
 import { withTenant } from './db';
 import { listFindingsWith } from './findingsData';
@@ -54,8 +54,13 @@ const matcherFindings = async (
     .filter((f) => f.status === 'approved' && isReportable(f, MIN_GROUP_SIZE))
     .map((f) => ({
       id: f.id,
-      // A finding the auditor wrote has no rule tags: read them from its words.
-      tags: [...new Set([...f.tags, ...tagsInText(`${f.label} ${f.statement}`)])],
+      // Each finding counts for what it names (ESN content review): a theme for its own tag, an
+      // answer rule for its rule tags, a finding the auditor wrote for the words of its title.
+      tags: f.ruleKey?.startsWith('tag:')
+        ? f.tags.filter((t) => `tag:${t}` === f.ruleKey)
+        : f.ruleKey !== null
+          ? f.tags
+          : [...new Set([...f.tags, ...tagsInText(f.label)])],
       ruleKey: f.ruleKey,
       people: f.people >= MIN_GROUP_SIZE ? f.people : 0,
       visit: f.notes > 0,
@@ -122,7 +127,7 @@ export const syncUseCasesWith = async (
         [tenantId, opportunityId, findingId],
       );
     }
-    for (const stepId of u.steps) {
+    for (const [index, stepId] of u.steps.entries()) {
       const e = catalogueEntry(stepId);
       if (!e || present.has(e.id)) continue;
       present.add(e.id);
@@ -144,9 +149,10 @@ export const syncUseCasesWith = async (
           e.effort,
           e.impact,
           e.risk,
-          owners(`report.steps.ownerRole.${e.ownerRole}`),
-          // Rules first; then quick steps in 30 days and the rest in 60 (same as the catalogue).
-          u.pinned || (e.effort === 'low' && e.risk !== 'high') ? 'd30' : 'd60',
+          u.owners?.[e.id]?.[locale] ?? owners(`report.steps.ownerRole.${e.ownerRole}`),
+          // Rules all in 30 days; otherwise in the playbook's order, foundations first: the
+          // master profile before the AI that reads it (ESN content review).
+          u.pinned ? 'd30' : (['d30', 'd60', 'd90'] as const)[Math.min(index, 2)],
           JSON.stringify(e.prerequisites.map((x) => x[locale])),
           // "Why" on the step: the use case's evidence patterns.
           JSON.stringify({ tags: u.evidence, useCaseId: u.id, ownerRole: e.ownerRole }),
@@ -318,10 +324,29 @@ export const rankItems = (tenantId: TenantId, engagementId: string) =>
     return all
       .filter((u) => !useCaseById(u.useCaseId)?.pinned && byId.get(u.opportunityId)?.accepted)
       .sort((a, b) => (a.clientRank ?? 99) - (b.clientRank ?? 99))
-      .map((u) => ({
-        id: u.opportunityId,
-        title: byId.get(u.opportunityId)?.title ?? '',
-        approach: useCaseById(u.useCaseId)?.approach[r.locale] ?? '',
-        rank: u.clientRank,
-      }));
+      .map((u) => {
+        const e = estimateSaving(u.useCaseId, u.qualification);
+        return {
+          id: u.opportunityId,
+          title: byId.get(u.opportunityId)?.title ?? '',
+          approach: useCaseById(u.useCaseId)?.approach[r.locale] ?? '',
+          rank: u.clientRank,
+          // The referent ranks with the numbers in view (ESN content review).
+          hoursPerWeek: e.hoursPerWeek,
+          savedLow: e.savedLow,
+          savedHigh: e.savedHigh,
+        };
+      });
   });
+
+/**
+ * The visit guide (ADR 0064, ESN content review): the use cases the approved findings already
+ * point to, with the questions to ask on site, before any report exists. Empty with no finding.
+ */
+export const visitGuide = (tenantId: TenantId, engagementId: string) =>
+  withTenant(tenantId, async (client) =>
+    proposeUseCases(await matcherFindings(client, tenantId, engagementId)).map((p) => ({
+      useCase: p.useCase,
+      people: p.people,
+    })),
+  );

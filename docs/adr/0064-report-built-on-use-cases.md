@@ -56,3 +56,30 @@ no say in the order.
 - The auditor must measure the first use cases during the visit, or the report says they are not measured.
 - Migration 0034 is needed on production; until it runs, the report keeps the per-finding behaviour.
 - The saving ranges are working assumptions; the day-90 measures should be used to correct them (new version).
+
+## Follow-up: content review of the rehearsal (same day)
+
+A second rehearsal, judged as the director and as a senior consultant, found the report now answers "where,
+how much, what first", with defects fixed here:
+
+- Evidence: a finding counts for what it names (a theme for its tag, an answer rule for its rule tags, an
+  auditor's finding for the words of its title, not its statement), so "45 minutes per CV" no longer feeds
+  meeting notes. "minutes" and "compte rendu" left the meeting keywords; time-tracking words joined
+  timesheets. Core professional-services use cases (CVs, tenders, timesheets, staffing, recruiting, recurring
+  reports) are proposed before general ones.
+- Steps follow the playbook order (30, 60, 90 days): the master profile before the AI that reads it, the
+  library before the first draft. The data-rule use case also answers "AI answers used without checking" and
+  adds "Choose the approved AI tool" (no AI pilot before it) and "A person checks before anything leaves".
+  Use cases name owners a small firm has (sales lead, bid lead, sales administration, HR and recruiting lead,
+  IT lead) instead of generic roles.
+- Summary for a director: hours today and freed, as a share of a full-time post (35 h), the use cases, the
+  rule this month, one decision for management, the readiness level last; it cites the findings the use cases
+  rest on. Risks add client confidentiality, people's CV data, meeting recording and a trust line (tasks,
+  never people).
+- Hours: the measure's source and the assumed share of time saved are printed; the self-reported time section
+  says the use cases are measured on the visit. Decimals and `select` messages are rendered properly.
+- Workflow: the Visit tab shows the use cases the findings already point to, with the visit questions, before
+  any report; the referent ranks with the hours in view.
+
+Still open: a use-case measure has no day-90 date of its own (the per-step measure carries it), and the
+impact and effort matrix still comes from the steps.

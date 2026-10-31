@@ -136,9 +136,12 @@ export const reportFr: Shape<typeof reportEn> = {
     closingNoSteps: 'Aucune action n’est encore recommandée.',
     useCases:
       'L’audit retient {count, plural, one {un chantier} other {# chantiers}} où gagner du temps : {list}.',
-    saving:
-      'D’après les mesures de la visite, ils peuvent libérer environ {low} à {high} heures par semaine.',
-    rulesFirst: 'À faire d’abord : {title}.',
+    today:
+      'Aujourd’hui, environ {today} heures par semaine partent dans {count, plural, one {le chantier mesuré} other {les # chantiers mesurés}} pendant la visite. Environ {low} à {high} heures peuvent être libérées, soit {fte} équivalent temps plein.',
+    decision:
+      'Décision pour la direction : valider cette règle et nommer un responsable pour chaque chantier.',
+    scoreShort: 'Niveau de préparation à l’IA : {level} ({score} sur 100).',
+    rulesFirst: 'À faire d’abord, ce mois-ci : {title}. Aucun pilote d’IA ne démarre avant.',
   },
   ai: {
     title: 'Brouillon IA',
@@ -237,7 +240,7 @@ export const reportFr: Shape<typeof reportEn> = {
   time: {
     title: 'Temps passé sur les tâches répétitives',
     subtitle:
-      'Ce que les personnes ont dit de leur principale tâche répétitive : à quelle fréquence, et combien de temps à chaque fois. Déclaratif et arrondi : un ordre de grandeur, pas une mesure.',
+      'Ce que les personnes ont dit de leur principale tâche répétitive : à quelle fréquence, et combien de temps à chaque fois. Déclaratif et arrondi : un ordre de grandeur, pas une mesure. Les chantiers plus haut sont mesurés pendant la visite.',
     overall:
       '{people} personnes : environ {each, plural, =0 {moins d’une demi-heure} one {# heure} other {# heures}} par semaine et par personne, {hours, plural, one {# heure} other {# heures}} au total.',
     team: '{team} : environ {each, plural, =0 {moins d’une demi-heure} one {# heure} other {# heures}} par semaine et par personne ({people} personnes)',
@@ -560,6 +563,8 @@ export const reportFr: Shape<typeof reportEn> = {
     },
   },
   useCases: {
+    measured: 'Mesure : {source}.',
+    basis: '(hypothèse : {low} à {high} % du temps)',
     title: 'Où gagner du temps',
     subtitle:
       'Les chantiers retenus par l’audit, dans l’ordre où les lancer. Les gains sont des estimations, à vérifier au bout de 90 jours.',
@@ -583,6 +588,8 @@ export const reportFr: Shape<typeof reportEn> = {
         'Aujourd’hui environ {hours} heures par semaine{saved, select, none {} other {, gain estimé {low} à {high} heures}}.',
     },
     rank: {
+      hours: 'Aujourd’hui environ {hours} h par semaine.',
+      hoursSaved: 'Aujourd’hui environ {hours} h par semaine, gain estimé {low} à {high} h.',
       title: 'Par où commencer ?',
       subtitle:
         'Classez les chantiers dans l’ordre où vous voulez les lancer. Le rapport suivra votre ordre, après les règles sur les données.',
@@ -599,6 +606,14 @@ export const reportFr: Shape<typeof reportEn> = {
     },
   },
   risksAuto: {
+    tender_response:
+      'Confidentialité des clients : les documents d’appel d’offres et de mission restent dans les outils que le client autorise.',
+    cv_profiles:
+      'Données des collaborateurs : un CV est une donnée personnelle ; l’IA n’invente aucune compétence et la personne relit son CV avant envoi.',
+    meeting_overload:
+      'Réunions : enregistrer ou transcrire demande l’accord de chacun, et les réunions client suivent les règles du client.',
+    trust:
+      'Confiance : l’audit et ses suites portent sur des tâches, jamais sur des personnes ; rien ne sert à évaluer un salarié.',
     policy_unclear:
       'Données clients : {people, plural, =0 {d’après la visite} other {# personnes disent}} qu’il n’y a pas de règle claire pour les données clients dans les outils d’IA. Tant qu’elle n’existe pas, un document client peut partir dans un outil public.',
     recruiting:

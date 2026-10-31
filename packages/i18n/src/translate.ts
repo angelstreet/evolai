@@ -10,8 +10,8 @@ export type MessageVars = Record<string, string | number>;
 export type Translator = (key: MessageKey, vars?: MessageVars) => string;
 
 /**
- * Tiny ICU subset: `{name}` placeholders and `{n, plural, one {…} other {…}}` (with `#` for the
- * number). Enough for our copy; parity tests keep both catalogs in sync (ADR 0024).
+ * Tiny ICU subset: `{name}` placeholders (decimals in the locale's form),
+ * `{n, plural, one {…} other {…}}` (with `#` for the number) and `{v, select, a {…} other {…}}`. Enough for our copy; parity tests keep both catalogs in sync (ADR 0024).
  */
 export const formatMessage = (
   template: string,
@@ -46,6 +46,16 @@ export const formatMessage = (
       // "1,5 heure" in French, "1.5 hours" in English (ESN review).
       const shown = new Intl.NumberFormat(tag, { useGrouping: false }).format(n);
       out += formatMessage(chosen.replace(/#/g, shown), locale, vars);
+    } else if (kind?.trim() === 'select') {
+      const branches = parseBranches(rest.join(','));
+      const chosen = branches[String(value)] ?? branches['other'] ?? '';
+      out += formatMessage(chosen, locale, vars);
+    } else if (typeof value === 'number' && !Number.isInteger(value)) {
+      // "13,5" in French, "13.5" in English (ESN content review).
+      out += new Intl.NumberFormat(locale === 'fr' ? 'fr-FR' : 'en-GB', {
+        useGrouping: false,
+        maximumFractionDigits: 2,
+      }).format(value);
     } else {
       out += value === undefined ? `{${name.trim()}}` : String(value);
     }

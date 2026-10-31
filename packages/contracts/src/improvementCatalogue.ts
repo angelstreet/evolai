@@ -202,7 +202,14 @@ export const EVIDENCE_KEYWORDS: Readonly<Record<EvidenceTag, readonly string[]>>
     'confidenti',
     'charte',
   ],
-  meeting_overload: ['meeting', 'minutes', 'reunion', 'compte rendu', 'comptes rendus'],
+  // Not "minutes" ("45 minutes per CV") nor "compte rendu" (timesheets, interviews): ESN review.
+  meeting_overload: [
+    'meeting',
+    'meeting notes',
+    'reunion',
+    'compte rendu de reunion',
+    'comptes rendus de reunion',
+  ],
   customer_requests: ['customer', 'ticket', 'support', 'request', 'demande', 'usager'],
   document_review: ['proofread', 'contract', 'compliance', 'relire', 'relecture', 'conformite'],
   translation: ['translat', 'tradu'],
@@ -236,6 +243,10 @@ export const EVIDENCE_KEYWORDS: Readonly<Record<EvidenceTag, readonly string[]>>
     'note de frais',
     'notes de frais',
     'expense',
+    'logiciel de temps',
+    'outil de temps',
+    'temps passe',
+    'time tracking',
   ],
   staffing: [
     'staffing',
@@ -243,6 +254,9 @@ export const EVIDENCE_KEYWORDS: Readonly<Record<EvidenceTag, readonly string[]>>
     'intercontrat',
     'inter-contrat',
     'disponibilite des consultants',
+    'disponibilites',
+    'fin de mission',
+    'fins de mission',
   ],
   recruiting: [
     'recrut',
@@ -790,6 +804,21 @@ export const IMPROVEMENT_CATALOGUE: readonly ImprovementEntry[] = [
     ],
     ownerRole: 'security_privacy',
     evidence: ['policy_unclear'],
+  },
+  {
+    id: 'governance.approved_ai_tool',
+    category: 'governance',
+    title: t('Choose the approved AI tool', 'Choisir l’outil d’IA autorisé'),
+    description: t(
+      'Pick one AI tool for the firm with a business contract: no training on your data, data kept in the EU, an admin who can see who uses it. Until then, no AI pilot starts.',
+      'Choisir un outil d’IA pour la société avec un contrat professionnel : pas d’entraînement sur vos données, données gardées dans l’UE, un administrateur qui voit qui l’utilise. Avant cela, aucun pilote IA ne démarre.',
+    ),
+    effort: 'low',
+    impact: 'high',
+    risk: 'low',
+    prerequisites: [t('The client-data rule', 'La règle sur les données clients')],
+    ownerRole: 'it',
+    evidence: ['policy_unclear', 'tool_access'],
   },
   {
     id: 'data.cv_master_profiles',

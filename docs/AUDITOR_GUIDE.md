@@ -80,6 +80,8 @@ by a native speaker before the pilot (ADR 0046).
 
 ## The visit
 
+6a. The **Visit** tab opens with "To measure during the visit": the use cases the approved findings already
+point to, with the questions to ask. Note how many a week and how many minutes each time, and who you asked.
 6b. In the **Visit** tab, write a note for each interview, observation or workshop: the date, the team (or the
 whole mission) and what you saw or heard. No names: they, emails and numbers are masked when you save. Notes
 stay internal. Tick notes and "Write a finding from the notes": a finding seen on the visit can reach the

@@ -125,8 +125,12 @@ export const reportEn = {
     closingNoSteps: 'No action is recommended yet.',
     useCases:
       'The audit retains {count, plural, one {one piece of work} other {# pieces of work}} where time can be saved: {list}.',
-    saving: 'From the visit measures, they can free about {low} to {high} hours a week.',
-    rulesFirst: 'First: {title}.',
+    today:
+      'Today about {today} hours a week go into {count, plural, one {the piece of work measured} other {the # pieces of work measured}} during the visit. About {low} to {high} hours can be freed, or {fte} of a full-time post.',
+    rulesFirst: 'First, this month: {title}. No AI pilot starts before.',
+    decision:
+      'Decision for management: approve this rule and name an owner for each piece of work.',
+    scoreShort: 'AI readiness: {level} ({score} out of 100).',
   },
   ai: {
     title: 'AI draft',
@@ -220,7 +224,7 @@ export const reportEn = {
   time: {
     title: 'Time on repeated tasks',
     subtitle:
-      'What people said about their main repeated task: how often, and how long each time. Self-reported and rounded: an order of magnitude, not a measurement.',
+      'What people said about their main repeated task: how often, and how long each time. Self-reported and rounded: an order of magnitude, not a measurement. The pieces of work above are measured during the visit.',
     overall:
       '{people} people: about {each, plural, =0 {less than half an hour} one {# hour} other {# hours}} a week per person, {hours, plural, one {# hour} other {# hours}} in all.',
     team: '{team}: about {each, plural, =0 {less than half an hour} one {# hour} other {# hours}} a week per person ({people} people)',
@@ -539,6 +543,8 @@ export const reportEn = {
     },
   },
   useCases: {
+    measured: 'Measure: {source}.',
+    basis: '(assumes {low} to {high}% of the time)',
     title: 'Where to save time',
     subtitle:
       'The pieces of work the audit retains, in the order to start them. Savings are estimates, to be checked after 90 days.',
@@ -562,6 +568,8 @@ export const reportEn = {
         'Today about {hours} hours a week{saved, select, none {} other {, estimated saving {low} to {high} hours}}.',
     },
     rank: {
+      hours: 'Today about {hours} h a week.',
+      hoursSaved: 'Today about {hours} h a week, estimated saving {low} to {high} h.',
       title: 'Where to start?',
       subtitle:
         'Put the pieces of work in the order you want to start them. The report follows your order, after the data rules.',
@@ -578,6 +586,14 @@ export const reportEn = {
     },
   },
   risksAuto: {
+    tender_response:
+      'Client confidentiality: tender and project documents stay in the tools the client allows.',
+    cv_profiles:
+      'People’s data: a CV is personal data; AI invents no skill and the person rereads their CV before it is sent.',
+    meeting_overload:
+      'Meetings: recording or transcribing needs everyone’s agreement, and client meetings follow the client’s rules.',
+    trust:
+      'Trust: the audit and what follows are about tasks, never about people; nothing is used to rate an employee.',
     policy_unclear:
       'Client data: {people, plural, =0 {the visit shows} other {# people say}} there is no clear rule for client data in AI tools. Until there is, a client document can end up in a public tool.',
     recruiting:

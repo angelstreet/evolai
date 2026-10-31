@@ -107,6 +107,9 @@ export const adminEn = {
     },
   },
   visit: {
+    guideTitle: 'To measure during the visit',
+    guideIntro:
+      'The pieces of work the approved findings already point to. For each, ask these questions and note the figures: they become the time today and the estimated saving in the report.',
     intro:
       'Notes from the visit: interviews, observations, workshops. Staff only, never shown to the client.',
     unavailable: 'Visit notes are not available yet.',

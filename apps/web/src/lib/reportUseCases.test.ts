@@ -167,6 +167,7 @@ describe('report built on use cases (ADR 0064)', () => {
     const cv = r.snapshot.opportunities.find((o) => o.title === 'Adapt CVs')!.useCase!;
     const fr = useCaseLines(createTranslator('fr'), 'fr', cv).map((l) => l.text);
     expect(fr.join(' | ')).toContain('3,5 à 5,5 heures par semaine');
+    expect(fr.join(' | ')).toContain('(hypothèse\u00a0: 40 à 60\u00a0% du temps)');
     const en = useCaseLines(createTranslator('en'), 'en', cv).map((l) => l.key);
     expect(en).toEqual(['approach', 'today', 'saving', 'evidence', 'rule']);
   });
@@ -187,19 +188,45 @@ describe('report built on use cases (ADR 0064)', () => {
         listSep: t('report.draft.listSep'),
         levelName: (l) => l,
         useCases: (v) => t('report.draft.useCases', v),
-        saving: (v) => t('report.draft.saving', v),
+        today: (v) => t('report.draft.today', v),
         rulesFirst: (v) => t('report.draft.rulesFirst', v),
+        decision: t('report.draft.decision'),
+        scoreShort: (v) => t('report.draft.scoreShort', v),
       },
       [
-        { title: 'Client data rules', pinned: true, savedLow: null, savedHigh: null },
-        { title: 'Adapt CVs', pinned: false, savedLow: 3.5, savedHigh: 5.5 },
-        { title: 'Answer tenders', pinned: false, savedLow: null, savedHigh: null },
+        {
+          title: 'Client data rules',
+          pinned: true,
+          hoursPerWeek: null,
+          savedLow: null,
+          savedHigh: null,
+          findingKeys: [],
+        },
+        {
+          title: 'Adapt CVs',
+          pinned: false,
+          hoursPerWeek: 9,
+          savedLow: 3.5,
+          savedHigh: 5.5,
+          findingKeys: [findings[2]!.key],
+        },
+        {
+          title: 'Answer tenders',
+          pinned: false,
+          hoursPerWeek: null,
+          savedLow: null,
+          savedHigh: null,
+          findingKeys: [],
+        },
       ],
     );
+    expect(d.text).toContain('Today about 9 hours a week');
+    expect(d.text).toContain('About 3.5 to 5.5 hours can be freed, or 0.2 of a full-time post.');
     expect(d.text).toContain('2 pieces of work');
-    expect(d.text).toContain('3.5 to 5.5 hours a week');
-    expect(d.text).toContain('First: client data rules.');
-    expect(d.citations).toHaveLength(3);
+    expect(d.text).toContain('First, this month: client data rules. No AI pilot starts before.');
+    expect(d.text).toContain('Decision for management');
+    // It cites what the use cases rest on.
+    expect(d.citations).toEqual([findings[2]!.key]);
   });
 
   it('starts the risks from the findings', () => {
@@ -209,8 +236,9 @@ describe('report built on use cases (ADR 0064)', () => {
       { tags: ['recruiting'], people: 5 },
       { tags: ['manual_reentry'], people: 16 },
     ]).split('\n');
-    expect(risks).toHaveLength(2);
+    expect(risks).toHaveLength(3);
     expect(risks[0]).toContain('7 people say');
+    expect(risks[2]).toMatch(/^Trust:/);
     expect(risksFromFindings(t, [])).toBe('');
   });
 });

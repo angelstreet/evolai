@@ -14,7 +14,8 @@ import {
  *   texts (`tag:` rule) or a finding the auditor wrote or saw on the visit. Choice answers alone
  *   ("the main task is in a spreadsheet") say a task is heavy, not which task.
  * - A pinned use case (rules on client data) only needs one finding with its tag, from any source.
- * - Pinned use cases come first, then the others by people, at most `limit` in all.
+ * - Pinned use cases come first, then the core work of the firm, then the others, each by people,
+ *   at most `limit` in all.
  */
 
 export interface UseCaseFinding {
@@ -41,7 +42,7 @@ export const proposeUseCases = (
   limit = 5,
   playbook: readonly UseCase[] = USE_CASES,
 ): UseCaseProposal[] => {
-  const out: (UseCaseProposal & { order: number; pinned: boolean })[] = [];
+  const out: (UseCaseProposal & { order: number; pinned: boolean; core: boolean })[] = [];
   playbook.forEach((useCase, order) => {
     const linked = findings.filter((f) => f.tags.some((t) => useCase.evidence.includes(t)));
     if (linked.length === 0) return;
@@ -52,10 +53,17 @@ export const proposeUseCases = (
       people: Math.max(...linked.map((f) => f.people)),
       order,
       pinned: useCase.pinned === true,
+      core: useCase.core === true,
     });
   });
   return out
-    .sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.people - a.people || a.order - b.order)
+    .sort(
+      (a, b) =>
+        Number(b.pinned) - Number(a.pinned) ||
+        Number(b.core) - Number(a.core) ||
+        b.people - a.people ||
+        a.order - b.order,
+    )
     .slice(0, Math.max(0, limit))
     .map(({ useCase, findingIds, people }) => ({ useCase, findingIds, people }));
 };
@@ -67,6 +75,9 @@ export interface SavingEstimate {
   readonly hoursPerWeek: number | null;
   readonly savedLow: number | null;
   readonly savedHigh: number | null;
+  /** The share of time assumed saved, low and high (0..1), or null for rules. */
+  readonly rateLow: number | null;
+  readonly rateHigh: number | null;
   readonly ratesVersion: string;
 }
 
@@ -91,6 +102,8 @@ export const estimateSaving = (
     hoursPerWeek: hours,
     savedLow: hours !== null && range ? half(hours * range[0]) : null,
     savedHigh: hours !== null && range ? half(hours * range[1]) : null,
+    rateLow: range ? range[0] : null,
+    rateHigh: range ? range[1] : null,
     ratesVersion: rates.version,
   };
 };

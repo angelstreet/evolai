@@ -157,6 +157,9 @@ export const reportUseCaseSchema = z
     savedLow: z.number().min(0).nullable(),
     savedHigh: z.number().min(0).nullable(),
     measureSource: z.string().max(200),
+    /** Share of time assumed saved (0..1), shown as the basis of the estimate. Absent before. */
+    rateLow: z.number().min(0).max(1).nullable().optional(),
+    rateHigh: z.number().min(0).max(1).nullable().optional(),
     ratesVersion: z.string().max(40),
     /** The referent's order of priority, if given. */
     clientRank: z.number().int().min(1).nullable(),

@@ -188,14 +188,25 @@ export async function draftSummaryAction(
         listSep: t('report.draft.listSep'),
         levelName: (l) => t(`report.readiness.level.${l as 'L0'}`).toLowerCase(),
         useCases: (v) => t('report.draft.useCases', v),
-        saving: (v) => t('report.draft.saving', v),
+        today: (v) => t('report.draft.today', v),
         rulesFirst: (v) => t('report.draft.rulesFirst', v),
+        decision: t('report.draft.decision'),
+        scoreShort: (v) => t('report.draft.scoreShort', v),
       },
       ranked.flatMap((o) => {
         const u = bundle.inputs.opportunities.find((x) => x.id === o.id)?.useCase;
         if (!u) return [];
         const e = estimateSaving(u.useCaseId, u);
-        return [{ title: o.title, pinned: u.pinned, savedLow: e.savedLow, savedHigh: e.savedHigh }];
+        return [
+          {
+            title: o.title,
+            pinned: u.pinned,
+            hoursPerWeek: e.hoursPerWeek,
+            savedLow: e.savedLow,
+            savedHigh: e.savedHigh,
+            findingKeys: u.findingKeys,
+          },
+        ];
       }),
     );
     const r = bundle.report;

@@ -17,6 +17,10 @@ describe('use-case playbook', () => {
       ids.add(u.id);
     }
     expect(missingUseCaseSteps()).toEqual([]);
+    for (const u of USE_CASES) {
+      for (const k of Object.keys(u.owners ?? {}))
+        expect(u.steps, `${u.id} owner ${k}`).toContain(k);
+    }
   });
 
   it('has a dated saving range for every use case that is not a rule, low below high', () => {

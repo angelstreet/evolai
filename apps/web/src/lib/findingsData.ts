@@ -359,7 +359,7 @@ const ensureOpportunity = async (
   // wrote that names no use case keeps an opportunity of its own, so it still gets actions.
   if (await useCaseColumn(client)) {
     if (f.ruleKey !== null) return false;
-    const tags = new Set([...f.tags, ...tagsInText(`${f.label} ${f.statement}`)]);
+    const tags = new Set([...f.tags, ...tagsInText(f.label)]);
     if (USE_CASES.some((u) => u.evidence.some((t) => tags.has(t)))) return false;
   }
   const made = await client.query<{ id: string }>(

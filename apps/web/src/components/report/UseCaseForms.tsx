@@ -136,6 +136,9 @@ export interface RankItem {
   readonly title: string;
   readonly approach: string;
   readonly rank: number | null;
+  readonly hoursPerWeek: number | null;
+  readonly savedLow: number | null;
+  readonly savedHigh: number | null;
 }
 
 const rankIdle: ReviewState = { ok: false, code: 'idle' };
@@ -196,6 +199,17 @@ export function UseCaseRanking({
                 <Typography variant="body2" color="text.secondary">
                   {it.approach}
                 </Typography>
+                {it.hoursPerWeek !== null ? (
+                  <Typography variant="body2" sx={{ mt: 1 }} data-testid="use-case-rank-hours">
+                    {it.savedLow !== null && it.savedHigh !== null
+                      ? t('report.useCases.rank.hoursSaved', {
+                          hours: it.hoursPerWeek,
+                          low: it.savedLow,
+                          high: it.savedHigh,
+                        })
+                      : t('report.useCases.rank.hours', { hours: it.hoursPerWeek })}
+                  </Typography>
+                ) : null}
               </Box>
             </Stack>
           ))}

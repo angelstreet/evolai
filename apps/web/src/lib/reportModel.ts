@@ -270,6 +270,8 @@ export const buildSnapshot = (input: SnapshotInput, leaks: LeakSources): Publish
       savedLow: e.savedLow,
       savedHigh: e.savedHigh,
       measureSource: u.source.trim(),
+      rateLow: e.rateLow,
+      rateHigh: e.rateHigh,
       ratesVersion: e.ratesVersion,
       clientRank: u.clientRank,
       pinned: u.pinned,
@@ -373,18 +375,32 @@ export interface SummaryWords {
   readonly levelName: (level: string) => string;
   /** List separator, e.g. '; ' (en) or ' ; ' with a no-break space (fr). */
   readonly listSep: string;
-  /** Use cases (ADR 0064): how many and which, the hours they can save, the rule that comes first. */
+  /** Use cases (ADR 0064): time today and what can be freed, which ones, the rule first, the decision. */
   readonly useCases?: (vars: { count: number; list: string }) => string;
-  readonly saving?: (vars: { low: number; high: number }) => string;
+  readonly today?: (vars: {
+    today: number;
+    count: number;
+    low: number;
+    high: number;
+    fte: number;
+  }) => string;
   readonly rulesFirst?: (vars: { title: string }) => string;
+  readonly decision?: string;
+  readonly scoreShort?: (vars: { score: number; level: string }) => string;
 }
 
 export interface SummaryUseCase {
   readonly title: string;
   readonly pinned: boolean;
+  readonly hoursPerWeek: number | null;
   readonly savedLow: number | null;
   readonly savedHigh: number | null;
+  /** Keys of the report findings it rests on: the summary cites them. */
+  readonly findingKeys: readonly string[];
 }
+
+/** Hours a week of one full-time person, for the "share of a post" figure. */
+export const FULL_TIME_HOURS = 35;
 
 /**
  * A title placed inside a sentence after a colon starts lower case ("Ce qui ressort : les réponses…"),
@@ -412,30 +428,43 @@ export const draftSummary = (
 ): { text: string; citations: string[] } => {
   const top = [...findings].sort((a, b) => b.people - a.people).slice(0, 3);
   const work = useCases.filter((u) => !u.pinned);
-  if (work.length > 0 && w.useCases && w.saving && w.rulesFirst) {
-    const parts = [
-      w.useCases({ count: work.length, list: work.map((u) => inList(u.title)).join(w.listSep) }),
-    ];
-    const measured = work.filter((u) => u.savedLow !== null && u.savedHigh !== null);
+  if (work.length > 0 && w.useCases && w.today && w.rulesFirst && w.decision && w.scoreShort) {
+    const parts: string[] = [];
+    const measured = work.filter((u) => u.hoursPerWeek !== null && u.savedHigh !== null);
     if (measured.length > 0) {
+      const sum = (f: (u: SummaryUseCase) => number | null) =>
+        measured.reduce((n, u) => n + (f(u) ?? 0), 0);
+      const high = sum((u) => u.savedHigh);
       parts.push(
-        w.saving({
-          low: measured.reduce((n, u) => n + (u.savedLow ?? 0), 0),
-          high: measured.reduce((n, u) => n + (u.savedHigh ?? 0), 0),
+        w.today({
+          today: sum((u) => u.hoursPerWeek),
+          count: measured.length,
+          low: sum((u) => u.savedLow),
+          high,
+          fte: Math.round((high / FULL_TIME_HOURS) * 10) / 10,
         }),
       );
     }
+    parts.push(
+      w.useCases({ count: work.length, list: work.map((u) => inList(u.title)).join(w.listSep) }),
+    );
     const rule = useCases.find((u) => u.pinned);
     if (rule) parts.push(w.rulesFirst({ title: inList(rule.title) }));
-    if (top.length > 0) {
-      parts.push(w.findings({ list: top.map((f) => inList(f.label)).join(w.listSep) }));
-    }
+    parts.push(w.decision);
     const o = readiness.overall;
     if (o && o.overall !== null && o.level) {
-      parts.push(w.intro({ people: o.people, score: o.overall, level: w.levelName(o.level) }));
+      parts.push(w.scoreShort({ score: o.overall, level: w.levelName(o.level) }));
     }
-    parts.push(w.closing);
-    return { text: parts.join(' '), citations: top.map((f) => f.key) };
+    // Cite what the use cases rest on, the most cited first; else the most raised findings.
+    const known = new Map(findings.map((f) => [f.key, f]));
+    const evidence = [...new Set(useCases.flatMap((u) => u.findingKeys))]
+      .flatMap((k) => (known.has(k) ? [known.get(k) as ReportFinding] : []))
+      .sort((a, b) => b.people - a.people)
+      .slice(0, 3);
+    return {
+      text: parts.join(' '),
+      citations: (evidence.length > 0 ? evidence : top).map((f) => f.key),
+    };
   }
   const parts: string[] = [];
   const o = readiness.overall;
@@ -601,7 +630,14 @@ export const prerequisiteLines = (
   );
 
 /** The risk each evidence pattern points at, in the order the report lists them (ADR 0064). */
-const RISK_TAGS = ['policy_unclear', 'recruiting', 'document_review'] as const;
+const RISK_TAGS = [
+  'policy_unclear',
+  'tender_response',
+  'cv_profiles',
+  'recruiting',
+  'meeting_overload',
+  'document_review',
+] as const;
 
 /**
  * Risks the approved findings already show, one per line, for the auditor to edit: client data
@@ -610,13 +646,17 @@ const RISK_TAGS = ['policy_unclear', 'recruiting', 'document_review'] as const;
 export const risksFromFindings = (
   t: Translator,
   findings: readonly { readonly tags: readonly string[]; readonly people: number }[],
-): string =>
-  RISK_TAGS.flatMap((tag) => {
+): string => {
+  const lines = RISK_TAGS.flatMap((tag) => {
     const hits = findings.filter((f) => f.tags.includes(tag));
     if (hits.length === 0) return [];
     const people = Math.max(...hits.map((f) => f.people));
     return [t(`report.risksAuto.${tag}`, { people })];
-  }).join('\n');
+  });
+  // Whatever the findings, people must know the audit never rates them (ESN content review).
+  if (findings.length > 0) lines.push(t('report.risksAuto.trust'));
+  return lines.join('\n');
+};
 
 /** Hours with the locale's decimal sign: "3,5" in French. */
 const num = (locale: string, n: number): string =>
@@ -648,13 +688,23 @@ export const useCaseLines = (
   } else if (!u.pinned) {
     out.push({ key: 'today', text: t('report.useCases.notMeasured') });
   }
+  if (u.hoursPerWeek !== null && u.measureSource) {
+    out.push({ key: 'source', text: t('report.useCases.measured', { source: u.measureSource }) });
+  }
   if (u.savedLow !== null && u.savedHigh !== null) {
+    const basis =
+      u.rateLow != null && u.rateHigh != null
+        ? ` ${t('report.useCases.basis', {
+            low: Math.round(u.rateLow * 100),
+            high: Math.round(u.rateHigh * 100),
+          })}`
+        : '';
     out.push({
       key: 'saving',
-      text: t('report.useCases.saving', {
+      text: `${t('report.useCases.saving', {
         low: num(locale, u.savedLow),
         high: num(locale, u.savedHigh),
-      }),
+      })}${basis}`,
     });
   }
   if (u.findingNumbers.length > 0 || u.people > 0) {
