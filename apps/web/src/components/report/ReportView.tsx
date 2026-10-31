@@ -264,9 +264,14 @@ export default function ReportView({
         {s.findings.length === 0 ? (
           <Typography variant="body1">{t('report.findings.empty')}</Typography>
         ) : (
-          <Box component="ol" sx={{ m: 0, pl: 6 }}>
-            {s.findings.map((f) => (
-              <Box component="li" key={f.key} sx={{ py: 1 }}>
+          <Box component="ol" sx={{ m: 0, pl: 6, listStyleType: 'decimal' }}>
+            {s.findings.map((f, i) => (
+              <Box
+                component="li"
+                key={f.key}
+                id={`rv-finding-${i + 1}`}
+                sx={{ py: 1, display: 'list-item', scrollMarginTop: 96 }}
+              >
                 <Typography variant="body1" component="span">
                   {f.label}
                 </Typography>

@@ -173,7 +173,8 @@ export const trustFr: Messages['trust'] = {
     intro:
       'Cette page explique ce que deviennent vos réponses. Elle s’adresse aux personnes invitées à répondre.',
     whoTitle: 'Qui pose les questions',
-    whoBody: '{org} organise ce questionnaire et décide de l’usage des réponses.',
+    whoBody:
+      '{org} organise ce questionnaire et décide de l’usage des réponses. EvolAI, le cabinet qui mène l’audit, les traite pour {org}.',
     contactLine: 'Questions sur la vie privée : {contact}',
     purposeTitle: 'Pourquoi nous demandons',
     defaultPurpose:
@@ -191,7 +192,7 @@ export const trustFr: Messages['trust'] = {
       'Si votre lien a été envoyé par e-mail, l’adresse n’est gardée que le temps d’envoyer le lien et les rappels, puis supprimée.',
     notCollectedTitle: 'Ce qui n’est pas recueilli',
     notCollected:
-      'Votre nom. Si vous écrivez un texte libre, les noms, e-mails et numéros de téléphone sont masqués automatiquement avant l’enregistrement : aucun nom n’est conservé. Merci de ne pas les écrire quand même.',
+      'Votre nom. Si vous écrivez un texte libre, les noms, e-mails et numéros de téléphone sont masqués automatiquement avant l’enregistrement. Merci de ne pas les écrire quand même.',
     seesTitle: 'Qui voit quoi',
     seesAuditor: 'L’équipe EvolAI voit les réponses liées à votre code, jamais votre nom.',
     seesReferent:
@@ -203,12 +204,14 @@ export const trustFr: Messages['trust'] = {
       'Les réponses sont gardées {days, plural, one {# jour} other {# jours}}, puis supprimées.',
     hostingTitle: 'Où c’est stocké et qui nous aide',
     hosting: 'Stockage : {region}.',
-    providers: 'Prestataires qui traitent des données pour nous : {list}.',
+    providers: 'Prestataires qui traitent les données pour EvolAI : {list}.',
     aiTitle: 'Usage de l’IA',
+    aiOff:
+      'Aucun service d’IA n’analyse vos réponses. L’équipe EvolAI les lit et les résume elle-même, avec des règles fixes.',
     ai: 'L’IA aide l’équipe EvolAI à résumer les réponses. Elle n’utilise que ce service approuvé : {route}. Une personne relit chaque résultat de l’IA avant que quiconque d’autre le voie.',
     rightsTitle: 'Vos droits',
     rights:
-      'Vous pouvez demander à voir, corriger ou supprimer vos réponses, vous retirer, ou vous opposer. Vous n’avez pas à passer par votre responsable.',
+      'Vous pouvez demander à voir, corriger ou supprimer vos réponses, vous retirer, ou vous opposer. Vous n’avez pas à passer par votre responsable. Vous pouvez aussi saisir la CNIL (cnil.fr).',
     hiddenNote:
       'Certains détails de votre organisation ne sont pas encore publiés. Demandez à la personne qui vous a invité.',
     openFromInvite:

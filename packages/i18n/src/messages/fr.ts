@@ -122,7 +122,7 @@ export const fr: Messages = {
       'Un texte libre est anonymisé automatiquement avant l’enregistrement : noms, e-mails et numéros de téléphone sont masqués.',
     privacyFull: 'Notice de confidentialité complète',
     howItWorks:
-      'Choisissez une réponse ou écrivez quelques mots, puis Suivant. Chaque réponse est enregistrée. Les questions à texte peuvent être passées.',
+      'Choisissez une réponse ou écrivez quelques mots, puis Suivant. Chaque réponse est enregistrée. Vous pouvez passer n’importe quelle question.',
     start: 'Commencer',
     resume: 'Reprendre là où vous en étiez',
     resumeProgress: '{done} sur {n} répondues',
@@ -162,9 +162,10 @@ export const fr: Messages = {
     nextDone: 'Une synthèse pour toute l’équipe, sans noms, a été partagée.',
     keepLink: 'Gardez ce lien pour suivre votre équipe plus tard.',
     nextSaved: 'Vos réponses sont enregistrées. Vous pouvez fermer cette page.',
-    contactWith: 'Une question ? Vous souhaitez supprimer vos réponses ? Contactez {contact}.',
+    contactWith:
+      'Une question ? Contactez {contact}. Pour supprimer vos réponses, passez par la page Confidentialité : il ne passe pas par votre responsable.',
     contactNone:
-      'Une question ? Vous souhaitez supprimer vos réponses ? Demandez à la personne qui vous a invité.',
+      'Une question ? Demandez à la personne qui vous a invité. Pour supprimer vos réponses, passez par la page Confidentialité : il ne passe pas par votre responsable.',
     teamMascot: 'La mascotte de votre équipe : {tier}',
     quizTitle: 'Facultatif : découvrez votre mascotte IA',
     quizBody: '5 questions rapides, environ 1 minute.',
@@ -174,6 +175,8 @@ export const fr: Messages = {
     tipHeading: 'Une astuce à essayer',
     tip: 'Dites d’abord le résultat voulu, puis choisissez un outil. Commencez petit et vérifiez le résultat.',
     expiredTitle: 'Ce lien a expiré',
+    notYetTitle: 'Le questionnaire n’est pas encore ouvert',
+    opensOn: 'Il ouvre le {date}. Revenez à partir de ce jour-là.',
     withdrawnTitle: 'Ce lien ne fonctionne plus',
     askNewLink: 'Demandez un nouveau lien à votre contact d’équipe.',
   },

@@ -561,14 +561,17 @@ export const decideFinding = (
 export interface ReviewItem {
   readonly id: string;
   readonly label: string;
+  /** The approved sentence the report will carry (ADR 0063); never evidence or answers. */
+  readonly statement: string;
   /** People behind it, or 0 when it rests on the visit only. */
   readonly people: number;
   readonly review: FindingReview | null;
 }
 
 /**
- * What the referent reviews: the approved, reportable findings of the mission, labels and counts
- * only (no statement, no evidence), while the working report is in review. Empty otherwise.
+ * What the referent reviews: the approved, reportable findings of the mission, with the sentence
+ * the report will carry and the count (no evidence, no answer), while the working report is in
+ * review. Empty otherwise.
  */
 export const reviewItemsWith = async (
   client: pg.PoolClient,
@@ -585,6 +588,7 @@ export const reviewItemsWith = async (
     (f) => ({
       id: f.id,
       label: f.label,
+      statement: f.statement,
       people: f.people >= MIN_GROUP_SIZE ? f.people : 0,
       review: f.review,
     }),

@@ -77,7 +77,10 @@ export function ActionResult({ state }: { state: ReportActionState }) {
     <Box aria-live="polite" sx={{ minHeight: 24 }}>
       {state.code !== 'idle' ? (
         <StatusText status={state.ok ? 'success' : 'error'}>
-          {t(`report.result.${state.code}` as MessageKey, { count: state.count ?? 0 })}
+          {t(`report.result.${state.code}` as MessageKey, {
+            count: state.count ?? 0,
+            ...state.vars,
+          })}
         </StatusText>
       ) : null}
     </Box>

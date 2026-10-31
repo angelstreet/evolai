@@ -164,3 +164,12 @@ describe('deName', () => {
     expect(deName('en', 'Équipe pilote')).toBe('Équipe pilote');
   });
 });
+
+describe('plural numbers', () => {
+  it('use the locale decimal sign', () => {
+    const msg = '{n, plural, one {# heure} other {# heures}}';
+    expect(formatMessage(msg, 'fr', { n: 1.5 })).toBe('1,5 heure');
+    expect(formatMessage(msg, 'en', { n: 1.5 })).toBe('1.5 heures');
+    expect(formatMessage(msg, 'fr', { n: 12000 })).toBe('12000 heures');
+  });
+});

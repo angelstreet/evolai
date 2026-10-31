@@ -28,13 +28,17 @@ export default async function WelcomePage({
   searchParams,
 }: {
   params: Params;
-  searchParams: { l?: string; closed?: string };
+  searchParams: { l?: string; closed?: string; opens?: string };
 }) {
   // A team address (`/s/demo-sales`, TASK-AF): the route handler gives this browser its own
   // invitation and sends it back here with the signed token.
   if (looksLikeSlug(params.token)) {
     if (searchParams.closed === '1') return <LinkProblem gate="expired" t={getT().t} />;
     if (searchParams.closed === '0') notFound();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(searchParams.opens ?? '')) {
+      const { t, locale } = getT();
+      return <LinkProblem gate="not_yet" t={t} opensOn={searchParams.opens} locale={locale} />;
+    }
     redirect(`/s/open/${params.token}`);
   }
   const ctx = await loadRespondent(params.token, { rememberLocale: searchParams.l !== '1' });

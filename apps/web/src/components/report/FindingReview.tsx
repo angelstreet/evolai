@@ -53,6 +53,11 @@ function Item({ item, readOnly }: { item: ReviewItem; readOnly: boolean }) {
       <Typography variant="cardTitle" component="h3" sx={{ m: 0 }}>
         {item.label}
       </Typography>
+      {item.statement ? (
+        <Typography variant="body1" sx={{ mt: 1, mb: 0 }} data-testid="review-statement">
+          {item.statement}
+        </Typography>
+      ) : null}
       <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
         {item.people > 0
           ? t('report.clientReview.people', { count: item.people })
@@ -102,8 +107,8 @@ function Item({ item, readOnly }: { item: ReviewItem; readOnly: boolean }) {
 }
 
 /**
- * The referent checks the findings before publishing (TASK-AJ A8, ADR 0059): labels and counts
- * only, never a statement, an answer or a note. Shown while the working report is in review.
+ * The referent checks the findings before publishing (TASK-AJ A8, ADR 0059, ADR 0063): the label,
+ * the sentence the report will carry and the count; never an answer, evidence or a note. Shown while the working report is in review.
  */
 export default function FindingReview({
   items,

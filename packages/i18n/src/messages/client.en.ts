@@ -42,6 +42,7 @@ export const clientEn = {
       closed: 'Results ready',
       archived: 'Finished',
     },
+    opens: 'Opens on {date}',
     closes: 'Closes on {date}',
     closed: 'Closed on {date}',
     noClosingDate: 'No closing date yet. The EvolAI team will set it.',

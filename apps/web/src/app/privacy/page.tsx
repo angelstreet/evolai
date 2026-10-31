@@ -99,9 +99,15 @@ export default async function PrivacyPage({ searchParams }: { searchParams: { e?
         </Section>
       ) : null}
 
-      {n?.aiRoute ? (
+      {n ? (
         <Section title={t('trust.notice.aiTitle')}>
-          <p>{t('trust.notice.ai', { route: n.aiRoute })}</p>
+          <p>
+            {n.aiRoute
+              ? t('trust.notice.ai', { route: n.aiRoute })
+              : n.gaps.includes('ai')
+                ? t('trust.notice.hiddenNote')
+                : t('trust.notice.aiOff')}
+          </p>
         </Section>
       ) : null}
 

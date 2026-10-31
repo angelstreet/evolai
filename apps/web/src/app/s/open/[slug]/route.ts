@@ -20,6 +20,7 @@ export async function GET(req: NextRequest, { params }: { params: { slug: string
   const out = await openByAddress(slug, req.cookies.get(name)?.value ?? null);
   if (out.kind === 'unknown') return redirectTo(`/s/${slug}?closed=0`);
   if (out.kind === 'closed') return redirectTo(`/s/${slug}?closed=1`);
+  if (out.kind === 'not_yet') return redirectTo(`/s/${slug}?opens=${out.opensOn}`);
   const res = redirectTo(`/s/${out.token}`);
   if (out.created) {
     res.cookies.set(name, out.token, {

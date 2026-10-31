@@ -90,7 +90,7 @@ export const reportFr: Shape<typeof reportEn> = {
     nothing_accepted:
       'Rien à publier pour l’instant. Ajoutez une action avec « Rédiger la mienne » sous Actions.',
     contains_name:
-      'Le rapport contient un nom de la liste « noms à masquer ». Retirez-le avant de publier.',
+      'Le rapport contient « {term} », de la liste « noms à masquer », dans : « {excerpt} ». Retirez-le avant de publier.',
     contains_quote:
       'Le rapport reprend des mots écrits par une personne dans le questionnaire. Reformulez avec vos propres mots.',
     invalid: 'Le rapport est incomplet. Vérifiez chaque partie.',

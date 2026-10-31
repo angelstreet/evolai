@@ -13,12 +13,8 @@ import { AppIcon, StatusText, useNotify } from '@evolai/ui';
 import { useI18n } from '@/components/I18nProvider';
 import { copyText } from '@/lib/clipboard';
 import ReferentInviteForm from '@/app/admin/teams/ReferentInviteForm';
-import {
-  saveTeamAddressAction,
-  saveTeamMessagesAction,
-  teamIdle,
-  type TeamActionState,
-} from './actions';
+import { saveTeamAddressAction, saveTeamMessagesAction } from './actions';
+import { teamIdle, type TeamActionState } from './state';
 
 export interface TeamRow {
   readonly teamId: string;

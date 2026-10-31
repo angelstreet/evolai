@@ -169,7 +169,12 @@ describe('report snapshot gate', () => {
       redactionTerms: ['Demo Referent'],
       freeTexts: [],
     });
-    expect(r).toEqual({ ok: false, code: 'contains_name' });
+    expect(r).toEqual({
+      ok: false,
+      code: 'contains_name',
+      term: 'Demo Referent',
+      excerpt: 'Ask Demo Referent about access',
+    });
   });
 
   it('refuses six words copied from what a respondent wrote', () => {

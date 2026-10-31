@@ -7,12 +7,8 @@ import type { RedactionTerm, TenantId } from '@evolai/contracts';
 import type { SupportedLocale } from '@evolai/i18n';
 import { formatDate } from '@evolai/i18n';
 import { useI18n } from '@/components/I18nProvider';
-import {
-  addRedactionTermAction,
-  removeRedactionTermAction,
-  INITIAL_REDACTION_STATE,
-  type RedactionActionState,
-} from './actions';
+import { addRedactionTermAction, removeRedactionTermAction } from './actions';
+import { INITIAL_REDACTION_STATE, type RedactionActionState } from './state';
 
 interface AuditRow {
   id: string;

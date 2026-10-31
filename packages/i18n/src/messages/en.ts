@@ -119,7 +119,7 @@ export const en = {
       'Free text is anonymised automatically before it is saved: names, emails and phone numbers are hidden.',
     privacyFull: 'Full privacy notice',
     howItWorks:
-      'Pick an answer or type a few words, then Next. Each answer is saved. Text questions can be skipped.',
+      'Pick an answer or type a few words, then Next. Each answer is saved. You can skip any question.',
     start: 'Start',
     resume: 'Continue where you left off',
     resumeProgress: '{done} of {n} answered',
@@ -157,8 +157,10 @@ export const en = {
     nextDone: 'A summary for the whole team, without names, has been shared.',
     keepLink: 'Keep this link to check on your team later.',
     nextSaved: 'Your answers are saved. You can close this page.',
-    contactWith: 'Questions, or want your answers deleted? Contact {contact}.',
-    contactNone: 'Questions, or want your answers deleted? Ask the person who invited you.',
+    contactWith:
+      'Questions? Contact {contact}. To delete your answers, use the form on the Privacy page: it does not go through your manager.',
+    contactNone:
+      'Questions? Ask the person who invited you. To delete your answers, use the form on the Privacy page: it does not go through your manager.',
     teamMascot: 'Your team’s mascot: {tier}',
     quizTitle: 'Optional: find your AI mascot',
     quizBody: '5 quick questions, about 1 minute.',
@@ -168,6 +170,8 @@ export const en = {
     tipHeading: 'A tip to try',
     tip: 'Say what result you want before you pick a tool. Start small and check the output.',
     expiredTitle: 'This link has expired',
+    notYetTitle: 'The survey is not open yet',
+    opensOn: 'It opens on {date}. Come back from that day.',
     withdrawnTitle: 'This link no longer works',
     askNewLink: 'Ask your team contact for a new link.',
   },

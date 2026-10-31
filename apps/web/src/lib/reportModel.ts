@@ -102,6 +102,9 @@ export type PublishCheck =
         | 'contains_name'
         | 'contains_quote'
         | 'invalid';
+      /** For `contains_name`: the name and the sentence it sits in, so the auditor can find it. */
+      readonly term?: string;
+      readonly excerpt?: string;
     };
 
 const words = (s: string): string[] =>
@@ -122,6 +125,27 @@ const shingles = (s: string, n: number): string[] => {
 
 /** Six consecutive words of an answer appearing in the report count as a quote. */
 export const QUOTE_WORDS = 6;
+
+/** The sentence of `text` around the first whole-word match of `term`, at most about 80 characters. */
+const excerptOf = (texts: readonly string[], term: string): string => {
+  const t = words(term).join(' ');
+  const hit = texts.find((x) => ` ${words(x).join(' ')} `.includes(` ${t} `)) ?? '';
+  const one = hit.replace(/\s+/g, ' ').trim();
+  return one.length > 80 ? `${one.slice(0, 79)}…` : one;
+};
+
+/** First name from the names-to-hide list found in the texts, with its sentence, or null. */
+export const findName = (
+  texts: readonly string[],
+  terms: readonly string[],
+): { term: string; excerpt: string } | null => {
+  const body = ` ${words(texts.join(' \n ')).join(' ')} `;
+  for (const term of terms) {
+    const t = words(term).join(' ');
+    if (t.length >= 2 && body.includes(` ${t} `)) return { term, excerpt: excerptOf(texts, term) };
+  }
+  return null;
+};
 
 /**
  * Where the report text leaks: a name from the tenant's "names to hide" list (whole word,
@@ -228,25 +252,27 @@ export const buildSnapshot = (input: SnapshotInput, leaks: LeakSources): Publish
       : {}),
   };
 
-  const leak = findLeak(
-    [
-      candidate.title,
-      candidate.summary,
-      candidate.methodology,
-      ...candidate.risks,
-      ...candidate.plan.flatMap((p) => [p.text, p.owner]),
-      ...candidate.steps.flatMap((s) => [
-        s.title,
-        s.description,
-        s.owner,
-        ...s.prerequisites,
-        s.measure?.baselineUnit ?? '',
-        s.measure?.baselineSource ?? '',
-      ]),
-      ...candidate.opportunities.map((o) => o.title),
-    ],
-    leaks,
-  );
+  const reportTexts = [
+    candidate.title,
+    candidate.summary,
+    candidate.methodology,
+    ...candidate.risks,
+    ...candidate.plan.flatMap((p) => [p.text, p.owner]),
+    ...candidate.steps.flatMap((s) => [
+      s.title,
+      s.description,
+      s.owner,
+      ...s.prerequisites,
+      s.measure?.baselineUnit ?? '',
+      s.measure?.baselineSource ?? '',
+    ]),
+    ...candidate.opportunities.map((o) => o.title),
+  ];
+  const leak = findLeak(reportTexts, leaks);
+  if (leak === 'contains_name') {
+    const named = findName(reportTexts, leaks.redactionTerms);
+    return { ok: false, code: leak, ...(named ?? {}) };
+  }
   if (leak) return { ok: false, code: leak };
 
   const parsed = reportSnapshotSchema.safeParse(candidate);

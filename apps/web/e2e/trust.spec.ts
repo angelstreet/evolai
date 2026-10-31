@@ -296,9 +296,12 @@ for (const locale of LOCALES) {
     await page.goto(`/privacy?e=${ctx.engagementC}`);
     await expect(page.getByTestId('notice-gap')).toBeVisible();
     await expect(page.locator('main')).not.toContainText(/\{|undefined|null/);
-    expect(
-      (await page.getByRole('heading', { level: 2 }).allTextContents()).join(' | '),
-    ).not.toMatch(/IA|AI use|Usage de l/);
+    // AI off by default: the page says so plainly (ADR 0063).
+    await expect(page.locator('main')).toContainText(
+      locale === 'fr'
+        ? 'Aucun service d’IA n’analyse vos réponses'
+        : 'No AI service analyses your answers',
+    );
     await axe(page, `${locale} privacy (unconfigured)`);
 
     // Admin: warning first, then fill the fields.

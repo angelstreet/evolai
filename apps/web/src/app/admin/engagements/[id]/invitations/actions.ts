@@ -12,12 +12,9 @@ import { parseTeamSize, setExpectedSize, setSlug } from '@/lib/teamAddresses';
  * Team tab actions (TASK-AF). The actor and the tenant come from the session (`resolveActor`);
  * the form's tenant id is only a selector. Results are codes the page maps to words.
  */
-export interface TeamActionState {
-  readonly ok: boolean;
-  readonly code: string;
-}
+import type { TeamActionState } from './state';
 
-export const teamIdle: TeamActionState = { ok: false, code: 'idle' };
+export type { TeamActionState } from './state';
 
 const guard = async (fd: FormData) => {
   const tenantId = String(fd.get('tenantId') ?? '');

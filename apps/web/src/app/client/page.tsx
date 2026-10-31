@@ -118,7 +118,12 @@ export default async function ClientHome() {
     schedule: survey.reminderDays,
     today,
   });
-  const open = survey.status === 'in_field' || survey.status === 'scheduled';
+  // Before the opening day the survey address refuses answers: say when it opens, no reminders yet.
+  const notYet =
+    survey.opensOn !== null &&
+    survey.opensOn > today &&
+    ['draft', 'scheduled', 'in_field'].includes(survey.status);
+  const open = !notYet && (survey.status === 'in_field' || survey.status === 'scheduled');
   const reminderHint = !open
     ? null
     : plan.due
@@ -173,14 +178,17 @@ export default async function ClientHome() {
           <Typography variant="body1" sx={{ m: 0 }} data-testid="client-status">
             <StatusText
               status={
-                statusKey === 'in_field'
+                statusKey === 'in_field' && !notYet
                   ? 'running'
                   : statusKey === 'closed'
                     ? 'success'
                     : 'pending'
               }
             >
-              {survey.name} · {t(`client.home.status.${statusKey}` as 'client.home.status.none')}
+              {survey.name} ·{' '}
+              {notYet && survey.opensOn
+                ? t('client.home.opens', { date: longDate(locale, survey.opensOn) })
+                : t(`client.home.status.${statusKey}` as 'client.home.status.none')}
             </StatusText>
           </Typography>
           <Stack

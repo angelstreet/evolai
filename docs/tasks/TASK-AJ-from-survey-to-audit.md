@@ -51,3 +51,8 @@ on production.
 
 Production: migration `0033_finding_for_review.sql` applied to Neon on 2026-10-31 (owner approval): the auditor
 now picks the findings the referent reviews.
+
+Pilot set-up 2026-10-31 (ADR 0063): the real mission is set up on the live site (four teams, dates, privacy
+notice, names to hide, questionnaire v3, the referent on all four teams). A worker review as the referent found
+a Team-tab crash, answers accepted before the opening day and copy gaps; all fixed. Left for the owner: the
+notice's contact address and the referent's real login.

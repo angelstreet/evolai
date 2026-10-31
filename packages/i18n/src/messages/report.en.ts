@@ -81,7 +81,7 @@ export const reportEn = {
     citation_unknown: 'The summary cites a finding that is no longer approved. Update the ticks.',
     nothing_accepted: 'Nothing to publish yet. Add an action with “Write my own” under Actions.',
     contains_name:
-      'The report contains a name from the "names to hide" list. Remove it before publishing.',
+      'The report contains “{term}”, from the “names to hide” list, in: “{excerpt}”. Remove it before publishing.',
     contains_quote:
       'The report repeats words a person wrote in the survey. Rephrase it in your own words.',
     invalid: 'The report is not complete. Check every section.',

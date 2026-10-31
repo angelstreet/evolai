@@ -41,6 +41,7 @@ export const clientFr: ClientMessages = {
       closed: 'Résultats prêts',
       archived: 'Terminé',
     },
+    opens: 'Ouverture le {date}',
     closes: 'Fermeture le {date}',
     closed: 'Fermé le {date}',
     noClosingDate: 'Pas encore de date de fermeture. L’équipe EvolAI va la fixer.',

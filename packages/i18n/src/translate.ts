@@ -40,9 +40,12 @@ export const formatMessage = (
     if (kind?.trim() === 'plural') {
       const n = typeof value === 'number' ? value : Number(value);
       const branches = parseBranches(rest.join(','));
-      const category = new Intl.PluralRules(locale === 'fr' ? 'fr-FR' : 'en-GB').select(n);
+      const tag = locale === 'fr' ? 'fr-FR' : 'en-GB';
+      const category = new Intl.PluralRules(tag).select(n);
       const chosen = branches[`=${n}`] ?? branches[category] ?? branches['other'] ?? '';
-      out += formatMessage(chosen.replace(/#/g, String(n)), locale, vars);
+      // "1,5 heure" in French, "1.5 hours" in English (ESN review).
+      const shown = new Intl.NumberFormat(tag, { useGrouping: false }).format(n);
+      out += formatMessage(chosen.replace(/#/g, shown), locale, vars);
     } else {
       out += value === undefined ? `{${name.trim()}}` : String(value);
     }

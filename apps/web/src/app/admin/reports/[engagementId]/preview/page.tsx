@@ -65,7 +65,10 @@ export default async function ReportPreviewPage({
         ) : (
           <Alert severity="warning" data-testid="report-gate">
             <AlertTitle>{t('report.view.gateTitle')}</AlertTitle>
-            {t(`report.result.${check.code}` as MessageKey)}
+            {t(`report.result.${check.code}` as MessageKey, {
+              term: check.term ?? '',
+              excerpt: check.excerpt ?? '',
+            })}
           </Alert>
         )}
       </Stack>

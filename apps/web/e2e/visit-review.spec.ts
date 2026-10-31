@@ -108,12 +108,12 @@ test('a visit note becomes a finding; a dispute holds the report until answered'
     await own.getByTestId('report-to-review').click();
     await expect(own.getByTestId('report-state')).toHaveText('In review');
 
-    // A8: the referent sees labels and counts only, and disputes it.
+    // A8: the referent sees the label, the approved sentence and the count (ADR 0063), and disputes it.
     const ref = await signedIn(browser, base, REFERENT);
     await ref.goto('/client/report');
     const item = ref.getByTestId('review-finding').filter({ hasText: LABEL });
     await expect(item).toContainText('seen on the visit');
-    await expect(item).not.toContainText('seen in the interviews');
+    await expect(item.getByTestId('review-statement')).toBeVisible();
     await item.locator('input[name=comment]').fill('Only the night team does this.');
     await item.getByTestId('review-dispute').click();
     await expect(item.getByTestId('review-result')).toHaveText(

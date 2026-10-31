@@ -89,7 +89,8 @@ const run = async (
     done();
     return out;
   } catch (err) {
-    return { ok: false, code: codeOf(err) };
+    const vars = err instanceof ReportError ? err.vars : undefined;
+    return { ok: false, code: codeOf(err), ...(vars ? { vars } : {}) };
   }
 };
 

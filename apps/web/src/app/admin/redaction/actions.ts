@@ -11,14 +11,9 @@ import { getT } from '@/lib/i18n';
  * always come from the session; the form's tenant id is only a selector. The data layer writes one
  * `audit_log` row per add / remove so the trail records who changed the redaction list and when.
  */
-export interface RedactionActionState {
-  ok: boolean;
-  message: string;
-  /** Echoed back so the form can clear the input on success. */
-  term?: string;
-}
+import type { RedactionActionState } from './state';
 
-const INITIAL: RedactionActionState = { ok: false, message: '' };
+export type { RedactionActionState } from './state';
 
 const isUuidV4 = (v: string): boolean =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
@@ -74,5 +69,3 @@ export async function removeRedactionTermAction(
     return { ok: false, message: t('admin.redaction.errRemove') };
   }
 }
-
-export const INITIAL_REDACTION_STATE = INITIAL;

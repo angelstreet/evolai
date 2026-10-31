@@ -174,7 +174,8 @@ export const trustEn = {
     intro:
       'This page explains what happens to your answers. It is written for the people who are invited to answer.',
     whoTitle: 'Who is asking',
-    whoBody: '{org} runs this survey and decides how the answers are used.',
+    whoBody:
+      '{org} runs this survey and decides how the answers are used. EvolAI, the firm running the audit, handles them for {org}.',
     contactLine: 'Questions about privacy: {contact}',
     purposeTitle: 'Why we ask',
     defaultPurpose:
@@ -192,7 +193,7 @@ export const trustEn = {
       'If your link was sent by email, the address is kept for a short time only to send the link and reminders, then deleted.',
     notCollectedTitle: 'What is not collected',
     notCollected:
-      'Your name. If you write free text, names, emails and phone numbers are hidden automatically before the answer is saved, so no name is kept. Please do not type them anyway.',
+      'Your name. If you write free text, names, emails and phone numbers are hidden automatically before the answer is saved. Please do not type them anyway.',
     seesTitle: 'Who sees what',
     seesAuditor: 'The EvolAI team sees the answers linked to your code, never your name.',
     seesReferent: 'The referent of your team sees how many people answered. Never who, never what.',
@@ -202,12 +203,14 @@ export const trustEn = {
     retention: 'Answers are kept for {days, plural, one {# day} other {# days}}, then deleted.',
     hostingTitle: 'Where it is stored and who helps us',
     hosting: 'Stored in: {region}.',
-    providers: 'Service providers that handle data for us: {list}.',
+    providers: 'Service providers that handle the data for EvolAI: {list}.',
     aiTitle: 'Use of AI',
+    aiOff:
+      'No AI service analyses your answers. The EvolAI team reads and summarises them itself, with fixed rules.',
     ai: 'AI helps the EvolAI team summarise answers. It uses only this approved service: {route}. A person reviews every AI result before anyone else sees it.',
     rightsTitle: 'Your rights',
     rights:
-      'You can ask to see, correct or delete your answers, to withdraw, or to object. You do not need to go through your manager.',
+      'You can ask to see, correct or delete your answers, to withdraw, or to object. You do not need to go through your manager. You can also complain to your data protection authority (in France, the CNIL, cnil.fr).',
     hiddenNote:
       'Some details for your organisation are not published yet. Ask the person who invited you.',
     openFromInvite:

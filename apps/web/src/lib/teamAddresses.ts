@@ -182,6 +182,7 @@ export const setExpectedSize = async (
 export type OpenResult =
   | { kind: 'ok'; token: string; created: boolean }
   | { kind: 'closed' }
+  | { kind: 'not_yet'; opensOn: string }
   | { kind: 'unknown' };
 
 /** Cookie holding this browser's invitation token for one address. Scoped to `/s/`. */
@@ -205,8 +206,9 @@ export const openByAddress = async (
       team_id: string;
       status: string;
       closes_at: Date | string | null;
+      opens_at: Date | string | null;
     }>(
-      `SELECT a.tenant_id, a.engagement_id, a.team_id, e.status, e.closes_at
+      `SELECT a.tenant_id, a.engagement_id, a.team_id, e.status, e.closes_at, e.opens_at
          FROM team_addresses a JOIN engagements e ON e.id = a.engagement_id
         WHERE a.slug = $1`,
       [slug],
@@ -231,6 +233,13 @@ export const openByAddress = async (
     }
 
     if (!OPENABLE.has(addr.status)) return { kind: 'closed' as const };
+    // Before the opening day nobody gets an invitation, so no answer lands early (ESN review).
+    if (addr.opens_at && new Date(addr.opens_at).getTime() > now.getTime()) {
+      return {
+        kind: 'not_yet' as const,
+        opensOn: new Date(addr.opens_at).toISOString().slice(0, 10),
+      };
+    }
     const closes = addr.closes_at ? new Date(addr.closes_at) : now;
     const expires = new Date(
       Math.max(closes.getTime(), now.getTime()) + LINK_DAYS_AFTER_CLOSE * 86_400_000,

@@ -51,7 +51,10 @@ import { countNotesWith, type NoteKind } from './visitData';
  */
 
 export class ReportError extends Error {
-  constructor(readonly code: string) {
+  constructor(
+    readonly code: string,
+    readonly vars?: Readonly<Record<string, string>>,
+  ) {
     super(code);
     this.name = 'ReportError';
   }
@@ -1175,7 +1178,12 @@ export const publishReport = (tenantId: TenantId, actor: string, reportId: strin
       throw new ReportError('disputed');
     }
     const check = await checkWith(client, tenantId, r, new Date().toISOString());
-    if (!check.ok) throw new ReportError(check.code);
+    if (!check.ok) {
+      throw new ReportError(
+        check.code,
+        check.term ? { term: check.term, excerpt: check.excerpt ?? '' } : undefined,
+      );
+    }
     await client.query(
       `UPDATE audit_report_versions SET unpublished_at = now(), unpublished_by = $3
         WHERE tenant_id = $1 AND report_id = $2 AND unpublished_at IS NULL`,

@@ -19,9 +19,11 @@ import { parseContact, referentParticipation, type Participation } from './refer
 
 export interface ClientSurvey {
   readonly engagementId: string;
-  /** Engagement label: the template name ("Pilot ..."). */
+  /** Mission name set by the auditor, else the template name ("Pilot ..."). */
   readonly name: string;
   readonly status: string;
+  /** Opening day (ISO), or null when the auditor has not set one. */
+  readonly opensOn: string | null;
   readonly teams: readonly { id: string; name: string }[];
   /** Closing day (ISO), or null when the auditor has not set one. */
   readonly closesOn: string | null;
@@ -42,10 +44,12 @@ export const loadClientSurvey = async (
       name: string;
       status: string;
       closes_on: string | null;
+      opens_on: string | null;
       privacy_json: Record<string, unknown>;
     }>(
-      `SELECT e.id, tp.name, e.status, e.privacy_json,
-              to_char(e.closes_at AT TIME ZONE 'UTC', 'YYYY-MM-DD') AS closes_on
+      `SELECT e.id, COALESCE(NULLIF(e.name, ''), tp.name) AS name, e.status, e.privacy_json,
+              to_char(e.closes_at AT TIME ZONE 'UTC', 'YYYY-MM-DD') AS closes_on,
+              to_char(e.opens_at AT TIME ZONE 'UTC', 'YYYY-MM-DD') AS opens_on
          FROM engagements e
          JOIN templates tp ON tp.id = e.template_id
         WHERE e.tenant_id = $1 AND e.status <> 'archived'
@@ -69,6 +73,7 @@ export const loadClientSurvey = async (
       status: row.status,
       teams: teams.rows,
       closesOn: row.closes_on,
+      opensOn: row.opens_on,
       contact: parseContact(row.privacy_json['contact']),
       reminderDays: parseReminderDays(row.privacy_json['reminderDays']),
     };
