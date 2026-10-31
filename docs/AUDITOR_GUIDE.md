@@ -88,9 +88,17 @@ counts the interviews, observations and workshops (ADR 0059).
 
 ## Build the audit report
 
-7. **Report**: press "Start the report" on the audit. The app proposes up to three improvement steps for each
-   approved opportunity, taken from a catalogue (simplify, automate, train, AI assistant, data and tools, rules),
-   with a line saying why each was proposed.
+7. **Report**: press "Start the report" on the audit. The report is built on **use cases** (ADR 0064): named
+   pieces of work where time can be saved, such as "Adapt consultant CVs to each offer", "Answer tenders
+   faster" or "From timesheets to invoices without retyping". The app proposes at most five from the approved
+   findings: a use case needs a finding that names the work (a theme from the free texts, a finding you wrote,
+   or one seen on the visit). When people say there is no rule for client data, "Rules for client data in AI
+   tools" comes first, always. Each use case comes with its own steps from the playbook.
+   7b. **Measure each use case** (under the use case, "Ask during the visit"): the questions to ask on site,
+   then how many a week and how many minutes each time, the teams and the source. The report turns it into
+   time today and an estimated saving (a dated range per use case, `SAVING_RATES` in the code), marked as an
+   estimate to check at day 90. Without a measure, the report says "to be measured during the visit": measure
+   the first three before publishing.
 8. For each step: **Accept**, **Reject**, or the pencil to **Edit** effort, impact, risk, the owner (a role,
    such as "Team lead", never a person's name) and when (30, 60 or 90 days). "From the catalogue" adds another
    catalogue step; "Write my own" adds yours. "Suggest again" covers opportunities approved later.
@@ -110,7 +118,10 @@ counts the interviews, observations and workshops (ADR 0059).
     publish yet (an unanswered dispute, or a high-impact automation with no owner).
 11. **Next 30, 60 and 90 days**: "Build from the accepted steps", then edit, add or remove lines. Each horizon ends
     with a checkpoint (check use, measure early results, keep, adapt or stop).
-12. Fill **Risks** (one per line) and check the **Method and privacy** note.
+12. **Risks** start from the findings (client data with no rule, candidates' data, unchecked AI answers):
+    edit them, add your own, one per line. Check the **Method and privacy** note. The report lists at most 8
+    key findings: those the summary cites and those the use cases rest on first; themes from the free texts
+    stay behind the use cases.
 
 ## Check and publish
 
@@ -121,6 +132,8 @@ counts the interviews, observations and workshops (ADR 0059).
     is**. You cannot publish while a dispute is
     unanswered; a kept dispute is noted in the report. Then **Preview as the client**. You see exactly what the client will see, or the
     reason it is not ready (for example: no finding ticked, a name from the list, words copied from an answer).
+    13b. While the report is in review, the referent can also put the use cases in order ("Where to start?").
+    The report follows that order, after the rules on data.
 14. **Publish** and confirm. The referent now sees it in the **Report** tab of their space and can download the
     PDF. Download it yourself from the editor to send it to the sponsor.
     You can publish with findings alone (no improvement step). If the audit has no approved opportunity, use

@@ -18,3 +18,4 @@ export * from './proposeFindings.js';
 export * from './repeatedTime.js';
 export * from './readinessRubric.js';
 export * from './auditQuality.js';
+export * from './useCaseMatching.js';

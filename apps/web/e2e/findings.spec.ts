@@ -103,13 +103,15 @@ test('answers become findings, findings become actions', async ({ browser, baseU
     await expect(typed).toHaveAttribute('data-status', 'approved');
     await own.getByTestId('report-start').click();
     await expect(own.getByTestId('report-editor')).toBeVisible();
+    // It is evidence for the use case it names (ADR 0064), with the playbook's steps.
     const opportunity = own
       .getByTestId('report-opportunity')
-      .filter({ hasText: /typed twice|saisie deux fois/ });
+      .filter({ hasText: /Stop typing the same data twice|saisir deux fois/ });
     await expect(opportunity).toBeVisible();
     await expect(opportunity).toContainText('Why:');
-    // The summary can cite it.
-    await expect(own.locator('section[aria-labelledby=report-summary]')).toContainText(
+    // A theme from the free texts backs the use case; the summary cites findings that say
+    // something on their own (ADR 0064).
+    await expect(own.locator('section[aria-labelledby=report-summary]')).not.toContainText(
       /typed twice|saisie deux fois/,
     );
 

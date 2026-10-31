@@ -66,10 +66,11 @@ const cleanupFixture = async (): Promise<void> => {
   await query('DELETE FROM audit_report_versions WHERE engagement_id = $1', [eng.id]);
   await query('DELETE FROM audit_reports WHERE engagement_id = $1', [eng.id]);
   await query('DELETE FROM findings WHERE engagement_id = $1', [eng.id]);
-  await query('DELETE FROM opportunities WHERE engagement_id = $1 AND title = ANY($2)', [
-    eng.id,
-    [OPP_TITLE, OWN_STEP],
-  ]);
+  // Use cases (ADR 0064) are made again by each report.
+  await query(
+    'DELETE FROM opportunities WHERE engagement_id = $1 AND (title = ANY($2) OR use_case_id IS NOT NULL)',
+    [eng.id, [OPP_TITLE, OWN_STEP]],
+  );
   await query(
     `DELETE FROM invitations WHERE engagement_id = $1 AND respondent_pseudonym LIKE 'rpt-%'`,
     [eng.id],
@@ -266,7 +267,17 @@ for (const locale of ['fr', 'en'] as const) {
     await own.waitForURL(new RegExp(`/admin/engagements/${fx.engagement}/report`));
     await expect(own.getByTestId('report-editor')).toBeVisible();
 
-    const steps = own.getByTestId('report-step');
+    // The findings name a weekly report typed by hand: the report proposes use cases with their
+    // own steps (ADR 0064), and the auditor's opportunity still gets catalogue steps.
+    await expect(
+      own
+        .getByTestId('report-opportunity')
+        .filter({ hasText: /Recurring reports|Des rapports récurrents/ }),
+    ).toBeVisible();
+    const steps = own
+      .getByTestId('report-opportunity')
+      .filter({ hasText: OPP_TITLE })
+      .getByTestId('report-step');
     await expect(steps.first()).toBeVisible();
     expect(await steps.count()).toBeGreaterThan(0);
     await steps
@@ -412,10 +423,80 @@ for (const locale of ['fr', 'en'] as const) {
     await own.locator('input[name=owner]').fill('Team lead');
     await page.getByTestId('report-add-step').click();
     await expect(page.locator('[data-testid=report-step][data-status=accepted]')).toHaveCount(1);
-    await expect(page.getByTestId('report-opportunity')).toContainText(OWN_STEP);
+    await expect(
+      page.getByTestId('report-opportunity').filter({ hasText: OWN_STEP }),
+    ).toBeVisible();
     await noHorizontalScroll(page, `${locale} editor with own step`);
   });
 }
+
+test('use cases: measured on the visit, ordered by the referent, shown with hours (ADR 0064)', async ({
+  browser,
+  context,
+  page: own,
+  baseURL,
+}) => {
+  test.setTimeout(240_000);
+  const fx = await resetFixture(false);
+  await setLocale(context, baseURL, 'en');
+  await signIn(own, OWNER, /\/(admin|board)/);
+  await own.goto(`/admin/engagements/${fx.engagement}/report?tenant=${fx.tenant}`);
+  await own.getByTestId('report-start').click();
+  await expect(own.getByTestId('report-editor')).toBeVisible();
+
+  // Two use cases from the findings, each with its playbook steps and the visit guide.
+  const reports = own
+    .getByTestId('report-opportunity')
+    .filter({ hasText: /Recurring reports that build themselves|Des rapports récurrents/ });
+  const reentry = own
+    .getByTestId('report-opportunity')
+    .filter({ hasText: /Stop typing the same data twice|saisir deux fois les mêmes/ });
+  for (const uc of [reports, reentry]) {
+    await uc.getByTestId('report-step').first().getByRole('button', { name: 'Accept' }).click();
+  }
+  await expect(own.locator('[data-testid=report-step][data-status=accepted]')).toHaveCount(2);
+  const qualify = reports.getByTestId('use-case-qualify');
+  await expect(qualify).toContainText('Ask during the visit');
+  await qualify.locator('input[name=volumePerWeek]').fill('4');
+  await qualify.locator('input[name=minutesPerUnit]').fill('90');
+  await qualify.locator('input[name=teams]').fill('Synthetic report team');
+  await qualify.getByTestId('use-case-save').click();
+  // The estimate is in the report language (French here).
+  await expect(reports.getByTestId('use-case-estimate')).toContainText(/6 (hours|heures)/);
+
+  await own.getByTestId('report-draft-summary').click();
+  await expect(own.getByTestId('report-summary')).toHaveValue(/2 (pieces of work|chantiers)/);
+  await own.getByTestId('report-to-review').click();
+  await expect(own.getByTestId('report-state')).toHaveText('In review');
+
+  // The referent orders them while the report is in review.
+  const refCtx = await browser.newContext({ baseURL });
+  await setLocale(refCtx, baseURL, 'en');
+  const ref = await refCtx.newPage();
+  await signIn(ref, REFERENT, /\/client/);
+  await ref.goto('/client/report');
+  const ranking = ref.getByTestId('use-case-ranking');
+  await expect(ranking).toBeVisible();
+  await ranking.getByTestId('use-case-rank-save').click();
+  await expect(ranking).toContainText('Order saved.');
+
+  await own.reload();
+  await own.getByTestId('report-publish').click();
+  await own.getByRole('dialog').getByRole('button', { name: 'Publish' }).click();
+  await expect(own.getByTestId('report-state')).toHaveText('Published');
+
+  await ref.reload();
+  const view = ref.getByTestId('report-view');
+  await expect(view).toContainText('Where to save time');
+  await expect(view.getByTestId('use-case-today').first()).toContainText('about 6 hours a week');
+  await expect(view.getByTestId('use-case-saving').first()).toContainText('Estimated saving');
+  await expect(view.getByTestId('use-case-rank').first()).toContainText(
+    'Priority given by your referent',
+  );
+  await axe(ref, 'en client report with use cases');
+  await noHorizontalScroll(ref, 'en client report with use cases');
+  await refCtx.close();
+});
 
 test('a referent cannot reach the auditor report screens', async ({ page }) => {
   const fx = await resetFixture();

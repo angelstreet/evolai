@@ -61,6 +61,7 @@ export const reportFr: Shape<typeof reportEn> = {
     cancel: 'Annuler',
   },
   result: {
+    qualified: 'Mesure enregistrée.',
     saved: 'Enregistré.',
     created: 'Rapport commencé.',
     suggested:
@@ -133,6 +134,11 @@ export const reportFr: Shape<typeof reportEn> = {
     opportunities: 'Les premières actions que nous recommandons : {list}.',
     closing: 'Le plan ci-dessous indique qui fait quoi dans les 30, 60 et 90 prochains jours.',
     closingNoSteps: 'Aucune action n’est encore recommandée.',
+    useCases:
+      'L’audit retient {count, plural, one {un chantier} other {# chantiers}} où gagner du temps : {list}.',
+    saving:
+      'D’après les mesures de la visite, ils peuvent libérer environ {low} à {high} heures par semaine.',
+    rulesFirst: 'À faire d’abord : {title}.',
   },
   ai: {
     title: 'Brouillon IA',
@@ -296,7 +302,7 @@ export const reportFr: Shape<typeof reportEn> = {
       rejected: 'Refusé.',
       corrected: 'Marqué corrigé.',
       updated:
-        'Enregistré. L’action issue de ce constat prend le nouveau titre ; ses preuves et ses étapes restent. Vérifiez-les sous Actions.',
+        'Enregistré. Une action issue de ce seul constat prend le nouveau titre ; les chantiers gardent le leur.',
       picked: 'Coché pour le référent.',
       unpicked: 'N’est plus soumis au référent.',
       too_many: 'Au plus {count} constats vont au référent. Décochez-en un d’abord.',
@@ -552,6 +558,53 @@ export const reportFr: Shape<typeof reportEn> = {
       forbidden: 'Vous ne pouvez pas vérifier ces constats.',
       error: 'Une erreur est survenue. Veuillez réessayer.',
     },
+  },
+  useCases: {
+    title: 'Où gagner du temps',
+    subtitle:
+      'Les chantiers retenus par l’audit, dans l’ordre où les lancer. Les gains sont des estimations, à vérifier au bout de 90 jours.',
+    today:
+      'Aujourd’hui : environ {hours} heures par semaine ({volume} × {unit}, {minutes} minutes à chaque fois ; {teams}).',
+    notMeasured: 'Temps actuel à mesurer pendant la visite.',
+    saving: 'Gain estimé : {low} à {high} heures par semaine.',
+    evidence:
+      'Ce qui le montre : {people, plural, =0 {la visite} other {# personnes}}{count, plural, =0 {} other {, constats {list}}}.',
+    dataRule: 'Règle sur les données : {rule}',
+    clientRank: 'Priorité donnée par votre référent : {rank}.',
+    form: {
+      guide: 'À demander pendant la visite',
+      volume: 'Nombre par semaine ({unit})',
+      minutes: 'Minutes à chaque fois ({unit})',
+      teams: 'Équipes concernées',
+      source: 'Source de la mesure',
+      sourceHelp: 'Par exemple : visite, 2 business managers.',
+      save: 'Enregistrer la mesure',
+      estimate:
+        'Aujourd’hui environ {hours} heures par semaine{saved, select, none {} other {, gain estimé {low} à {high} heures}}.',
+    },
+    rank: {
+      title: 'Par où commencer ?',
+      subtitle:
+        'Classez les chantiers dans l’ordre où vous voulez les lancer. Le rapport suivra votre ordre, après les règles sur les données.',
+      label: 'Priorité',
+      save: 'Enregistrer l’ordre',
+      result: {
+        ranked: 'Ordre enregistré.',
+        locked: 'Le rapport n’est plus en relecture.',
+        read_only: 'Lecture seule.',
+        forbidden: 'Action impossible.',
+        not_found: 'Aucun chantier à classer.',
+        error: 'Une erreur est survenue. Réessayez.',
+      },
+    },
+  },
+  risksAuto: {
+    policy_unclear:
+      'Données clients : {people, plural, =0 {d’après la visite} other {# personnes disent}} qu’il n’y a pas de règle claire pour les données clients dans les outils d’IA. Tant qu’elle n’existe pas, un document client peut partir dans un outil public.',
+    recruiting:
+      'Candidats : leurs données sont personnelles. Un outil d’IA de tri doit être autorisé, les candidats informés, et la décision reste humaine.',
+    document_review:
+      'Réponses d’IA non vérifiées : sans habitude commune de vérification, une erreur peut partir chez un client.',
   },
   view: {
     draftBanner: 'Aperçu. Le client ne le voit pas avant la publication.',

@@ -14,7 +14,7 @@ import { z } from 'zod';
  * the rule-based matcher in `@evolai/domain` uses them.
  */
 
-export const IMPROVEMENT_CATALOGUE_VERSION = '2026-10-30.1';
+export const IMPROVEMENT_CATALOGUE_VERSION = '2026-10-31.1';
 
 export const improvementCategorySchema = z.enum([
   'simplify',
@@ -93,6 +93,11 @@ export const EVIDENCE_KEYWORDS: Readonly<Record<EvidenceTag, readonly string[]>>
     'ressais',
     'double saisie',
     'saisie manuelle',
+    'typed twice',
+    'entered twice',
+    'typed by hand',
+    'saisie deux fois',
+    'saisi deux fois',
   ],
   repetitive_task: [
     'repetitive',
@@ -765,6 +770,186 @@ export const IMPROVEMENT_CATALOGUE: readonly ImprovementEntry[] = [
     prerequisites: [],
     ownerRole: 'sponsor',
     evidence: ['policy_unclear', 'document_review'],
+  }, // ---- Professional services (use cases, ADR 0064) ---------------------------------------------
+  {
+    id: 'governance.client_data_rule',
+    category: 'governance',
+    title: t(
+      'A client-data rule for consultants',
+      'Une règle sur les données clients pour les consultants',
+    ),
+    description: t(
+      'One page for consultants: which AI tools are allowed, what may go into them, and that the client’s own rules win at the client. Ten minutes in the next team meeting.',
+      'Une page pour les consultants : quels outils d’IA sont autorisés, ce qu’on peut y mettre, et que les règles du client priment chez le client. Dix minutes à la prochaine réunion d’équipe.',
+    ),
+    effort: 'low',
+    impact: 'high',
+    risk: 'low',
+    prerequisites: [
+      t('The list of AI tools people use today', 'La liste des outils d’IA utilisés aujourd’hui'),
+    ],
+    ownerRole: 'security_privacy',
+    evidence: ['policy_unclear'],
+  },
+  {
+    id: 'data.cv_master_profiles',
+    category: 'data_access',
+    title: t('One master profile per consultant', 'Un profil de référence par consultant'),
+    description: t(
+      'Keep one up-to-date profile per consultant in one shared place (skills, missions, references), updated at the end of each mission.',
+      'Tenir un profil à jour par consultant dans un seul endroit partagé (compétences, missions, références), mis à jour à la fin de chaque mission.',
+    ),
+    effort: 'medium',
+    impact: 'high',
+    risk: 'low',
+    prerequisites: [t('The house CV template', 'Le modèle de CV maison')],
+    ownerRole: 'process_owner',
+    evidence: ['cv_profiles', 'search_information'],
+  },
+  {
+    id: 'ai.cv_tailoring',
+    category: 'ai_assistant',
+    title: t('AI adapts the CV to the offer', 'L’IA adapte le CV à l’offre'),
+    description: t(
+      'From the master profile and the client’s requirements, an approved AI tool drafts the CV in the house template; the business manager checks it before sending.',
+      'À partir du profil de référence et des exigences du client, un outil d’IA autorisé rédige le CV dans le modèle maison ; le business manager le relit avant l’envoi.',
+    ),
+    effort: 'low',
+    impact: 'high',
+    risk: 'medium',
+    prerequisites: [t('An approved AI tool', 'Un outil d’IA autorisé')],
+    ownerRole: 'team_lead',
+    evidence: ['cv_profiles', 'writing_drafting'],
+  },
+  {
+    id: 'simplify.tender_library',
+    category: 'simplify',
+    title: t('A library of tender answers', 'Une bibliothèque de réponses aux appels d’offres'),
+    description: t(
+      'Keep the best past answers by section (company, method, references, team), tagged by sector, so each new answer starts from them.',
+      'Garder les meilleures réponses passées par partie (société, méthode, références, équipe), classées par secteur, pour que chaque nouvelle réponse parte de là.',
+    ),
+    effort: 'medium',
+    impact: 'high',
+    risk: 'low',
+    prerequisites: [t('Five recent answers that won', 'Cinq réponses récentes gagnées')],
+    ownerRole: 'process_owner',
+    evidence: ['tender_response', 'writing_drafting'],
+  },
+  {
+    id: 'ai.tender_first_draft',
+    category: 'ai_assistant',
+    title: t('First draft of the tender answer', 'Premier jet de la réponse à l’appel d’offres'),
+    description: t(
+      'An approved AI tool drafts each section from the library and the client’s request; the bid lead rewrites and decides what is sent.',
+      'Un outil d’IA autorisé rédige chaque partie à partir de la bibliothèque et du cahier des charges ; le responsable de la réponse réécrit et décide de ce qui part.',
+    ),
+    effort: 'low',
+    impact: 'high',
+    risk: 'medium',
+    prerequisites: [
+      t('An approved AI tool', 'Un outil d’IA autorisé'),
+      t('The client’s documents may go into it', 'Les documents du client peuvent y être mis'),
+    ],
+    ownerRole: 'team_lead',
+    evidence: ['tender_response'],
+  },
+  {
+    id: 'automate.timesheet_once',
+    category: 'automate',
+    title: t('Timesheets entered once', 'Comptes rendus d’activité saisis une seule fois'),
+    description: t(
+      'Consultants enter their monthly timesheet in one form or tool, with an automatic reminder three days before the end of the month; nobody retypes it.',
+      'Les consultants saisissent leur compte rendu d’activité mensuel dans un seul formulaire ou outil, avec un rappel automatique trois jours avant la fin du mois ; personne ne le ressaisit.',
+    ),
+    effort: 'medium',
+    impact: 'high',
+    risk: 'low',
+    prerequisites: [
+      t(
+        'One timesheet format for every client',
+        'Un seul format de compte rendu pour tous les clients',
+      ),
+    ],
+    ownerRole: 'process_owner',
+    evidence: ['timesheet_billing', 'manual_reentry'],
+  },
+  {
+    id: 'automate.invoice_from_timesheet',
+    category: 'automate',
+    title: t('Invoices prepared from timesheets', 'Factures préparées à partir des comptes rendus'),
+    description: t(
+      'Invoice drafts are built from the approved timesheets and the contract rates; sales administration checks them and sends.',
+      'Les brouillons de factures sont construits à partir des comptes rendus validés et des taux des contrats ; l’administration des ventes vérifie et envoie.',
+    ),
+    effort: 'medium',
+    impact: 'high',
+    risk: 'medium',
+    prerequisites: [t('The contract rates in one place', 'Les taux des contrats au même endroit')],
+    ownerRole: 'it',
+    evidence: ['timesheet_billing'],
+  },
+  {
+    id: 'data.staffing_board',
+    category: 'data_access',
+    title: t('One staffing board', 'Un tableau de staffing unique'),
+    description: t(
+      'One shared board (availability, end of mission, skills) fed from the timesheets and contracts, not rebuilt from e-mails every Monday.',
+      'Un tableau partagé (disponibilités, fins de mission, compétences) alimenté par les comptes rendus et les contrats, et non refait à partir des e-mails chaque lundi.',
+    ),
+    effort: 'medium',
+    impact: 'medium',
+    risk: 'low',
+    prerequisites: [
+      t('Mission end dates kept up to date', 'Les dates de fin de mission tenues à jour'),
+    ],
+    ownerRole: 'data_owner',
+    evidence: ['staffing', 'reporting'],
+  },
+  {
+    id: 'ai.candidate_screening',
+    category: 'ai_assistant',
+    title: t('Screening against a grid', 'Pré-tri des candidatures avec une grille'),
+    description: t(
+      'A short grid per job; an approved AI tool summarises each CV against it; the recruiter decides. No automatic rejection, candidates told how their data is used.',
+      'Une grille courte par poste ; un outil d’IA autorisé résume chaque CV au regard de la grille ; le recruteur décide. Aucun rejet automatique, les candidats savent comment leurs données sont utilisées.',
+    ),
+    effort: 'low',
+    impact: 'medium',
+    risk: 'medium',
+    prerequisites: [t('An approved AI tool', 'Un outil d’IA autorisé')],
+    ownerRole: 'team_lead',
+    evidence: ['recruiting'],
+  },
+  {
+    id: 'ai.interview_summary',
+    category: 'ai_assistant',
+    title: t('Structured interview notes', 'Comptes rendus d’entretien structurés'),
+    description: t(
+      'One template per interview; an approved AI tool turns the recruiter’s notes into the summary; the recruiter checks it.',
+      'Un modèle par entretien ; un outil d’IA autorisé met les notes du recruteur au propre ; le recruteur relit.',
+    ),
+    effort: 'low',
+    impact: 'medium',
+    risk: 'low',
+    prerequisites: [],
+    ownerRole: 'team_lead',
+    evidence: ['recruiting', 'meeting_overload'],
+  },
+  {
+    id: 'ai.client_status_report',
+    category: 'ai_assistant',
+    title: t('Status report from the tools', 'Rapport d’avancement à partir des outils'),
+    description: t(
+      'The weekly client report starts from an export of the tickets or plan, with a drafted commentary the consultant rewrites. Only where the client’s rules allow it.',
+      'Le rapport hebdomadaire au client part d’un export des tickets ou du planning, avec un commentaire pré-rédigé que le consultant réécrit. Seulement là où les règles du client le permettent.',
+    ),
+    effort: 'low',
+    impact: 'medium',
+    risk: 'medium',
+    prerequisites: [t('The client’s agreement on the tool', 'L’accord du client sur l’outil')],
+    ownerRole: 'team_lead',
+    evidence: ['reporting'],
   },
 ];
 

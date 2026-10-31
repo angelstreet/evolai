@@ -133,6 +133,38 @@ export type ReportStep = z.infer<typeof reportStepSchema>;
 export const quadrantSchema = z.enum(['quick_win', 'big_bet', 'fill_in', 'reconsider']);
 export type Quadrant = z.infer<typeof quadrantSchema>;
 
+/**
+ * What makes an opportunity a use case in the report (ADR 0064): the evidence, today's time and the
+ * estimated saving. Absent on snapshots published before ADR 0064 and on opportunities that are not
+ * use cases (a step the auditor wrote on its own).
+ */
+export const reportUseCaseSchema = z
+  .object({
+    useCaseId: z.string().regex(/^uc\.[a-z0-9_]+$/),
+    approach: z.string().max(400),
+    dataRule: z.string().max(400),
+    /** Most people behind one of its findings (at least the minimum group), or 0 if seen on the visit only. */
+    people: z.number().int().min(0),
+    /** Numbers of the key findings it rests on, as listed in the report. */
+    findingNumbers: z.array(z.number().int().min(1)).max(20),
+    teams: z.string().max(200),
+    unit: z.string().max(40),
+    volumePerWeek: z.number().min(0).nullable(),
+    minutesPerUnit: z.number().min(0).nullable(),
+    /** volume x minutes, in hours a week; null until measured. */
+    hoursPerWeek: z.number().min(0).nullable(),
+    /** Estimated hours saved a week, low and high; null until measured or for rules. */
+    savedLow: z.number().min(0).nullable(),
+    savedHigh: z.number().min(0).nullable(),
+    measureSource: z.string().max(200),
+    ratesVersion: z.string().max(40),
+    /** The referent's order of priority, if given. */
+    clientRank: z.number().int().min(1).nullable(),
+    pinned: z.boolean(),
+  })
+  .strict();
+export type ReportUseCase = z.infer<typeof reportUseCaseSchema>;
+
 export const reportOpportunitySchema = z
   .object({
     id: z.string().uuid(),
@@ -142,6 +174,7 @@ export const reportOpportunitySchema = z
     impact: levelSchema,
     effort: levelSchema,
     quadrant: quadrantSchema,
+    useCase: reportUseCaseSchema.optional(),
   })
   .strict();
 export type ReportOpportunity = z.infer<typeof reportOpportunitySchema>;

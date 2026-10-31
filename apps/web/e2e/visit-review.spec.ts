@@ -90,8 +90,12 @@ test('a visit note becomes a finding; a dispute holds the report until answered'
     // Seen on the visit, so it gets actions; A9: the accepted action gets its measure.
     await own.getByTestId('report-start').click();
     await expect(own.getByTestId('report-editor')).toBeVisible();
-    await expect(own.getByTestId('report-opportunity').filter({ hasText: LABEL })).toBeVisible();
-    const step = own.getByTestId('report-step').first();
+    // The visit finding names double entry: it backs that use case (ADR 0064).
+    const useCase = own
+      .getByTestId('report-opportunity')
+      .filter({ hasText: /Stop typing the same data twice|saisir deux fois les mêmes/ });
+    await expect(useCase).toBeVisible();
+    const step = useCase.getByTestId('report-step').first();
     await step.getByRole('button', { name: 'Accept' }).click();
     const accepted = own.locator('[data-testid=report-step][data-status=accepted]').first();
     await expect(accepted).toBeVisible();
@@ -145,10 +149,13 @@ test('a visit note becomes a finding; a dispute holds the report until answered'
     await own.getByTestId('finding-edit-save').click();
     const renamed = own.getByTestId('finding').filter({ hasText: `${LABEL}, night team` });
     await expect(renamed.getByTestId('finding-edit-result')).toHaveText(
-      'Saved. The action made from it has the new title; its evidence and steps stay. Check them under Actions.',
+      'Saved. An action made only from this finding takes the new title; use cases keep theirs.',
     );
+    // The use case keeps its name; the finding has the new one (ADR 0064).
     await expect(
-      own.getByTestId('report-opportunity').filter({ hasText: `${LABEL}, night team` }),
+      own
+        .getByTestId('report-opportunity')
+        .filter({ hasText: /Stop typing the same data twice|saisir deux fois les mêmes/ }),
     ).toBeVisible();
 
     // ADR 0061: the audit-quality card (staff only) and the value at follow-up.

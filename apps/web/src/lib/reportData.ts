@@ -3,6 +3,7 @@ import {
   IMPROVEMENT_CATALOGUE_VERSION,
   catalogueEntry,
   planItemSchema,
+  useCaseById,
   reportSnapshotSchema,
   type AnswerValue,
   type Horizon,
@@ -28,7 +29,12 @@ import {
   type ScoredSubmission,
 } from '@evolai/domain';
 import { createTranslator } from '@evolai/i18n';
-import { linkedFindingWords, loadApprovedFindings, reviewCountsWith } from './findingsData';
+import {
+  linkedFindingWords,
+  loadApprovedFindings,
+  reviewCountsWith,
+  type ApprovedFinding,
+} from './findingsData';
 import { withTenant } from './db';
 import { MIN_GROUP_SIZE } from './invitationTracking';
 import {
@@ -37,7 +43,9 @@ import {
   type OpportunityInput,
   type PublishCheck,
   type StepRow,
+  type UseCaseInput,
 } from './reportModel';
+import { loadUseCasesWith, syncUseCasesWith } from './useCaseData';
 import { countNotesWith, type NoteKind } from './visitData';
 
 /**
@@ -291,14 +299,17 @@ const loadFindings = async (
   tenantId: string,
   engagementId: string,
 ): Promise<ReportFinding[]> =>
-  (await loadApprovedFindings(client, tenantId, engagementId, MIN_GROUP_SIZE)).map((f) => ({
-    key: findingKey(f.axis, f.label),
-    axis: f.axis,
-    label: f.label,
-    people: f.people,
-    ...(f.visit ? { visit: true } : {}),
-    ...(f.disputed ? { disputed: true } : {}),
-  }));
+  (await loadApprovedFindings(client, tenantId, engagementId, MIN_GROUP_SIZE))
+    // Free-text themes back the use cases; the report lists findings that say something (ADR 0064).
+    .filter((f) => !f.theme)
+    .map((f) => ({
+      key: findingKey(f.axis, f.label),
+      axis: f.axis,
+      label: f.label,
+      people: f.people,
+      ...(f.visit ? { visit: true } : {}),
+      ...(f.disputed ? { disputed: true } : {}),
+    }));
 
 const loadReadiness = async (
   client: pg.PoolClient,
@@ -453,17 +464,45 @@ const loadInputsWith = async (
       ORDER BY created_at, id`,
     [tenantId, engagementId, APPROVED_OPPORTUNITY],
   );
+  const approved = await loadApprovedFindings(client, tenantId, engagementId, MIN_GROUP_SIZE);
+  const useCases = new Map(
+    (await loadUseCasesWith(client, tenantId, engagementId)).map((u) => [u.opportunityId, u]),
+  );
+  const useCaseOf = (id: string): UseCaseInput | undefined => {
+    const u = useCases.get(id);
+    const play = u ? useCaseById(u.useCaseId) : undefined;
+    if (!u || !play) return undefined;
+    const linked = approved.filter((f) => u.findingIds.includes(f.id));
+    return {
+      useCaseId: u.useCaseId,
+      approach: play.approach[e.locale],
+      dataRule: play.dataRule[e.locale],
+      unit: play.unit[e.locale],
+      pinned: play.pinned === true,
+      people: Math.max(0, ...linked.map((f) => f.people)),
+      findingKeys: linked.filter((f) => !f.theme).map((f) => findingKey(f.axis, f.label)),
+      teams: u.qualification.teams,
+      source: u.qualification.source,
+      volumePerWeek: u.qualification.volumePerWeek,
+      minutesPerUnit: u.qualification.minutesPerUnit,
+      clientRank: u.clientRank,
+    };
+  };
   return {
     organisation: e.organisation ?? '',
     engagementName: e.name,
     locale: e.locale,
     findings: await loadFindings(client, tenantId, engagementId),
-    opportunities: opps.rows.map((o) => ({
-      id: o.id,
-      title: o.title,
-      axis: o.axis,
-      impactScore: o.impact_score === null ? null : Number(o.impact_score),
-    })),
+    opportunities: opps.rows.map((o) => {
+      const useCase = useCaseOf(o.id);
+      return {
+        id: o.id,
+        title: o.title,
+        axis: o.axis,
+        impactScore: o.impact_score === null ? null : Number(o.impact_score),
+        ...(useCase ? { useCase } : {}),
+      };
+    }),
     readiness: await loadReadiness(client, tenantId, engagementId),
     answered: Number(
       (
@@ -639,7 +678,8 @@ const suggestWith = async (
     ).rows.map((r) => r.catalogue_id),
   );
   const owners = createTranslator(locale);
-  for (const o of opportunities) {
+  // A use case brings its own playbook steps (ADR 0064): the keyword matcher is for the others.
+  for (const o of opportunities.filter((x) => !x.useCase)) {
     const linked = await client.query<{ payload_json: unknown }>(
       `SELECT a.payload_json FROM opportunities op JOIN analyses a ON a.id = op.analysis_id
         WHERE op.tenant_id = $1 AND op.id = $2 AND a.approved_at IS NOT NULL`,
@@ -663,13 +703,19 @@ const suggestWith = async (
       'SELECT description FROM opportunities WHERE tenant_id = $1 AND id = $2',
       [tenantId, o.id],
     );
-    const matches = matchImprovements({
-      title: o.title,
-      description: description.rows[0]?.description ?? '',
-      axis: o.axis,
-      findingLabels: labels,
-      tags: fromFindings.tags,
-    });
+    const matches = matchImprovements(
+      {
+        title: o.title,
+        description: description.rows[0]?.description ?? '',
+        axis: o.axis,
+        findingLabels: labels,
+        tags: fromFindings.tags,
+      },
+      8,
+    )
+      // Up to three actions this report does not have yet (a use case may hold the best match).
+      .filter((m) => !present.has(m.entry.id))
+      .slice(0, 3);
     for (const m of matches) {
       const e = m.entry;
       if (present.has(e.id)) continue;
@@ -710,7 +756,12 @@ export const createReport = (
   tenantId: TenantId,
   actor: string,
   engagementId: string,
-  defaults: { title: (org: string) => string; methodology: string },
+  defaults: {
+    title: (org: string) => string;
+    methodology: string;
+    /** Risks the findings already show, one per line (ADR 0064); the auditor edits them. */
+    risks?: (findings: readonly ApprovedFinding[]) => string;
+  },
 ): Promise<string> =>
   withTenant(tenantId, async (client) => {
     const inputs = await loadInputsWith(client, tenantId, engagementId);
@@ -736,7 +787,25 @@ export const createReport = (
     );
     const id = ins.rows[0]?.id as string;
     await audit(client, tenantId, actor, 'report.create', 'report', id, { engagementId });
-    const added = await suggestWith(client, tenantId, id, inputs.locale, inputs.opportunities);
+    const risks =
+      defaults.risks?.(await loadApprovedFindings(client, tenantId, engagementId)) ?? '';
+    if (risks) {
+      await client.query(
+        'UPDATE audit_reports SET risks_note = $3 WHERE tenant_id = $1 AND id = $2',
+        [tenantId, id, risks],
+      );
+    }
+    const fromUseCases = await syncUseCasesWith(
+      client,
+      tenantId,
+      engagementId,
+      id,
+      actor,
+      inputs.locale,
+    );
+    const fresh = (await loadInputsWith(client, tenantId, engagementId)) ?? inputs;
+    const added =
+      fromUseCases + (await suggestWith(client, tenantId, id, inputs.locale, fresh.opportunities));
     await audit(client, tenantId, actor, 'report.suggest', 'report', id, { added });
     return id;
   });
@@ -763,9 +832,19 @@ const touch = (client: pg.PoolClient, tenantId: string, reportId: string, actor:
 export const suggestSteps = (tenantId: TenantId, actor: string, reportId: string) =>
   withTenant(tenantId, async (client) => {
     const r = await editable(client, tenantId, reportId);
+    const fromUseCases = await syncUseCasesWith(
+      client,
+      tenantId,
+      r.engagementId,
+      reportId,
+      actor,
+      r.locale,
+    );
     const inputs = await loadInputsWith(client, tenantId, r.engagementId);
     if (!inputs) throw new ReportError('not_found');
-    const added = await suggestWith(client, tenantId, reportId, r.locale, inputs.opportunities);
+    const added =
+      fromUseCases +
+      (await suggestWith(client, tenantId, reportId, r.locale, inputs.opportunities));
     await touch(client, tenantId, reportId, actor);
     await audit(client, tenantId, actor, 'report.suggest', 'report', reportId, { added });
     return added;

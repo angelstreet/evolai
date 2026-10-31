@@ -8,7 +8,13 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 import type { ReactNode } from 'react';
-import type { Horizon, Quadrant, ReadinessGroup, ReportSnapshot } from '@evolai/contracts';
+import type {
+  Horizon,
+  Quadrant,
+  ReadinessGroup,
+  ReportSnapshot,
+  ReportUseCase,
+} from '@evolai/contracts';
 import { formatDate } from '@evolai/i18n';
 import { getT } from '@/lib/i18n';
 import {
@@ -16,6 +22,7 @@ import {
   measureLine,
   prerequisiteLines,
   repeatedTimeLines,
+  useCaseLines,
   weightsSentence,
 } from '@/lib/reportModel';
 
@@ -45,6 +52,29 @@ function Section({ id, title, children }: { id: string; title: ReactNode; childr
   );
 }
 
+/** What makes an opportunity a use case (ADR 0064), one line each. */
+function UseCaseFacts({ u }: { u: ReportUseCase }) {
+  const { t, locale } = getT();
+  const [approach, ...rest] = useCaseLines(t, locale, u);
+  return (
+    <Box sx={{ mt: 1, mb: 2 }} data-testid="report-use-case">
+      <Typography variant="body1" sx={{ m: 0, maxWidth: '72ch' }}>
+        {approach?.text}
+      </Typography>
+      {rest.map((l) => (
+        <Typography
+          key={l.key}
+          variant="body2"
+          sx={{ m: 0, mt: 1, maxWidth: '72ch' }}
+          data-testid={`use-case-${l.key}`}
+        >
+          {l.text}
+        </Typography>
+      ))}
+    </Box>
+  );
+}
+
 export default function ReportView({
   snapshot,
   actions,
@@ -56,6 +86,7 @@ export default function ReportView({
   const { t, locale } = getT();
   const s = snapshot;
   const findingNo = new Map(s.findings.map((f, i) => [f.key, i + 1]));
+  const hasUseCases = s.opportunities.some((o) => o.useCase);
   const level = (l: string | null) =>
     l ? t(`report.readiness.level.${l as 'L0'}`) : t('report.readiness.noAxis');
   const score = (n: number | null) =>
@@ -142,6 +173,120 @@ export default function ReportView({
             })}
           </Typography>
         ) : null}
+      </Section>
+
+      <Section
+        id="rv-ranking"
+        title={hasUseCases ? t('report.useCases.title') : t('report.ranking.title')}
+      >
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          {hasUseCases ? t('report.useCases.subtitle') : t('report.ranking.subtitle')}
+        </Typography>
+        <Box
+          role="img"
+          aria-label={t('report.ranking.matrixAria', {
+            list: s.opportunities
+              .map((o) => `${o.rank}. ${o.title}: ${t(`report.ranking.quadrant.${o.quadrant}`)}`)
+              .join('; '),
+          })}
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+            gap: 2,
+            mb: 4,
+          }}
+        >
+          {QUADRANTS.map((q) => (
+            <Box
+              key={q}
+              sx={{ border: 1, borderColor: 'divider', borderRadius: 2, p: 3, minHeight: 88 }}
+            >
+              <Typography variant="cardTitle" component="p" sx={{ m: 0 }}>
+                {t(`report.ranking.quadrant.${q}`)}
+              </Typography>
+              <Typography variant="caption" color="text.secondary" component="p" sx={{ m: 0 }}>
+                {t(`report.ranking.quadrantHelp.${q}`)}
+              </Typography>
+              <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', mt: 2 }}>
+                {s.opportunities
+                  .filter((o) => o.quadrant === q)
+                  .map((o) => (
+                    <Box
+                      key={o.id}
+                      component="span"
+                      sx={{
+                        border: 1,
+                        borderColor: 'divider',
+                        borderRadius: 2,
+                        px: 2,
+                        typography: 'body2',
+                        fontVariantNumeric: 'tabular-nums',
+                      }}
+                    >
+                      {o.rank}
+                    </Box>
+                  ))}
+              </Stack>
+            </Box>
+          ))}
+        </Box>
+        <Box component="ol" sx={{ m: 0, pl: 6 }}>
+          {s.opportunities.map((o) => (
+            <Box component="li" key={o.id} sx={{ py: 2, breakInside: 'avoid' }}>
+              <Typography variant="cardTitle" component="p" sx={{ m: 0 }}>
+                {o.title}
+              </Typography>
+              {o.useCase ? <UseCaseFacts u={o.useCase} /> : null}
+              <Typography variant="body2" color="text.secondary">
+                {t(`report.ranking.quadrant.${o.quadrant}`)} ·{' '}
+                {t('report.ranking.impactEffort', {
+                  impact: lvl(o.impact).toLowerCase(),
+                  effort: lvl(o.effort).toLowerCase(),
+                })}
+              </Typography>
+              <Box component="ul" sx={{ m: 0, mt: 1, pl: 5 }}>
+                {s.steps
+                  .filter((st) => st.opportunityId === o.id)
+                  .map((st) => (
+                    <Box component="li" key={st.id} sx={{ py: 1 }}>
+                      <Typography variant="body1" component="span" sx={{ fontWeight: 600 }}>
+                        {st.title}
+                      </Typography>
+                      <Typography variant="body2" component="span" color="text.secondary">
+                        {' · '}
+                        {t(`report.steps.categoryName.${st.category}`)}
+                      </Typography>
+                      {st.description ? (
+                        <Typography variant="body2" sx={{ maxWidth: '72ch' }}>
+                          {st.description}
+                        </Typography>
+                      ) : null}
+                      <Typography variant="body2" color="text.secondary">
+                        {[
+                          `${t('report.steps.owner')}${colon}${st.owner || '—'}`,
+                          t(`report.steps.horizonName.${st.horizon}`),
+                          `${t('report.steps.effort')} ${lvl(st.effort).toLowerCase()}`,
+                          `${t('report.steps.impact')} ${lvl(st.impact).toLowerCase()}`,
+                          `${t('report.steps.risk')} ${lvl(st.risk).toLowerCase()}`,
+                        ]
+                          .join(' · ')
+                          .replace(' : ', locale === 'fr' ? ' : ' : ': ')}
+                      </Typography>
+                      {measureLine(t, st.measure, colon, day) ? (
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          data-testid="report-step-measure"
+                        >
+                          {measureLine(t, st.measure, colon, day)}
+                        </Typography>
+                      ) : null}
+                    </Box>
+                  ))}
+              </Box>
+            </Box>
+          ))}
+        </Box>
       </Section>
 
       <Section id="rv-readiness" title={t('report.readiness.title')}>
@@ -301,116 +446,6 @@ export default function ReportView({
           </Box>
         </Section>
       ) : null}
-
-      <Section id="rv-ranking" title={t('report.ranking.title')}>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-          {t('report.ranking.subtitle')}
-        </Typography>
-        <Box
-          role="img"
-          aria-label={t('report.ranking.matrixAria', {
-            list: s.opportunities
-              .map((o) => `${o.rank}. ${o.title}: ${t(`report.ranking.quadrant.${o.quadrant}`)}`)
-              .join('; '),
-          })}
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
-            gap: 2,
-            mb: 4,
-          }}
-        >
-          {QUADRANTS.map((q) => (
-            <Box
-              key={q}
-              sx={{ border: 1, borderColor: 'divider', borderRadius: 2, p: 3, minHeight: 88 }}
-            >
-              <Typography variant="cardTitle" component="p" sx={{ m: 0 }}>
-                {t(`report.ranking.quadrant.${q}`)}
-              </Typography>
-              <Typography variant="caption" color="text.secondary" component="p" sx={{ m: 0 }}>
-                {t(`report.ranking.quadrantHelp.${q}`)}
-              </Typography>
-              <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', mt: 2 }}>
-                {s.opportunities
-                  .filter((o) => o.quadrant === q)
-                  .map((o) => (
-                    <Box
-                      key={o.id}
-                      component="span"
-                      sx={{
-                        border: 1,
-                        borderColor: 'divider',
-                        borderRadius: 2,
-                        px: 2,
-                        typography: 'body2',
-                        fontVariantNumeric: 'tabular-nums',
-                      }}
-                    >
-                      {o.rank}
-                    </Box>
-                  ))}
-              </Stack>
-            </Box>
-          ))}
-        </Box>
-        <Box component="ol" sx={{ m: 0, pl: 6 }}>
-          {s.opportunities.map((o) => (
-            <Box component="li" key={o.id} sx={{ py: 2, breakInside: 'avoid' }}>
-              <Typography variant="cardTitle" component="p" sx={{ m: 0 }}>
-                {o.title}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {t(`report.ranking.quadrant.${o.quadrant}`)} ·{' '}
-                {t('report.ranking.impactEffort', {
-                  impact: lvl(o.impact).toLowerCase(),
-                  effort: lvl(o.effort).toLowerCase(),
-                })}
-              </Typography>
-              <Box component="ul" sx={{ m: 0, mt: 1, pl: 5 }}>
-                {s.steps
-                  .filter((st) => st.opportunityId === o.id)
-                  .map((st) => (
-                    <Box component="li" key={st.id} sx={{ py: 1 }}>
-                      <Typography variant="body1" component="span" sx={{ fontWeight: 600 }}>
-                        {st.title}
-                      </Typography>
-                      <Typography variant="body2" component="span" color="text.secondary">
-                        {' · '}
-                        {t(`report.steps.categoryName.${st.category}`)}
-                      </Typography>
-                      {st.description ? (
-                        <Typography variant="body2" sx={{ maxWidth: '72ch' }}>
-                          {st.description}
-                        </Typography>
-                      ) : null}
-                      <Typography variant="body2" color="text.secondary">
-                        {[
-                          `${t('report.steps.owner')}${colon}${st.owner || '—'}`,
-                          t(`report.steps.horizonName.${st.horizon}`),
-                          `${t('report.steps.effort')} ${lvl(st.effort).toLowerCase()}`,
-                          `${t('report.steps.impact')} ${lvl(st.impact).toLowerCase()}`,
-                          `${t('report.steps.risk')} ${lvl(st.risk).toLowerCase()}`,
-                        ]
-                          .join(' · ')
-                          .replace(' : ', locale === 'fr' ? ' : ' : ': ')}
-                      </Typography>
-                      {measureLine(t, st.measure, colon, day) ? (
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          data-testid="report-step-measure"
-                        >
-                          {measureLine(t, st.measure, colon, day)}
-                        </Typography>
-                      ) : null}
-                    </Box>
-                  ))}
-              </Box>
-            </Box>
-          ))}
-        </Box>
-      </Section>
 
       {s.plan.length > 0 ? (
         <Section id="rv-plan" title={t('report.plan.title')}>

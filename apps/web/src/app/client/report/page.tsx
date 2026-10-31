@@ -1,4 +1,5 @@
 import type { TenantId } from '@evolai/contracts';
+import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
@@ -9,6 +10,8 @@ import ReportView from '@/components/report/ReportView';
 import { requireClientContext } from '@/lib/clientContext';
 import { loadClientSurvey } from '@/lib/clientData';
 import { reviewItems } from '@/lib/findingsData';
+import { rankItems } from '@/lib/useCaseData';
+import { UseCaseRanking } from '@/components/report/UseCaseForms';
 import { getT } from '@/lib/i18n';
 import { longDate } from '@/lib/referentMessages';
 import { loadPublishedReport } from '@/lib/reportData';
@@ -30,6 +33,7 @@ export default async function ClientReportPage() {
     ? await loadPublishedReport(ctx.tenantId as TenantId, survey.engagementId)
     : null;
   const toReview = survey ? await reviewItems(ctx.tenantId as TenantId, survey.engagementId) : [];
+  const toRank = survey ? await rankItems(ctx.tenantId as TenantId, survey.engagementId) : [];
   return (
     <section aria-labelledby="client-report-title">
       <PageTitle
@@ -40,6 +44,11 @@ export default async function ClientReportPage() {
       {/* The review is the referent's task right now, so it comes first (ESN rehearsal). */}
       {toReview.length > 0 ? (
         <FindingReview items={toReview} readOnly={ctx.readOnly || ctx.viewAs !== null} />
+      ) : null}
+      {toRank.length > 1 ? (
+        <Box sx={{ mb: 4 }}>
+          <UseCaseRanking items={toRank} readOnly={ctx.readOnly || ctx.viewAs !== null} />
+        </Box>
       ) : null}
       <Paper
         variant="outlined"

@@ -1,7 +1,8 @@
 import type pg from 'pg';
-import { evidenceTagSchema, type EvidenceTag, type TenantId } from '@evolai/contracts';
+import { USE_CASES, evidenceTagSchema, type EvidenceTag, type TenantId } from '@evolai/contracts';
 import {
   proposeFindings,
+  tagsInText,
   type FindingAxis,
   type FindingProposal,
   type MissionAnswer,
@@ -107,6 +108,15 @@ const readiness = async (client: pg.PoolClient): Promise<Ready> => ({
   pick: await pickReady(client),
 });
 
+/** `opportunities.use_case_id` exists (migration 0034, ADR 0064). */
+const useCaseColumn = async (client: pg.PoolClient): Promise<boolean> =>
+  (
+    await client.query(
+      `SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'opportunities' AND column_name = 'use_case_id'`,
+    )
+  ).rowCount === 1;
+
 /** `findings.for_review` exists (migration 0033, ADR 0062). */
 const pickReady = async (client: pg.PoolClient): Promise<boolean> =>
   (
@@ -192,6 +202,11 @@ export const listFindings = (tenantId: TenantId, engagementId: string) =>
   withTenant(tenantId, (c) => listFindingsWith(c, tenantId, engagementId));
 
 export interface ApprovedFinding {
+  readonly id: string;
+  /** A theme from the free texts (`tag:` rule): evidence for a use case, not a key finding (ADR 0064). */
+  readonly theme: boolean;
+  /** Evidence patterns, for the risks the report starts with. */
+  readonly tags: readonly EvidenceTag[];
   readonly axis: string;
   readonly label: string;
   /** People behind it, or 0 when under the minimum (then it was seen on the visit). */
@@ -215,6 +230,9 @@ export const loadApprovedFindings = async (
   ((await listFindingsWith(client, tenantId, engagementId)) ?? [])
     .filter((f) => f.status === 'approved' && isReportable(f, minPeople))
     .map((f) => ({
+      id: f.id,
+      theme: f.ruleKey?.startsWith('tag:') === true,
+      tags: f.tags,
       axis: f.axis,
       label: f.label,
       people: f.people >= minPeople ? f.people : 0,
@@ -337,6 +355,13 @@ const ensureOpportunity = async (
   ).rows;
   const f = row ? fromDb(row) : null;
   if (!f || f.status !== 'approved' || !isReportable(f) || f.opportunityId) return false;
+  // With use cases (ADR 0064) the report groups findings into use cases. A finding the auditor
+  // wrote that names no use case keeps an opportunity of its own, so it still gets actions.
+  if (await useCaseColumn(client)) {
+    if (f.ruleKey !== null) return false;
+    const tags = new Set([...f.tags, ...tagsInText(`${f.label} ${f.statement}`)]);
+    if (USE_CASES.some((u) => u.evidence.some((t) => tags.has(t)))) return false;
+  }
   const made = await client.query<{ id: string }>(
     `INSERT INTO opportunities (tenant_id, engagement_id, status, title, description, axis, created_by)
      VALUES ($1, $2, 'approved', $3, $4, $5, $6) RETURNING id`,
@@ -531,11 +556,17 @@ export const decideFinding = (
       );
       return { engagementId: f.engagement_id, opportunity };
     }
+    // A use case rests on several findings: it is archived only when none of them stays approved.
+    const keepUseCases = (await useCaseColumn(client))
+      ? `AND (o.use_case_id IS NULL OR NOT EXISTS (
+           SELECT 1 FROM opportunity_findings o2 JOIN findings f2 ON f2.id = o2.finding_id
+            WHERE o2.opportunity_id = o.id AND o2.finding_id <> $2 AND f2.status = 'approved'))`
+      : '';
     const linked = await client.query<{ id: string }>(
       `UPDATE opportunities o SET status = 'archived', archived_at = now(), updated_at = now()
          FROM opportunity_findings ofi
         WHERE ofi.finding_id = $2 AND ofi.opportunity_id = o.id AND o.tenant_id = $1
-          AND o.status <> 'archived'
+          AND o.status <> 'archived' ${keepUseCases}
         RETURNING o.id`,
       [tenantId, findingId],
     );
@@ -730,11 +761,13 @@ export const updateFinding = (
     );
     const engagementId = res.rows[0]?.engagement_id;
     if (!engagementId) throw new FindingError('not_found');
+    // A use case keeps its own name: it rests on several findings (ADR 0064).
+    const ownOnly = (await useCaseColumn(client)) ? 'AND o.use_case_id IS NULL' : '';
     await client.query(
       `UPDATE opportunities o SET title = $3, description = $4, axis = $5, updated_at = now()
          FROM opportunity_findings ofi
         WHERE ofi.finding_id = $2 AND ofi.opportunity_id = o.id AND o.tenant_id = $1
-          AND o.status <> 'archived'`,
+          AND o.status <> 'archived' ${ownOnly}`,
       [tenantId, findingId, input.label, input.statement, input.axis],
     );
     await audit(client, tenantId, actor, 'finding.update', findingId, { engagementId });

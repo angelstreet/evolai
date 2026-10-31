@@ -10,9 +10,9 @@ import {
 } from './improvementCatalogue.js';
 
 describe('improvement catalogue', () => {
-  it('has 25 to 30 valid entries with unique ids', () => {
+  it('has 25 to 45 valid entries with unique ids', () => {
     expect(IMPROVEMENT_CATALOGUE.length).toBeGreaterThanOrEqual(25);
-    expect(IMPROVEMENT_CATALOGUE.length).toBeLessThanOrEqual(30);
+    expect(IMPROVEMENT_CATALOGUE.length).toBeLessThanOrEqual(45);
     for (const e of IMPROVEMENT_CATALOGUE)
       expect(() => improvementEntrySchema.parse(e)).not.toThrow();
     expect(new Set(IMPROVEMENT_CATALOGUE.map((e) => e.id)).size).toBe(IMPROVEMENT_CATALOGUE.length);

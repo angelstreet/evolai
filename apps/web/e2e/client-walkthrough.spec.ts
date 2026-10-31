@@ -157,7 +157,7 @@ test('the whole audit, as the client lives it', async ({ browser, baseURL }) => 
     await step.locator('input[name=title]').fill(OWN_STEP);
     await step.locator('input[name=owner]').fill('Team lead');
     await own.getByTestId('report-add-step').click();
-    await expect(own.getByTestId('report-opportunity')).toContainText(OWN_STEP);
+    await expect(own.getByTestId('report-opportunity').filter({ hasText: OWN_STEP })).toBeVisible();
     await own.getByTestId('report-to-review').click();
     await own.getByTestId('report-publish').click();
     await own.getByRole('dialog').getByRole('button', { name: 'Publish' }).click();
@@ -183,10 +183,10 @@ test('the whole audit, as the client lives it', async ({ browser, baseURL }) => 
   } finally {
     await dbQuery(`DELETE FROM audit_report_versions WHERE engagement_id = $1`, [eng.id]);
     await dbQuery(`DELETE FROM audit_reports WHERE engagement_id = $1`, [eng.id]);
-    await dbQuery(`DELETE FROM opportunities WHERE engagement_id = $1 AND title = $2`, [
-      eng.id,
-      OWN_STEP,
-    ]);
+    await dbQuery(
+      `DELETE FROM opportunities WHERE engagement_id = $1 AND (title = $2 OR use_case_id IS NOT NULL)`,
+      [eng.id, OWN_STEP],
+    );
     await dbQuery(`DELETE FROM invitations WHERE engagement_id = $1 AND created_at >= $2`, [
       eng.id,
       since,

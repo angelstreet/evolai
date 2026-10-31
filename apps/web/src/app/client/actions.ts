@@ -7,6 +7,7 @@ import { FindingError, reviewFinding } from '@/lib/findingsData';
 import { isUuid } from '@/lib/invitationForm';
 import { ensureTeamAddresses, parseTeamSize, setExpectedSize } from '@/lib/teamAddresses';
 import { effectiveContext } from '@/lib/tenantAccess';
+import { setClientRanks, UseCaseError } from '@/lib/useCaseData';
 import { auditViewAs } from '@/lib/viewAsAudit';
 import type { TenantId } from '@evolai/contracts';
 
@@ -98,6 +99,42 @@ export async function reviewFindingAction(_prev: ReviewState, fd: FormData): Pro
     return { ok: true, code: verdict };
   } catch (err) {
     if (err instanceof FindingError) return { ok: false, code: err.code };
+    return { ok: false, code: 'error' };
+  }
+}
+
+/**
+ * The referent puts the use cases in order of priority while the report is in review (ADR 0064).
+ * Each use case comes with `rank_<id>` = 1..n; ties keep the page order. Read only in view-as.
+ */
+export async function rankUseCasesAction(_prev: ReviewState, fd: FormData): Promise<ReviewState> {
+  const session = await getSession();
+  if (!session) return { ok: false, code: 'forbidden' };
+  const ctx = effectiveContext(session);
+  if (ctx.kind !== 'client') return { ok: false, code: 'forbidden' };
+  if (ctx.viewAs || ctx.readOnly) {
+    if (ctx.viewAs) {
+      await auditViewAs(session, ctx.viewAs, 'view_as.refused', { path: requestPath() }).catch(
+        () => undefined,
+      );
+    }
+    return { ok: false, code: 'read_only' };
+  }
+  const ranked = [...fd.entries()]
+    .filter(([k]) => k.startsWith('rank_'))
+    .map(([k, v], i) => ({ id: k.slice(5), rank: Number(v), i }))
+    .filter((x) => isUuid(x.id) && Number.isInteger(x.rank) && x.rank >= 1)
+    .sort((a, b) => a.rank - b.rank || a.i - b.i)
+    .map((x) => x.id);
+  if (ranked.length === 0) return { ok: false, code: 'forbidden' };
+  try {
+    const survey = await loadClientSurvey(ctx.tenantId, ctx.teamIds);
+    if (!survey) return { ok: false, code: 'forbidden' };
+    await setClientRanks(ctx.tenantId as TenantId, session.sub, survey.engagementId, ranked);
+    revalidatePath('/client/report');
+    return { ok: true, code: 'ranked' };
+  } catch (err) {
+    if (err instanceof UseCaseError) return { ok: false, code: err.code };
     return { ok: false, code: 'error' };
   }
 }

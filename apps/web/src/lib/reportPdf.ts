@@ -9,6 +9,7 @@ import {
   measureLine,
   prerequisiteLines,
   repeatedTimeLines,
+  useCaseLines,
   weightsSentence,
 } from './reportModel';
 
@@ -149,6 +150,78 @@ export const renderReportPdf = (
     );
   }
 
+  // Ranking: the 2 x 2 matrix, then the ordered list with its steps
+  const hasUseCases = s.opportunities.some((op) => op.useCase);
+  heading(hasUseCases ? t('report.useCases.title') : t('report.ranking.title'));
+  text(hasUseCases ? t('report.useCases.subtitle') : t('report.ranking.subtitle'), {
+    colour: C.muted,
+    size: SIZE.small,
+  });
+  ensure(190);
+  const cellW = (width - 8) / 2;
+  const cellH = 84;
+  const top = doc.y + 4;
+  QUADRANTS.forEach((q, i) => {
+    const x = MARGIN + (i % 2) * (cellW + 8);
+    const y = top + Math.floor(i / 2) * (cellH + 8);
+    doc.roundedRect(x, y, cellW, cellH, 6).lineWidth(0.75).strokeColor(C.borderStrong).stroke();
+    doc
+      .font('bold')
+      .fontSize(SIZE.card)
+      .fillColor(C.fg)
+      .text(t(`report.ranking.quadrant.${q}`), x + 10, y + 8, { width: cellW - 20 });
+    doc
+      .font('regular')
+      .fontSize(SIZE.small)
+      .fillColor(C.muted)
+      .text(t(`report.ranking.quadrantHelp.${q}`), x + 10, doc.y + 1, { width: cellW - 20 });
+    const ranks = s.opportunities.filter((op) => op.quadrant === q).map((op) => String(op.rank));
+    doc
+      .font('bold')
+      .fontSize(SIZE.card)
+      .fillColor(C.accentInk)
+      .text(ranks.join('  ·  ') || '—', x + 10, y + cellH - 22, { width: cellW - 20 });
+  });
+  doc.y = top + cellH * 2 + 8 + 14;
+  doc.x = MARGIN;
+  for (const op of s.opportunities) {
+    ensure(60);
+    text(`${op.rank}. ${op.title}`, { bold: true, size: SIZE.card, gap: 0 });
+    for (const l of op.useCase ? useCaseLines(t, locale, op.useCase) : []) {
+      text(l.text, l.key === 'approach' ? { gap: 0.1 } : { size: SIZE.small, gap: 0.1 });
+    }
+    text(
+      `${t(`report.ranking.quadrant.${op.quadrant}`)} · ${t('report.ranking.impactEffort', {
+        impact: lvl(op.impact),
+        effort: lvl(op.effort),
+      })}`,
+      { colour: C.muted, size: SIZE.small, gap: 0.3 },
+    );
+    for (const st of s.steps.filter((x) => x.opportunityId === op.id)) {
+      ensure(50);
+      text(`${st.title} · ${t(`report.steps.categoryName.${st.category}`)}`, {
+        bold: true,
+        indent: 14,
+        gap: 0,
+      });
+      if (st.description) text(st.description, { indent: 14, gap: 0 });
+      text(
+        [
+          `${t('report.steps.owner')}${colon}${st.owner || '—'}`,
+          t(`report.steps.horizonName.${st.horizon}`),
+          `${t('report.steps.effort')} ${lvl(st.effort)}`,
+          `${t('report.steps.impact')} ${lvl(st.impact)}`,
+          `${t('report.steps.risk')} ${lvl(st.risk)}`,
+        ].join(' · '),
+        { colour: C.muted, size: SIZE.small, indent: 14, gap: 0.5 },
+      );
+      const measure = measureLine(t, st.measure, colon, (iso) =>
+        formatDate(locale, `${iso}T00:00:00Z`, { dateStyle: 'long', timeZone: 'UTC' }),
+      );
+      if (measure) text(measure, { colour: C.muted, size: SIZE.small, indent: 14, gap: 0.5 });
+    }
+  }
+
   // Readiness
   heading(t('report.readiness.title'));
   text(t('report.readiness.subtitle', { n: s.minGroupSize }), {
@@ -232,71 +305,6 @@ export const renderReportPdf = (
     heading(t('report.time.title'));
     text(t('report.time.subtitle'), { colour: C.muted, size: SIZE.small });
     for (const line of timeLines) bullet(line);
-  }
-
-  // Ranking: the 2 x 2 matrix, then the ordered list with its steps
-  heading(t('report.ranking.title'));
-  text(t('report.ranking.subtitle'), { colour: C.muted, size: SIZE.small });
-  ensure(190);
-  const cellW = (width - 8) / 2;
-  const cellH = 84;
-  const top = doc.y + 4;
-  QUADRANTS.forEach((q, i) => {
-    const x = MARGIN + (i % 2) * (cellW + 8);
-    const y = top + Math.floor(i / 2) * (cellH + 8);
-    doc.roundedRect(x, y, cellW, cellH, 6).lineWidth(0.75).strokeColor(C.borderStrong).stroke();
-    doc
-      .font('bold')
-      .fontSize(SIZE.card)
-      .fillColor(C.fg)
-      .text(t(`report.ranking.quadrant.${q}`), x + 10, y + 8, { width: cellW - 20 });
-    doc
-      .font('regular')
-      .fontSize(SIZE.small)
-      .fillColor(C.muted)
-      .text(t(`report.ranking.quadrantHelp.${q}`), x + 10, doc.y + 1, { width: cellW - 20 });
-    const ranks = s.opportunities.filter((op) => op.quadrant === q).map((op) => String(op.rank));
-    doc
-      .font('bold')
-      .fontSize(SIZE.card)
-      .fillColor(C.accentInk)
-      .text(ranks.join('  ·  ') || '—', x + 10, y + cellH - 22, { width: cellW - 20 });
-  });
-  doc.y = top + cellH * 2 + 8 + 14;
-  doc.x = MARGIN;
-  for (const op of s.opportunities) {
-    ensure(60);
-    text(`${op.rank}. ${op.title}`, { bold: true, size: SIZE.card, gap: 0 });
-    text(
-      `${t(`report.ranking.quadrant.${op.quadrant}`)} · ${t('report.ranking.impactEffort', {
-        impact: lvl(op.impact),
-        effort: lvl(op.effort),
-      })}`,
-      { colour: C.muted, size: SIZE.small, gap: 0.3 },
-    );
-    for (const st of s.steps.filter((x) => x.opportunityId === op.id)) {
-      ensure(50);
-      text(`${st.title} · ${t(`report.steps.categoryName.${st.category}`)}`, {
-        bold: true,
-        indent: 14,
-        gap: 0,
-      });
-      if (st.description) text(st.description, { indent: 14, gap: 0 });
-      text(
-        [
-          `${t('report.steps.owner')}${colon}${st.owner || '—'}`,
-          t(`report.steps.horizonName.${st.horizon}`),
-          `${t('report.steps.effort')} ${lvl(st.effort)}`,
-          `${t('report.steps.impact')} ${lvl(st.impact)}`,
-          `${t('report.steps.risk')} ${lvl(st.risk)}`,
-        ].join(' · '),
-        { colour: C.muted, size: SIZE.small, indent: 14, gap: 0.5 },
-      );
-      const measure = measureLine(t, st.measure, colon, (iso) =>
-        formatDate(locale, `${iso}T00:00:00Z`, { dateStyle: 'long', timeZone: 'UTC' }),
-      );
-      if (measure) text(measure, { colour: C.muted, size: SIZE.small, indent: 14, gap: 0.5 });
-    }
   }
 
   // Plan

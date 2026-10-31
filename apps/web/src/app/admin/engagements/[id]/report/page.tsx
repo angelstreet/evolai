@@ -7,7 +7,9 @@ import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import type { ReactNode } from 'react';
-import { formatDate } from '@evolai/i18n';
+import { useCaseById } from '@evolai/contracts';
+import { estimateSaving } from '@evolai/domain';
+import { createTranslator, formatDate } from '@evolai/i18n';
 import { AppIcon, EmptyState, PageTitle, StatTiles, StatusText } from '@evolai/ui';
 import {
   AddStepForm,
@@ -19,6 +21,7 @@ import {
   SuggestForm,
 } from '@/components/report/ReportForms';
 import { AuditQualityCard } from '@/components/report/AuditQualityCard';
+import { QualifyForm } from '@/components/report/UseCaseForms';
 import { FindingsPanel } from '@/components/report/FindingsPanel';
 import { WorkflowBar } from '@/components/report/WorkflowBar';
 import { qualityOf } from '@/lib/auditQualityFacts';
@@ -147,6 +150,22 @@ export default async function ReportEditorPage({
   const due = followUpsDue(steps, new Date().toISOString().slice(0, 10));
   const dueIds = new Set(due.map((s) => s.id));
   const lvl = (l: 'low' | 'medium' | 'high') => t(`report.steps.level.${l}`).toLowerCase();
+  // The visit guide is in the report language, like the use case texts (ADR 0064).
+  const rt = createTranslator(r.locale);
+  const fmt = (n: number) =>
+    new Intl.NumberFormat(r.locale === 'fr' ? 'fr-FR' : 'en-GB', {
+      maximumFractionDigits: 1,
+    }).format(n);
+  const estimateOf = (u: NonNullable<(typeof inputs.opportunities)[number]['useCase']>) => {
+    const e = estimateSaving(u.useCaseId, u);
+    if (e.hoursPerWeek === null) return null;
+    return rt('report.useCases.form.estimate', {
+      hours: fmt(e.hoursPerWeek),
+      saved: e.savedLow === null ? 'none' : 'some',
+      low: fmt(e.savedLow ?? 0),
+      high: fmt(e.savedHigh ?? 0),
+    });
+  };
 
   return (
     <section className="wide admin" aria-labelledby="report-title" data-testid="report-editor">
@@ -352,7 +371,11 @@ export default async function ReportEditorPage({
                     <Typography variant="cardTitle" component="h3" sx={{ m: 0 }}>
                       {opp.title}
                     </Typography>
-                    {opp.axis ? (
+                    {opp.useCase ? (
+                      <Typography variant="body2" color="text.secondary">
+                        {opp.useCase.approach}
+                      </Typography>
+                    ) : opp.axis ? (
                       <Typography variant="body2" color="text.secondary">
                         {enumLabelOf(t, 'axis', opp.axis)}
                       </Typography>
@@ -379,9 +402,29 @@ export default async function ReportEditorPage({
                       disabled={locked}
                       taken={own.flatMap((s) => (s.catalogueId ? [s.catalogueId] : []))}
                     />
+                    {opp.useCase && !opp.useCase.pinned ? (
+                      <QualifyForm
+                        ids={ids}
+                        opportunityId={opp.id}
+                        unit={opp.useCase.unit}
+                        questions={(useCaseById(opp.useCase.useCaseId)?.visitQuestions ?? []).map(
+                          (q) => q[r.locale],
+                        )}
+                        value={{
+                          volumePerWeek: opp.useCase.volumePerWeek,
+                          minutesPerUnit: opp.useCase.minutesPerUnit,
+                          teams: opp.useCase.teams,
+                          source: opp.useCase.source,
+                        }}
+                        estimate={estimateOf(opp.useCase)}
+                        disabled={locked}
+                      />
+                    ) : null}
                   </Box>
                 );
               })}
+              {/* A piece of work the playbook does not have: the auditor writes it (ADR 0064). */}
+              <AddStepForm ids={ids} opportunityId="" disabled={locked} taken={[]} customOnly />
             </Stack>
           )}
         </Card>

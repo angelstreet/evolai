@@ -54,6 +54,7 @@ export const reportEn = {
     cancel: 'Cancel',
   },
   result: {
+    qualified: 'Measure saved.',
     saved: 'Saved.',
     created: 'Report started.',
     suggested:
@@ -122,6 +123,10 @@ export const reportEn = {
     opportunities: 'The first actions we recommend: {list}.',
     closing: 'The plan below says who does what in the next 30, 60 and 90 days.',
     closingNoSteps: 'No action is recommended yet.',
+    useCases:
+      'The audit retains {count, plural, one {one piece of work} other {# pieces of work}} where time can be saved: {list}.',
+    saving: 'From the visit measures, they can free about {low} to {high} hours a week.',
+    rulesFirst: 'First: {title}.',
   },
   ai: {
     title: 'AI draft',
@@ -279,7 +284,7 @@ export const reportEn = {
       rejected: 'Rejected.',
       corrected: 'Marked corrected.',
       updated:
-        'Saved. The action made from it has the new title; its evidence and steps stay. Check them under Actions.',
+        'Saved. An action made only from this finding takes the new title; use cases keep theirs.',
       picked: 'Ticked for the referent.',
       unpicked: 'No longer asked of the referent.',
       too_many: 'At most {count} findings go to the referent. Untick one first.',
@@ -532,6 +537,53 @@ export const reportEn = {
       forbidden: 'You cannot review these findings.',
       error: 'Something went wrong. Please try again.',
     },
+  },
+  useCases: {
+    title: 'Where to save time',
+    subtitle:
+      'The pieces of work the audit retains, in the order to start them. Savings are estimates, to be checked after 90 days.',
+    today:
+      'Today: about {hours} hours a week ({volume} × {unit}, {minutes} minutes each; {teams}).',
+    notMeasured: 'Time today to be measured during the visit.',
+    saving: 'Estimated saving: {low} to {high} hours a week.',
+    evidence:
+      'What shows it: {people, plural, =0 {the visit} other {# people}}{count, plural, =0 {} other {, findings {list}}}.',
+    dataRule: 'Data rule: {rule}',
+    clientRank: 'Priority given by your referent: {rank}.',
+    form: {
+      guide: 'Ask during the visit',
+      volume: 'How many a week ({unit})',
+      minutes: 'Minutes each time ({unit})',
+      teams: 'Teams concerned',
+      source: 'Where the measure comes from',
+      sourceHelp: 'For example: visit, 2 business managers.',
+      save: 'Save the measure',
+      estimate:
+        'Today about {hours} hours a week{saved, select, none {} other {, estimated saving {low} to {high} hours}}.',
+    },
+    rank: {
+      title: 'Where to start?',
+      subtitle:
+        'Put the pieces of work in the order you want to start them. The report follows your order, after the data rules.',
+      label: 'Priority',
+      save: 'Save the order',
+      result: {
+        ranked: 'Order saved.',
+        locked: 'The report is no longer in review.',
+        read_only: 'Read only.',
+        forbidden: 'Not possible.',
+        not_found: 'No piece of work to order.',
+        error: 'Something went wrong. Try again.',
+      },
+    },
+  },
+  risksAuto: {
+    policy_unclear:
+      'Client data: {people, plural, =0 {the visit shows} other {# people say}} there is no clear rule for client data in AI tools. Until there is, a client document can end up in a public tool.',
+    recruiting:
+      'Candidates: their data is personal. An AI screening tool must be approved, candidates told, and a person decides.',
+    document_review:
+      'Unchecked AI answers: with no shared habit of checking, a mistake can reach a client.',
   },
   view: {
     draftBanner: 'Preview. The client does not see this until you publish.',

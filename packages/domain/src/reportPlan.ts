@@ -39,6 +39,10 @@ export interface RankInput {
   readonly impactScore: number | null;
   /** Accepted steps of this opportunity. */
   readonly steps: readonly { impact: Level; effort: Level; category?: string }[];
+  /** Rules on client data (ADR 0064): always first. */
+  readonly pinned?: boolean;
+  /** The client's referent's order of priority (ADR 0064): wins over the computed priority. */
+  readonly clientRank?: number | null;
 }
 
 /**
@@ -72,11 +76,21 @@ export const rankOpportunities = (items: readonly RankInput[]): ReportOpportunit
         order,
         priority: 2 * levelValue(impact) - levelValue(effort),
         rules: o.steps.some((s) => s.category === 'governance') ? 1 : 0,
+        pinned: o.pinned ? 1 : 0,
+        client: o.clientRank ?? Number.POSITIVE_INFINITY,
       };
     })
     // At equal priority, rules on data come first: they protect clients before anything else
     // changes (ESN pilot rehearsal, ADR 0062).
-    .sort((a, b) => b.priority - a.priority || b.rules - a.rules || a.order - b.order)
+    // Pinned rules first, then the referent's order, then the computed priority (ADR 0064).
+    .sort(
+      (a, b) =>
+        b.pinned - a.pinned ||
+        a.client - b.client ||
+        b.priority - a.priority ||
+        b.rules - a.rules ||
+        a.order - b.order,
+    )
     .map((r, i) => ({
       id: r.o.id,
       rank: i + 1,

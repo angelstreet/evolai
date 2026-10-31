@@ -8,9 +8,10 @@ import {
   type ReportSnapshot,
   type ReportStep,
   type RepeatedTimeReport,
+  type ReportUseCase,
   type StepMeasure,
 } from '@evolai/contracts';
-import { findingKey, rankOpportunities, uniqueLines } from '@evolai/domain';
+import { estimateSaving, findingKey, rankOpportunities, uniqueLines } from '@evolai/domain';
 import type { Translator } from '@evolai/i18n';
 
 /**
@@ -56,12 +57,54 @@ export interface StepRow {
   readonly measure?: StepMeasure | null;
 }
 
+/** A use case's facts as loaded, texts already in the report language (ADR 0064). */
+export interface UseCaseInput {
+  readonly useCaseId: string;
+  readonly approach: string;
+  readonly dataRule: string;
+  readonly unit: string;
+  readonly pinned: boolean;
+  /** Most people behind one of its findings, themes from the free texts included. */
+  readonly people: number;
+  /** Keys of its findings that the report may list. */
+  readonly findingKeys: readonly string[];
+  readonly teams: string;
+  readonly source: string;
+  readonly volumePerWeek: number | null;
+  readonly minutesPerUnit: number | null;
+  readonly clientRank: number | null;
+}
+
 export interface OpportunityInput {
   readonly id: string;
   readonly title: string;
   readonly axis: string | null;
   readonly impactScore: number | null;
+  readonly useCase?: UseCaseInput;
 }
+
+/** Key findings shown in the report (ADR 0064): the use cases' evidence, not every survey signal. */
+export const KEY_FINDINGS_MAX = 8;
+
+/**
+ * The findings the report lists: those the summary cites, then those the use cases rest on, then
+ * the most cited, at most `KEY_FINDINGS_MAX` (cited ones are always kept), in people order.
+ */
+export const keyFindings = (
+  findings: readonly ReportFinding[],
+  citations: readonly string[],
+  useCaseKeys: readonly string[],
+): ReportFinding[] => {
+  const cited = new Set(citations);
+  const evidence = new Set(useCaseKeys);
+  const tier = (f: ReportFinding) => (cited.has(f.key) ? 0 : evidence.has(f.key) ? 1 : 2);
+  const kept = [...findings]
+    .map((f, order) => ({ f, order }))
+    .sort((a, b) => tier(a.f) - tier(b.f) || a.order - b.order)
+    .filter((x, i) => i < KEY_FINDINGS_MAX || tier(x.f) === 0)
+    .map((x) => x.f);
+  return findings.filter((f) => kept.includes(f));
+};
 
 export interface SnapshotInput {
   readonly version: number;
@@ -192,12 +235,47 @@ export const buildSnapshot = (input: SnapshotInput, leaks: LeakSources): Publish
   }
   const withSteps = new Set(accepted.map((s) => s.opportunityId));
   const opportunities = input.opportunities.filter((o) => withSteps.has(o.id));
+  const findings = keyFindings(
+    input.findings,
+    citations,
+    opportunities.flatMap((o) => o.useCase?.findingKeys ?? []),
+  );
+  const findingNo = new Map(findings.map((f, i) => [f.key, i + 1]));
+  const byId = new Map(opportunities.map((o) => [o.id, o]));
   const ranked = rankOpportunities(
     opportunities.map((o) => ({
       ...o,
+      pinned: o.useCase?.pinned ?? false,
+      clientRank: o.useCase?.clientRank ?? null,
       steps: accepted.filter((s) => s.opportunityId === o.id),
     })),
-  );
+  ).map((r) => {
+    const u = byId.get(r.id)?.useCase;
+    if (!u) return r;
+    const e = estimateSaving(u.useCaseId, u);
+    const useCase: ReportUseCase = {
+      useCaseId: u.useCaseId,
+      approach: u.approach.trim(),
+      dataRule: u.dataRule.trim(),
+      people: u.people >= input.minGroupSize ? u.people : 0,
+      findingNumbers: u.findingKeys
+        .map((k) => findingNo.get(k))
+        .filter((n): n is number => n !== undefined)
+        .sort((a, b) => a - b),
+      teams: u.teams.trim(),
+      unit: u.unit,
+      volumePerWeek: u.volumePerWeek,
+      minutesPerUnit: u.minutesPerUnit,
+      hoursPerWeek: e.hoursPerWeek,
+      savedLow: e.savedLow,
+      savedHigh: e.savedHigh,
+      measureSource: u.source.trim(),
+      ratesVersion: e.ratesVersion,
+      clientRank: u.clientRank,
+      pinned: u.pinned,
+    };
+    return { ...r, useCase };
+  });
   const order = new Map(ranked.map((r) => [r.id, r.rank]));
   const steps: ReportStep[] = accepted
     .filter((s) => order.has(s.opportunityId))
@@ -238,7 +316,7 @@ export const buildSnapshot = (input: SnapshotInput, leaks: LeakSources): Publish
     summary,
     summaryCitations: citations,
     readiness: input.readiness,
-    findings: [...input.findings],
+    findings,
     opportunities: ranked,
     steps,
     risks: riskLines(input.risksNote),
@@ -266,7 +344,11 @@ export const buildSnapshot = (input: SnapshotInput, leaks: LeakSources): Publish
       s.measure?.baselineUnit ?? '',
       s.measure?.baselineSource ?? '',
     ]),
-    ...candidate.opportunities.map((o) => o.title),
+    ...candidate.opportunities.flatMap((o) => [
+      o.title,
+      o.useCase?.teams ?? '',
+      o.useCase?.measureSource ?? '',
+    ]),
   ];
   const leak = findLeak(reportTexts, leaks);
   if (leak === 'contains_name') {
@@ -291,6 +373,17 @@ export interface SummaryWords {
   readonly levelName: (level: string) => string;
   /** List separator, e.g. '; ' (en) or ' ; ' with a no-break space (fr). */
   readonly listSep: string;
+  /** Use cases (ADR 0064): how many and which, the hours they can save, the rule that comes first. */
+  readonly useCases?: (vars: { count: number; list: string }) => string;
+  readonly saving?: (vars: { low: number; high: number }) => string;
+  readonly rulesFirst?: (vars: { title: string }) => string;
+}
+
+export interface SummaryUseCase {
+  readonly title: string;
+  readonly pinned: boolean;
+  readonly savedLow: number | null;
+  readonly savedHigh: number | null;
 }
 
 /**
@@ -305,16 +398,45 @@ export const inList = (title: string): string => {
 };
 
 /**
- * Rule-based first draft of the executive summary: the score, the three findings raised by the
- * most people (cited), the two first-ranked opportunities. A draft only: the auditor rewrites it.
+ * Rule-based first draft of the executive summary. With use cases (ADR 0064): which ones, the
+ * hours they can save, the rule that comes first, then what shows it and the score. Without: the
+ * score, the three findings raised by the most people (cited), the two first-ranked opportunities.
+ * A draft only: the auditor rewrites it.
  */
 export const draftSummary = (
   readiness: ReadinessReport,
   findings: readonly ReportFinding[],
   rankedTitles: readonly string[],
   w: SummaryWords,
+  useCases: readonly SummaryUseCase[] = [],
 ): { text: string; citations: string[] } => {
   const top = [...findings].sort((a, b) => b.people - a.people).slice(0, 3);
+  const work = useCases.filter((u) => !u.pinned);
+  if (work.length > 0 && w.useCases && w.saving && w.rulesFirst) {
+    const parts = [
+      w.useCases({ count: work.length, list: work.map((u) => inList(u.title)).join(w.listSep) }),
+    ];
+    const measured = work.filter((u) => u.savedLow !== null && u.savedHigh !== null);
+    if (measured.length > 0) {
+      parts.push(
+        w.saving({
+          low: measured.reduce((n, u) => n + (u.savedLow ?? 0), 0),
+          high: measured.reduce((n, u) => n + (u.savedHigh ?? 0), 0),
+        }),
+      );
+    }
+    const rule = useCases.find((u) => u.pinned);
+    if (rule) parts.push(w.rulesFirst({ title: inList(rule.title) }));
+    if (top.length > 0) {
+      parts.push(w.findings({ list: top.map((f) => inList(f.label)).join(w.listSep) }));
+    }
+    const o = readiness.overall;
+    if (o && o.overall !== null && o.level) {
+      parts.push(w.intro({ people: o.people, score: o.overall, level: w.levelName(o.level) }));
+    }
+    parts.push(w.closing);
+    return { text: parts.join(' '), citations: top.map((f) => f.key) };
+  }
   const parts: string[] = [];
   const o = readiness.overall;
   parts.push(
@@ -477,3 +599,77 @@ export const prerequisiteLines = (
           `${st.title}${colon}${uniqueLines(st.prerequisites).join(colon === ': ' ? '; ' : '\u00a0; ')}`,
       ),
   );
+
+/** The risk each evidence pattern points at, in the order the report lists them (ADR 0064). */
+const RISK_TAGS = ['policy_unclear', 'recruiting', 'document_review'] as const;
+
+/**
+ * Risks the approved findings already show, one per line, for the auditor to edit: client data
+ * with no rule, candidates' personal data, AI answers nobody checks. Empty when none applies.
+ */
+export const risksFromFindings = (
+  t: Translator,
+  findings: readonly { readonly tags: readonly string[]; readonly people: number }[],
+): string =>
+  RISK_TAGS.flatMap((tag) => {
+    const hits = findings.filter((f) => f.tags.includes(tag));
+    if (hits.length === 0) return [];
+    const people = Math.max(...hits.map((f) => f.people));
+    return [t(`report.risksAuto.${tag}`, { people })];
+  }).join('\n');
+
+/** Hours with the locale's decimal sign: "3,5" in French. */
+const num = (locale: string, n: number): string =>
+  new Intl.NumberFormat(locale === 'fr' ? 'fr-FR' : 'en-GB', { maximumFractionDigits: 1 }).format(
+    n,
+  );
+
+/**
+ * The lines under a use case (ADR 0064), shared by the web report and the PDF: approach, time
+ * today, estimated saving, evidence, data rule, the referent's priority.
+ */
+export const useCaseLines = (
+  t: Translator,
+  locale: string,
+  u: ReportUseCase,
+): { key: string; text: string }[] => {
+  const out: { key: string; text: string }[] = [{ key: 'approach', text: u.approach }];
+  if (u.hoursPerWeek !== null && u.volumePerWeek !== null && u.minutesPerUnit !== null) {
+    out.push({
+      key: 'today',
+      text: t('report.useCases.today', {
+        hours: num(locale, u.hoursPerWeek),
+        volume: num(locale, u.volumePerWeek),
+        unit: u.unit,
+        minutes: num(locale, u.minutesPerUnit),
+        teams: u.teams || '—',
+      }),
+    });
+  } else if (!u.pinned) {
+    out.push({ key: 'today', text: t('report.useCases.notMeasured') });
+  }
+  if (u.savedLow !== null && u.savedHigh !== null) {
+    out.push({
+      key: 'saving',
+      text: t('report.useCases.saving', {
+        low: num(locale, u.savedLow),
+        high: num(locale, u.savedHigh),
+      }),
+    });
+  }
+  if (u.findingNumbers.length > 0 || u.people > 0) {
+    out.push({
+      key: 'evidence',
+      text: t('report.useCases.evidence', {
+        people: u.people,
+        list: u.findingNumbers.join(', '),
+        count: u.findingNumbers.length,
+      }),
+    });
+  }
+  out.push({ key: 'rule', text: t('report.useCases.dataRule', { rule: u.dataRule }) });
+  if (u.clientRank !== null) {
+    out.push({ key: 'rank', text: t('report.useCases.clientRank', { rank: u.clientRank }) });
+  }
+  return out;
+};

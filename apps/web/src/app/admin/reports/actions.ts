@@ -1,6 +1,8 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { estimateSaving } from '@evolai/domain';
+import { setQualification, UseCaseError } from '@/lib/useCaseData';
 import { redirect } from 'next/navigation';
 import {
   day90StatusSchema,
@@ -13,7 +15,12 @@ import { createTranslator } from '@evolai/i18n';
 import { resolveActor } from '@/lib/authServer';
 import { isUuid } from '@/lib/invitationForm';
 import { MIN_GROUP_SIZE } from '@/lib/invitationTracking';
-import { draftSummary, methodologyNote, type MethodWords } from '@/lib/reportModel';
+import {
+  draftSummary,
+  methodologyNote,
+  risksFromFindings,
+  type MethodWords,
+} from '@/lib/reportModel';
 import {
   ReportError,
   addStep,
@@ -120,6 +127,7 @@ export async function startReportAction(
         MIN_GROUP_SIZE,
         methodWords(t),
       ),
+      risks: (findings) => risksFromFindings(t, findings),
     });
   } catch (err) {
     return { ok: false, code: codeOf(err) };
@@ -179,7 +187,16 @@ export async function draftSummaryAction(
         closingNoSteps: t('report.draft.closingNoSteps'),
         listSep: t('report.draft.listSep'),
         levelName: (l) => t(`report.readiness.level.${l as 'L0'}`).toLowerCase(),
+        useCases: (v) => t('report.draft.useCases', v),
+        saving: (v) => t('report.draft.saving', v),
+        rulesFirst: (v) => t('report.draft.rulesFirst', v),
       },
+      ranked.flatMap((o) => {
+        const u = bundle.inputs.opportunities.find((x) => x.id === o.id)?.useCase;
+        if (!u) return [];
+        const e = estimateSaving(u.useCaseId, u);
+        return [{ title: o.title, pinned: u.pinned, savedLow: e.savedLow, savedHigh: e.savedHigh }];
+      }),
     );
     const r = bundle.report;
     await updateSections(g.tenantId, g.actor, g.reportId, {
@@ -419,5 +436,41 @@ export async function workflowAction(
       default:
         return { ok: false, code: 'bad_input' };
     }
+  });
+}
+
+/** What the auditor measured for a use case during the visit (ADR 0064). Empty fields stay unset. */
+export async function qualifyUseCaseAction(
+  _prev: ReportActionState,
+  fd: FormData,
+): Promise<ReportActionState> {
+  return run(fd, async (g) => {
+    const opportunityId = String(fd.get('opportunityId') ?? '');
+    if (!isUuid(opportunityId)) return { ok: false, code: 'not_found' };
+    const n = (k: string): number | null | undefined => {
+      const raw = String(fd.get(k) ?? '')
+        .trim()
+        .replace(',', '.');
+      if (!raw) return null;
+      const v = Number(raw);
+      return Number.isFinite(v) && v >= 0 ? v : undefined;
+    };
+    const volumePerWeek = n('volumePerWeek');
+    const minutesPerUnit = n('minutesPerUnit');
+    if (volumePerWeek === undefined || minutesPerUnit === undefined) {
+      return { ok: false, code: 'bad_input' };
+    }
+    try {
+      await setQualification(g.tenantId, g.actor, opportunityId, {
+        volumePerWeek,
+        minutesPerUnit,
+        teams: str(fd, 'teams', 200),
+        source: str(fd, 'source', 200),
+      });
+    } catch (err) {
+      if (err instanceof UseCaseError) return { ok: false, code: err.code };
+      throw err;
+    }
+    return { ok: true, code: 'qualified' };
   });
 }
