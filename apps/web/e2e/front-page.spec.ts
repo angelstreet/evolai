@@ -102,18 +102,27 @@ for (const size of SIZES) {
         await expect(page.getByTestId('ck-hint')).toContainText('kept on this device');
         await next.click();
         await expect(page.getByTestId('ck-try-count')).toHaveText('2 of 14');
-        // back by Previous, then forward again by the progress segment
-        const segs = page.getByTestId('ck-qbar-step');
-        await expect(segs.nth(5)).toBeDisabled();
+        // Back by Previous, then jump directly through the question count.
+        await page.getByTestId('ck-try-count').click();
+        const steps = page.getByTestId('ck-qmenu-step');
+        await expect(steps.nth(5)).toBeDisabled();
+        await page.keyboard.press('Escape');
         await page.getByTestId('ck-prev').click();
         await expect(page.getByTestId('ck-try-count')).toHaveText('1 of 14');
         await expect(page.getByTestId('ck-prev')).toHaveCount(0);
-        await segs.nth(1).click();
+        await page.getByTestId('ck-try-count').click();
+        await steps.nth(1).click();
         await expect(page.getByTestId('ck-try-count')).toHaveText('2 of 14');
-        await segs.first().click();
+        await page.getByTestId('ck-try-count').click();
+        await steps.first().click();
         await expect(page.getByTestId('ck-try-count')).toHaveText('1 of 14');
         await expect(page.getByTestId('ck-option').first()).toHaveAttribute('aria-checked', 'true');
-        await segs.nth(1).click();
+        await page.getByTestId('ck-try-count').click();
+        await steps.nth(1).click();
+        const value = await page
+          .getByRole('progressbar', { name: 'Question progress' })
+          .getAttribute('aria-valuenow');
+        expect(Number(value)).toBe(7);
         await menu(page, 'survey').click();
         await expect(page.getByTestId('ck-question-row').first()).toContainText('Answered');
         await expect(page.getByTestId('ck-question-row').nth(1)).toContainText('To do');
@@ -270,7 +279,7 @@ for (const size of SIZES) {
         }
       });
 
-      test('text keeps the mockup size when the browser font is larger (ADR 0054)', async ({
+      test('text keeps the panel type scale when the browser font is larger (ADR 0054)', async ({
         page,
       }) => {
         await page.goto('/');
@@ -281,7 +290,7 @@ for (const size of SIZES) {
             (sel) => getComputedStyle(document.querySelector(sel) as Element).fontSize,
           ),
         );
-        expect(sizes).toEqual(['18px', '18px', '16px', '16px']);
+        expect(sizes).toEqual(['18px', '17px', '15px', '16px']);
       });
 
       test('with no saved choice the page follows the system theme', async ({ page }) => {
@@ -399,6 +408,27 @@ test.describe('desktop layout', () => {
     expect(Math.round(mark!.height)).toBe(32);
     expect(tryIt!.x).toBeGreaterThan(card!.x + card!.width - 1);
     expect(path!.y).toBeGreaterThan(tryIt!.y + tryIt!.height - 1);
+  });
+
+  test('Try it uses one progress line and a compact type scale beside Your path', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    const sizes = await page.evaluate(() => {
+      const progress = document.querySelector<HTMLElement>('.ck-try-progress')!;
+      const question = document.querySelector<HTMLElement>('.ck-try .ck-q')!;
+      const option = document.querySelector<HTMLElement>('.ck-try .ck-opt')!;
+      const path = document.querySelector<HTMLElement>('.ck-path li')!;
+      return {
+        progressHeight: progress.getBoundingClientRect().height,
+        questionSize: parseFloat(getComputedStyle(question).fontSize),
+        optionSize: parseFloat(getComputedStyle(option).fontSize),
+        pathSize: parseFloat(getComputedStyle(path).fontSize),
+      };
+    });
+    expect(sizes.progressHeight).toBeLessThanOrEqual(8);
+    expect(sizes.optionSize).toBe(sizes.pathSize);
+    expect(sizes.questionSize - sizes.pathSize).toBeLessThanOrEqual(2);
   });
 });
 

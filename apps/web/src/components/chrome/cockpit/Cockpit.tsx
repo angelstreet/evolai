@@ -3,6 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import Button from '@mui/material/Button';
+import LinearProgress from '@mui/material/LinearProgress';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import { Logo } from '@/components/Logo';
 import { useI18n } from '@/components/I18nProvider';
@@ -122,6 +125,7 @@ export default function Cockpit({
   const [section, setSection] = useState<Section>('home');
   const [lesson, setLesson] = useState(0);
   const [qi, setQi] = useState(0);
+  const [questionMenu, setQuestionMenu] = useState<HTMLElement | null>(null);
   const [answers, setAnswers] = useState<CockpitAnswers>({});
   const [seen, setSeen] = useState<ReadonlySet<number>>(new Set());
   const [sent, setSent] = useState(false);
@@ -620,32 +624,55 @@ export default function Cockpit({
             {EDIT}
             <span>{t('cockpit.tryIt.title')}</span>
           </h2>
-          <span className="ck-count" data-testid="ck-try-count">
+          <Button
+            variant="text"
+            color="inherit"
+            className="ck-count ck-question-jump"
+            data-testid="ck-try-count"
+            aria-label={`${t('cockpit.tryIt.chooseQuestion')}: ${t('cockpit.tryIt.count', { n: Math.min(qi + 1, total), total })}`}
+            aria-haspopup="menu"
+            aria-expanded={questionMenu ? 'true' : undefined}
+            onClick={(event) => setQuestionMenu(event.currentTarget)}
+          >
             {t('cockpit.tryIt.count', { n: Math.min(qi + 1, total), total })}
-          </span>
+            <span className="ck-jump-chevron" aria-hidden="true">
+              {CHEVRON_RIGHT}
+            </span>
+          </Button>
         </div>
+        <Menu
+          anchorEl={questionMenu}
+          open={Boolean(questionMenu)}
+          onClose={() => setQuestionMenu(null)}
+          aria-label={t('cockpit.tryIt.chooseQuestion')}
+        >
+          {questions.map((c, i) => {
+            const prev = questions[i - 1];
+            const reachable = i <= qi || hasAnswer(c.code) || (!!prev && hasAnswer(prev.code));
+            return (
+              <MenuItem
+                key={c.code}
+                disabled={!reachable}
+                selected={i === qi}
+                onClick={() => {
+                  setQi(i);
+                  setQuestionMenu(null);
+                }}
+                data-testid="ck-qmenu-step"
+              >
+                {t('cockpit.tryIt.goTo', { n: i + 1 })}
+              </MenuItem>
+            );
+          })}
+        </Menu>
         <div className="ck-try-body">
-          {/* each segment jumps to its question: one before the current, answered, or right after an answered one */}
-          <div className={total > 10 ? 'ck-qbar ck-qbar-rows' : 'ck-qbar'}>
-            {questions.map((c, i) => {
-              const prev = questions[i - 1];
-              const reachable = i <= qi || hasAnswer(c.code) || (!!prev && hasAnswer(prev.code));
-              return (
-                <button
-                  key={c.code}
-                  type="button"
-                  className={i <= qi ? 'on' : undefined}
-                  disabled={!reachable}
-                  aria-current={i === qi ? 'step' : undefined}
-                  aria-label={t('cockpit.tryIt.goTo', { n: i + 1 })}
-                  onClick={() => setQi(i)}
-                  data-testid="ck-qbar-step"
-                >
-                  <i />
-                </button>
-              );
-            })}
-          </div>
+          <LinearProgress
+            className="ck-try-progress"
+            variant="determinate"
+            value={total > 0 ? (Math.min(qi, total) / total) * 100 : 0}
+            aria-label={t('cockpit.tryIt.progress')}
+            aria-valuetext={t('cockpit.tryIt.count', { n: Math.min(qi + 1, total), total })}
+          />
           {finished || !q ? (
             <>
               <p className="ck-q" data-testid="ck-try-done">

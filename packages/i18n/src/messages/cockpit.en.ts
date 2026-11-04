@@ -110,6 +110,8 @@ export const cockpitEn = {
   tryIt: {
     title: 'Try it',
     count: '{n} of {total}',
+    progress: 'Question progress',
+    chooseQuestion: 'Choose a question',
     goTo: 'Go to question {n}',
     next: 'Next',
     finish: 'Finish',
