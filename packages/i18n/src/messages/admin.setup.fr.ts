@@ -28,6 +28,22 @@ export const setupFr = {
       'Changez le nom, les dates ou les équipes. Les réglages sont figés une fois la mission terminée.',
     name: 'Nom',
     nameHelp: 'Visible seulement par votre équipe. Exemple : Mission de printemps.',
+    kind: 'Ce que l’audit examine',
+    kindTeam: 'Les tâches d’une équipe',
+    kindTeamHelp:
+      'Ce qui se répète, ce qui pèse, et ce qu’un process, un outil ou l’IA peut régler.',
+    kindGovernance: 'La façon dont l’entreprise gère l’IA',
+    kindGovernanceHelp:
+      'Qui décide, quels outils, quelles données, quelles règles. Avec la DSI ou le responsable IA.',
+    mode: 'Comment les réponses sont recueillies',
+    modeInterview: 'Entretien',
+    modeInterviewHelp:
+      'Vous posez les questions et saisissez les réponses. Les personnes sont nommées côté équipe d’audit.',
+    modeSurvey: 'Questionnaire',
+    modeSurveyHelp:
+      'Chacun répond seul depuis un lien. Anonyme ; un groupe de 4 personnes ou moins reste masqué.',
+    modeGovernance: 'Un audit de gouvernance se fait toujours en entretien.',
+    shapeFixed: 'Fixé à la création de la mission : {shape}.',
     locale: 'Langue du questionnaire',
     opensOn: 'Ouverture le',
     closesOn: 'Clôture le',
@@ -99,6 +115,9 @@ export const setupFr = {
     bad_id: 'Une des équipes est introuvable. Rechargez la page et réessayez.',
     no_teams: 'Ajoutez au moins une équipe avant de lancer.',
     no_template: 'Aucun questionnaire n’est encore prévu pour cette organisation.',
+    bad_kind: 'Choisissez ce que l’audit examine et comment les réponses sont recueillies.',
+    kind_not_ready:
+      'Les missions en entretien et de gouvernance ne sont pas encore disponibles. Créez une mission par questionnaire.',
     not_found: 'Cet élément est introuvable.',
     bad_status: 'Impossible à cette étape de la mission.',
     confirm_required: 'Merci de confirmer d’abord.',

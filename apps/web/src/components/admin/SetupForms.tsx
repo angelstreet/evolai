@@ -9,9 +9,12 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import FormGroup from '@mui/material/FormGroup';
 import FormLabel from '@mui/material/FormLabel';
 import MenuItem from '@mui/material/MenuItem';
+import Radio from '@mui/material/Radio';
+import RadioGroup from '@mui/material/RadioGroup';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import type { MissionKind, MissionMode, MissionShape } from '@evolai/contracts';
 import { AppIcon } from '@evolai/ui';
 import { useI18n } from '@/components/I18nProvider';
 import {
@@ -21,6 +24,7 @@ import {
   updateTeamAction,
 } from '@/app/admin/engagements/actions';
 import { setupIdle } from '@/app/admin/engagements/state';
+import { missionShapeKey } from '@/lib/missionStatus';
 import { SetupResult, TenantField } from './SetupParts';
 
 function Submit({ label, icon }: { label: string; icon?: 'add' }) {
@@ -52,6 +56,88 @@ export interface EngagementFormValues {
   readonly closesOn: string;
   readonly teamIds: readonly string[];
   readonly locked?: boolean;
+  /** The stored kind and mode when editing (ADR 0065); shown, not editable. */
+  readonly shape?: MissionShape;
+}
+
+/** One radio with a line of help under its label. */
+function Choice({ value, label, help }: { value: string; label: string; help: string }) {
+  return (
+    <FormControlLabel
+      value={value}
+      control={<Radio />}
+      label={
+        <Stack component="span" sx={{ py: 1 }}>
+          <span>{label}</span>
+          <Typography component="span" variant="body2" color="text.secondary">
+            {help}
+          </Typography>
+        </Stack>
+      }
+      sx={{ alignItems: 'flex-start', minHeight: 44, '& .MuiRadio-root': { mt: 0.5 } }}
+    />
+  );
+}
+
+/** What the audit looks at and how answers are collected, chosen once at creation (ADR 0065). */
+function MissionShapeFields() {
+  const { t } = useI18n();
+  const [kind, setKind] = useState<MissionKind>('team');
+  const [mode, setMode] = useState<MissionMode>('survey');
+  return (
+    <>
+      <FormGroup>
+        <FormLabel id="mission-kind-label" component="legend" sx={{ mb: 1 }}>
+          {t('admin.setup.form.kind')}
+        </FormLabel>
+        <RadioGroup
+          name="kind"
+          aria-labelledby="mission-kind-label"
+          value={kind}
+          onChange={(e) => setKind(e.target.value === 'governance' ? 'governance' : 'team')}
+        >
+          <Choice
+            value="team"
+            label={t('admin.setup.form.kindTeam')}
+            help={t('admin.setup.form.kindTeamHelp')}
+          />
+          <Choice
+            value="governance"
+            label={t('admin.setup.form.kindGovernance')}
+            help={t('admin.setup.form.kindGovernanceHelp')}
+          />
+        </RadioGroup>
+      </FormGroup>
+      {kind === 'team' ? (
+        <FormGroup>
+          <FormLabel id="mission-mode-label" component="legend" sx={{ mb: 1 }}>
+            {t('admin.setup.form.mode')}
+          </FormLabel>
+          <RadioGroup
+            name="mode"
+            aria-labelledby="mission-mode-label"
+            value={mode}
+            onChange={(e) => setMode(e.target.value === 'survey' ? 'survey' : 'interview')}
+          >
+            <Choice
+              value="interview"
+              label={t('admin.setup.form.modeInterview')}
+              help={t('admin.setup.form.modeInterviewHelp')}
+            />
+            <Choice
+              value="survey"
+              label={t('admin.setup.form.modeSurvey')}
+              help={t('admin.setup.form.modeSurveyHelp')}
+            />
+          </RadioGroup>
+        </FormGroup>
+      ) : (
+        <Typography variant="body2" color="text.secondary">
+          {t('admin.setup.form.modeGovernance')}
+        </Typography>
+      )}
+    </>
+  );
 }
 
 /** Create or edit an engagement: name, language, dates, teams. Headcount follows the team sizes. */
@@ -60,11 +146,14 @@ export function EngagementForm({
   teams,
   values,
   teamsHref,
+  shapeChoice = false,
 }: {
   tenantId: string;
   teams: readonly TeamChoice[];
   values: EngagementFormValues;
   teamsHref: string;
+  /** Offer kind and mode (a new mission, once migration 0035 is applied). */
+  shapeChoice?: boolean;
 }) {
   const { t, locale } = useI18n();
   const editing = Boolean(values.engagementId);
@@ -79,6 +168,14 @@ export function EngagementForm({
       <TenantField tenantId={tenantId} />
       {values.engagementId ? (
         <input type="hidden" name="engagementId" value={values.engagementId} />
+      ) : null}
+      {shapeChoice && !editing ? <MissionShapeFields /> : null}
+      {editing && values.shape ? (
+        <Typography variant="body2" color="text.secondary" data-testid="mission-shape-fixed">
+          {t('admin.setup.form.shapeFixed', {
+            shape: t(missionShapeKey(values.shape)),
+          })}
+        </Typography>
       ) : null}
       <TextField
         name="name"

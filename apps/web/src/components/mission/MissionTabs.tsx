@@ -30,10 +30,18 @@ interface Props {
   tenantId: string;
 }
 
-/** Mission tabs (TASK-AD2): selection is colour and underline, never weight (UI_RULES §6). */
-export function MissionTabs({ engagementId, tenantId }: Props) {
+/**
+ * Mission tabs (TASK-AD2): selection is colour and underline, never weight (UI_RULES §6). `tabs` is
+ * the set the mission's kind and mode show (ADR 0065); a page outside it keeps Overview selected.
+ */
+export function MissionTabs({
+  engagementId,
+  tenantId,
+  tabs = TABS,
+}: Props & { tabs?: readonly MissionTab[] }) {
   const { t } = useI18n();
-  const current = tabOfPath(usePathname() ?? '', engagementId);
+  const path = tabOfPath(usePathname() ?? '', engagementId);
+  const current = tabs.includes(path) ? path : 'overview';
   return (
     <Tabs
       component="nav"
@@ -43,7 +51,7 @@ export function MissionTabs({ engagementId, tenantId }: Props) {
       scrollButtons={false}
       sx={{ mb: 6, borderBottom: 1, borderColor: 'divider', displayPrint: 'none' }}
     >
-      {TABS.map((tab) => (
+      {tabs.map((tab) => (
         <Tab
           key={tab}
           value={tab}

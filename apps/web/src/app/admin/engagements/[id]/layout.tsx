@@ -8,7 +8,7 @@ import { sessionTenantIds } from '@/lib/authServer';
 import { getT } from '@/lib/i18n';
 import { isUuid } from '@/lib/invitationForm';
 import { findMission } from '@/lib/missionData';
-import type { MissionStatus } from '@/lib/missionStatus';
+import { missionShapeKey, missionTabs, type MissionStatus } from '@/lib/missionStatus';
 
 export const dynamic = 'force-dynamic';
 
@@ -57,9 +57,12 @@ export default async function MissionLayout({
           id="mission-title"
           title={mission.client}
           subtitle={
-            <StatusText status={STATUS_ICON[mission.status]}>
-              {t(`admin.missions.status.${mission.status}`)}
-            </StatusText>
+            <Stack direction="row" component="span" sx={{ alignItems: 'center', gap: 3 }}>
+              <StatusText status={STATUS_ICON[mission.status]}>
+                {t(`admin.missions.status.${mission.status}`)}
+              </StatusText>
+              <span data-testid="mission-shape">{t(missionShapeKey(mission.shape))}</span>
+            </Stack>
           }
           actions={
             <NextStepButton
@@ -70,7 +73,11 @@ export default async function MissionLayout({
             />
           }
         />
-        <MissionTabs engagementId={mission.id} tenantId={mission.tenantId} />
+        <MissionTabs
+          engagementId={mission.id}
+          tenantId={mission.tenantId}
+          tabs={missionTabs(mission.shape)}
+        />
       </div>
       {children}
     </>

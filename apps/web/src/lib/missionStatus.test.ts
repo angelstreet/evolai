@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { missionHref, missionStatus, nextStep } from './missionStatus';
+import { missionHref, missionStatus, missionTabs, nextStep } from './missionStatus';
 
 /** TASK-AD2: four status words and exactly one next step per mission. */
 describe('missionStatus', () => {
@@ -48,5 +48,32 @@ describe('missionHref', () => {
   it('keeps the organisation and puts Overview at the mission root', () => {
     expect(missionHref('e1', 'overview', 't1')).toBe('/admin/engagements/e1?tenant=t1');
     expect(missionHref('e1', 'answers', 't1')).toBe('/admin/engagements/e1/answers?tenant=t1');
+  });
+});
+
+describe('mission kind and mode (ADR 0065)', () => {
+  const base = { reportPublished: false, links: 0, submitted: 0 } as const;
+  it('an open interview mission runs interviews from the Visit tab, links or not', () => {
+    const shape = { kind: 'team', mode: 'interview' } as const;
+    expect(nextStep({ ...base, status: 'in_field', shape })).toEqual({
+      step: 'runInterviews',
+      tab: 'visit',
+    });
+    expect(nextStep({ ...base, status: 'closed', shape }).step).toBe('writeReport');
+  });
+  it('an open survey mission is unchanged', () => {
+    expect(
+      nextStep({ ...base, status: 'in_field', shape: { kind: 'team', mode: 'survey' } }).step,
+    ).toBe('createLinks');
+  });
+  it('tabs follow the kind and the mode', () => {
+    expect(missionTabs({ kind: 'team', mode: 'survey' })).toContain('invitations');
+    expect(missionTabs({ kind: 'team', mode: 'interview' })).not.toContain('invitations');
+    expect(missionTabs({ kind: 'governance', mode: 'interview' })).toEqual([
+      'overview',
+      'visit',
+      'report',
+      'settings',
+    ]);
   });
 });

@@ -3,7 +3,7 @@ import { EngagementForm } from '@/components/admin/SetupForms';
 import { TeamsSection } from '@/components/mission/SettingsSections';
 import { sessionTenantIds } from '@/lib/authServer';
 import { getT } from '@/lib/i18n';
-import { listTeamsSetup } from '@/lib/setupData';
+import { listTeamsSetup, missionKindAvailable } from '@/lib/setupData';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,7 +23,10 @@ export default async function NewEngagementPage({
       </section>
     );
   }
-  const teams = await listTeamsSetup(current);
+  const [teams, shapeChoice] = await Promise.all([
+    listTeamsSetup(current),
+    missionKindAvailable(current),
+  ]);
   return (
     <section className="wide admin" aria-labelledby="new-title">
       <PageTitle
@@ -35,6 +38,7 @@ export default async function NewEngagementPage({
         tenantId={current}
         teams={teams.map((x) => ({ id: x.id, name: x.name, size: x.expectedHeadcount }))}
         teamsHref="#teams"
+        shapeChoice={shapeChoice}
         values={{ name: '', locale, opensOn: '', closesOn: '', teamIds: [] }}
       />
       <TeamsSection tenantId={current} />

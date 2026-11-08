@@ -1,5 +1,11 @@
 import { randomUUID } from 'node:crypto';
-import type { TenantId, UserId } from '@evolai/contracts';
+import {
+  DEFAULT_MISSION_SHAPE,
+  missionShape,
+  type MissionShape,
+  type TenantId,
+  type UserId,
+} from '@evolai/contracts';
 import type pg from 'pg';
 import { withTenant } from './db';
 import {
@@ -142,6 +148,7 @@ export interface EngagementSetup {
   readonly teamIds: readonly string[];
   readonly expectedHeadcount: number;
   readonly invitationCount: number;
+  readonly shape: MissionShape;
 }
 
 export const getEngagementSetup = async (
@@ -160,6 +167,8 @@ export const getEngagementSetup = async (
       team_ids: string[];
       expected_headcount: number;
       invitation_count: string;
+      kind: string | null;
+      mode: string | null;
     }>(
       `SELECT e.id, e.name, COALESCE(o.trading_name, o.legal_name) AS org_name, e.locale, e.status,
               e.opens_at, e.closes_at,
@@ -168,7 +177,8 @@ export const getEngagementSetup = async (
               COALESCE((SELECT SUM(t.expected_headcount) FROM engagement_teams et
                           JOIN teams t ON t.id = et.team_id
                          WHERE et.engagement_id = e.id), 0)::int AS expected_headcount,
-              (SELECT count(*) FROM invitations i WHERE i.engagement_id = e.id) AS invitation_count
+              (SELECT count(*) FROM invitations i WHERE i.engagement_id = e.id) AS invitation_count,
+              to_jsonb(e) ->> 'kind' AS kind, to_jsonb(e) ->> 'mode' AS mode
          FROM engagements e
          JOIN organisations o ON o.tenant_id = e.tenant_id
         WHERE e.tenant_id = $1 AND e.id = $2
@@ -188,6 +198,7 @@ export const getEngagementSetup = async (
       teamIds: r.team_ids,
       expectedHeadcount: r.expected_headcount,
       invitationCount: Number(r.invitation_count),
+      shape: missionShape(r.kind, r.mode),
     };
   });
 
@@ -217,6 +228,19 @@ const attachTeams = async (
     );
   }
 };
+
+/** Migration 0035 (mission kind and mode, ADR 0065) is applied. */
+export const missionKindReady = async (client: pg.PoolClient): Promise<boolean> =>
+  (
+    await client.query(
+      `SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'engagements' AND column_name = 'kind'`,
+    )
+  ).rowCount === 1;
+
+/** Whether the new-mission form may offer interview and governance missions yet. */
+export const missionKindAvailable = (tenantId: TenantId): Promise<boolean> =>
+  withTenant(tenantId, missionKindReady);
 
 const DEFAULT_PRIVACY = {
   minResponsesForGroupBreakdown: 5,
@@ -258,6 +282,12 @@ export const createEngagement = async (
       noticeLocale: input.locale,
     };
     const id = randomUUID();
+    const shape = input.shape ?? DEFAULT_MISSION_SHAPE;
+    const ready = await missionKindReady(client);
+    // Before migration 0035 only a team survey can be stored; anything else fails closed.
+    if (!ready && (shape.kind !== 'team' || shape.mode !== 'survey')) {
+      throw new SetupError('kind_not_ready');
+    }
     await client.query(
       `INSERT INTO engagements (id, tenant_id, name, template_id, questionnaire_version_id, status,
                                 opens_at, closes_at, locale, privacy_json)
@@ -274,10 +304,18 @@ export const createEngagement = async (
         JSON.stringify(privacy),
       ],
     );
+    if (ready) {
+      await client.query(
+        `UPDATE engagements SET kind = $3, mode = $4 WHERE tenant_id = $1 AND id = $2`,
+        [tenantId, id, shape.kind, shape.mode],
+      );
+    }
     await attachTeams(client, tenantId, id, input.teamIds);
     await audit(client, tenantId, actor, 'engagement.create', 'engagement', id, {
       teams: input.teamIds.length,
       locale: input.locale,
+      kind: shape.kind,
+      mode: shape.mode,
     });
     return id;
   });

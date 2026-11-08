@@ -1,3 +1,9 @@
+import {
+  missionKindSchema,
+  missionModeSchema,
+  missionShape,
+  type MissionShape,
+} from '@evolai/contracts';
 import { isUuid } from './invitationForm';
 
 /** Pure parsing of the audit set-up forms (TASK-T, ADR 0038). Codes, not messages: the page words them. */
@@ -10,6 +16,8 @@ export type SetupErrorCode =
   | 'bad_id'
   | 'no_teams'
   | 'no_template'
+  | 'bad_kind'
+  | 'kind_not_ready'
   | 'not_found'
   | 'bad_status'
   | 'confirm_required'
@@ -55,7 +63,21 @@ export interface EngagementInput {
   readonly opensOn: string | null;
   readonly closesOn: string | null;
   readonly teamIds: readonly string[];
+  /** Kind and mode, sent by the new-mission form only (ADR 0065); fixed after creation. */
+  readonly shape?: MissionShape;
 }
+
+/** Kind and mode from the form, or undefined when the form does not carry them (editing). */
+export const parseMissionShape = (fd: FormData): MissionShape | undefined => {
+  const kind = fd.get('kind');
+  if (kind === null) return undefined;
+  if (!missionKindSchema.safeParse(kind).success) throw new SetupError('bad_kind');
+  const mode = fd.get('mode') ?? (kind === 'governance' ? 'interview' : null);
+  if (kind === 'team' && !missionModeSchema.safeParse(mode).success) {
+    throw new SetupError('bad_kind');
+  }
+  return missionShape(kind, mode);
+};
 
 export const parseEngagementForm = (fd: FormData): EngagementInput => {
   const name = parseName(fd.get('name'));
@@ -68,7 +90,15 @@ export const parseEngagementForm = (fd: FormData): EngagementInput => {
   if (opens && closes && closes < opens) throw new SetupError('bad_dates');
   const teamIds = [...new Set(fd.getAll('teamId').map(String))];
   if (teamIds.some((id) => !isUuid(id))) throw new SetupError('bad_id');
-  return { name, locale, opensOn: opens || null, closesOn: closes || null, teamIds };
+  const shape = parseMissionShape(fd);
+  return {
+    name,
+    locale,
+    opensOn: opens || null,
+    closesOn: closes || null,
+    teamIds,
+    ...(shape ? { shape } : {}),
+  };
 };
 
 /** Start of the opening day and end of the closing day, in UTC, so both days count in full. */

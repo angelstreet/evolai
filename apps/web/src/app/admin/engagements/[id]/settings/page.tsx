@@ -77,6 +77,7 @@ export default async function EngagementSettingsPage({ params, searchParams }: P
             closesOn: setup.closesOn,
             teamIds: setup.teamIds,
             locked,
+            shape: setup.shape,
           }}
         />
       </Paper>

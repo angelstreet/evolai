@@ -1,4 +1,10 @@
-import type { Engagement, Organisation, TenantId } from '@evolai/contracts';
+import {
+  missionShape,
+  type Engagement,
+  type MissionShape,
+  type Organisation,
+  type TenantId,
+} from '@evolai/contracts';
 import { withServiceAccount } from './db';
 import { invitationNumbers, type InvitationNumbers } from './invitationTracking';
 
@@ -25,6 +31,8 @@ export interface AdminEngagementSummary {
   readonly invitationsPending: number;
   readonly invitationsRevokedOrExpired: number;
   readonly completionRatio: number;
+  /** Kind and mode (ADR 0065); a team survey before migration 0035. */
+  readonly shape: MissionShape;
 }
 
 interface EngagementRow {
@@ -50,6 +58,8 @@ interface EngagementRow {
   org_updated_at: string | null;
   expected_headcount: number;
   invitation_status: Record<string, number>;
+  kind: string | null;
+  mode: string | null;
 }
 
 export const listTenantIds = async (): Promise<readonly TenantId[]> => {
@@ -124,7 +134,8 @@ export const listEngagements = async (tenantId: TenantId): Promise<AdminEngageme
                           WHERE i.tenant_id = e.tenant_id AND i.engagement_id = e.id
                           GROUP BY i.status) s),
                 '{}'::jsonb
-              ) AS invitation_status
+              ) AS invitation_status,
+              to_jsonb(e) ->> 'kind' AS kind, to_jsonb(e) ->> 'mode' AS mode
          FROM engagements e
          JOIN organisations o ON o.tenant_id = e.tenant_id
         WHERE e.tenant_id = $1
@@ -141,6 +152,7 @@ const summarise = (row: EngagementRow): AdminEngagementSummary => {
   const expected = Math.max(row.expected_headcount, 1);
   return {
     engagement: toEngagement(row),
+    shape: missionShape(row.kind, row.mode),
     name: row.name,
     organisation: toOrganisation(row),
     expectedHeadcount: expected,

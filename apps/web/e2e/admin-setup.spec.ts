@@ -200,6 +200,68 @@ test.describe('audit set-up', () => {
   });
 });
 
+test.describe('mission kind and mode (ADR 0065)', () => {
+  test.skip(({ viewport }) => (viewport?.width ?? 0) !== 1280, 'checked at 1280');
+
+  const create = async (
+    page: import('@playwright/test').Page,
+    name: string,
+    pick: () => Promise<void>,
+  ) => {
+    await page.goto('/admin/engagements/new');
+    await pick();
+    await page.locator('input[name=name]').first().fill(name);
+    await page.getByRole('button', { name: 'Create mission' }).click();
+    await page.waitForURL(/\/admin\/engagements\/[0-9a-f-]+\/settings/);
+  };
+
+  test('a team interview has no Team tab; a governance audit keeps four tabs', async ({
+    page,
+    context,
+    baseURL,
+  }) => {
+    await setLocale(context, baseURL, 'en');
+    await signInAsAuditorA(page);
+
+    // The form says the default: a team audit by survey.
+    await page.goto('/admin/engagements/new');
+    await expect(page.getByRole('radio', { name: /A team’s tasks/ })).toBeChecked();
+    await expect(page.getByRole('radio', { name: /^Survey/ })).toBeChecked();
+
+    await create(page, `${RUN}-interview`, async () => {
+      await page.getByRole('radio', { name: /^Interview/ }).check();
+    });
+    await expect(page.getByTestId('mission-shape')).toHaveText('Team audit, by interview');
+    await expect(page.getByTestId('mission-shape-fixed')).toContainText('Team audit, by interview');
+    await expect(page.getByTestId('mission-tab-invitations')).toHaveCount(0);
+    await expect(page.getByTestId('mission-tab-answers')).toHaveCount(1);
+
+    await create(page, `${RUN}-governance`, async () => {
+      await page.getByRole('radio', { name: /How the company runs AI/ }).check();
+      // A governance audit has no mode to choose.
+      await expect(page.getByRole('radio', { name: /^Survey/ })).toHaveCount(0);
+    });
+    await expect(page.getByTestId('mission-shape')).toHaveText('AI governance audit');
+    const tabs = page.locator('[data-testid^="mission-tab-"]');
+    await expect(tabs).toHaveCount(4);
+
+    const rows = await sql(
+      `SELECT name, kind, mode FROM engagements WHERE tenant_id = $1 AND name = ANY($2) ORDER BY name`,
+      [TENANT_A, [`${RUN}-governance`, `${RUN}-interview`]],
+    );
+    expect(rows).toEqual([
+      { name: `${RUN}-governance`, kind: 'governance', mode: 'interview' },
+      { name: `${RUN}-interview`, kind: 'team', mode: 'interview' },
+    ]);
+    const trail = await sql(
+      `SELECT payload_json->>'kind' AS kind FROM audit_log
+        WHERE tenant_id = $1 AND action = 'engagement.create' AND created_at > now() - interval '5 minutes'`,
+      [TENANT_A],
+    );
+    expect(trail.map((r) => r.kind)).toEqual(expect.arrayContaining(['team', 'governance']));
+  });
+});
+
 test.describe('organisation memory', () => {
   test('?tenant= is remembered and a made-up id changes nothing', async ({ page, context }) => {
     await signInAsAuditorA(page);

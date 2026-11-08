@@ -206,7 +206,12 @@ export const adminEn = {
       createLinks: 'Prepare the team',
       followAnswers: 'Follow answers',
       readBrief: 'Read the brief',
+      runInterviews: 'Run the interviews',
       writeReport: 'Write the report',
+    },
+    shape: {
+      team: { interview: 'Team audit, by interview', survey: 'Team audit, by survey' },
+      governance: { interview: 'AI governance audit' },
     },
     tabsAria: 'Mission sections',
     tabs: {

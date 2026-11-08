@@ -92,3 +92,42 @@ describe('parseEngagementForm', () => {
     expect(code({ ...ok, teamId: 'not-an-id' })).toBe('bad_id');
   });
 });
+
+describe('parseEngagementForm: kind and mode (ADR 0065)', () => {
+  const ok = { name: 'Spring audit', locale: 'fr', opensOn: '', closesOn: '' };
+  const codeOf = (o: Record<string, string>): string => {
+    try {
+      parseEngagementForm(form(o));
+      return 'ok';
+    } catch (e) {
+      return e instanceof SetupError ? e.code : 'other';
+    }
+  };
+  it('the edit form sends no kind: no shape, the stored one is kept', () => {
+    expect(parseEngagementForm(form(ok)).shape).toBeUndefined();
+  });
+  it('reads a team interview and a team survey', () => {
+    expect(parseEngagementForm(form({ ...ok, kind: 'team', mode: 'interview' })).shape).toEqual({
+      kind: 'team',
+      mode: 'interview',
+    });
+    expect(parseEngagementForm(form({ ...ok, kind: 'team', mode: 'survey' })).shape).toEqual({
+      kind: 'team',
+      mode: 'survey',
+    });
+  });
+  it('a governance audit is an interview, whatever mode is sent', () => {
+    expect(parseEngagementForm(form({ ...ok, kind: 'governance' })).shape).toEqual({
+      kind: 'governance',
+      mode: 'interview',
+    });
+    expect(
+      parseEngagementForm(form({ ...ok, kind: 'governance', mode: 'survey' })).shape?.mode,
+    ).toBe('interview');
+  });
+  it('refuses an unknown kind and a team without a mode', () => {
+    expect(codeOf({ ...ok, kind: 'company', mode: 'survey' })).toBe('bad_kind');
+    expect(codeOf({ ...ok, kind: 'team' })).toBe('bad_kind');
+    expect(codeOf({ ...ok, kind: 'team', mode: 'robot' })).toBe('bad_kind');
+  });
+});

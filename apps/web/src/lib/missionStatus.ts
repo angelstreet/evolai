@@ -1,4 +1,4 @@
-import type { Engagement } from '@evolai/contracts';
+import type { Engagement, MissionShape } from '@evolai/contracts';
 import { MIN_GROUP_SIZE } from './invitationTracking';
 
 /**
@@ -8,7 +8,12 @@ import { MIN_GROUP_SIZE } from './invitationTracking';
  */
 export type MissionStatus = 'draft' | 'open' | 'closed' | 'published';
 
-export type NextStep = 'createLinks' | 'followAnswers' | 'readBrief' | 'writeReport';
+export type NextStep =
+  | 'createLinks'
+  | 'followAnswers'
+  | 'readBrief'
+  | 'runInterviews'
+  | 'writeReport';
 
 /** Mission tab a next step opens. */
 export type MissionTab = 'overview' | 'invitations' | 'answers' | 'visit' | 'report' | 'settings';
@@ -19,6 +24,8 @@ export interface MissionFacts {
   /** Links created and not revoked. */
   readonly links: number;
   readonly submitted: number;
+  /** Kind and mode (ADR 0065); absent means a team survey. */
+  readonly shape?: MissionShape;
 }
 
 export const missionStatus = (
@@ -45,6 +52,7 @@ export const nextStep = (f: MissionFacts): { step: NextStep; tab: MissionTab } =
     case 'draft':
       return { step: 'createLinks', tab: 'settings' };
     case 'open':
+      if (f.shape?.mode === 'interview') return { step: 'runInterviews', tab: 'visit' };
       if (f.links === 0) return { step: 'createLinks', tab: 'invitations' };
       return f.submitted >= MIN_GROUP_SIZE
         ? { step: 'readBrief', tab: 'overview' }
@@ -53,6 +61,30 @@ export const nextStep = (f: MissionFacts): { step: NextStep; tab: MissionTab } =
       return { step: 'writeReport', tab: 'report' };
   }
 };
+
+/**
+ * Tabs of a mission (ADR 0065). A team survey has them all. A team interview has no links to send,
+ * so no Team tab. A governance audit has no team answers either: overview, visit notes, report,
+ * settings.
+ */
+export const missionTabs = (shape: MissionShape): readonly MissionTab[] => {
+  if (shape.kind === 'governance') return ['overview', 'visit', 'report', 'settings'];
+  if (shape.mode === 'interview') return ['overview', 'answers', 'visit', 'report', 'settings'];
+  return ['overview', 'invitations', 'answers', 'visit', 'report', 'settings'];
+};
+
+/** Message key of the kind-and-mode label shown in the mission header and settings. */
+export const missionShapeKey = (
+  shape: MissionShape,
+):
+  | 'admin.missions.shape.team.interview'
+  | 'admin.missions.shape.team.survey'
+  | 'admin.missions.shape.governance.interview' =>
+  shape.kind === 'governance'
+    ? 'admin.missions.shape.governance.interview'
+    : shape.mode === 'interview'
+      ? 'admin.missions.shape.team.interview'
+      : 'admin.missions.shape.team.survey';
 
 /** Path of a mission tab, keeping the organisation. */
 export const missionHref = (engagementId: string, tab: MissionTab, tenantId: string): string =>

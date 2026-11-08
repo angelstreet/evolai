@@ -217,7 +217,15 @@ export const adminFr: AdminMessages = {
       createLinks: 'Préparer l’équipe',
       followAnswers: 'Suivre les réponses',
       readBrief: 'Lire la synthèse',
+      runInterviews: 'Mener les entretiens',
       writeReport: 'Rédiger le rapport',
+    },
+    shape: {
+      team: {
+        interview: 'Audit d’équipe, en entretien',
+        survey: 'Audit d’équipe, par questionnaire',
+      },
+      governance: { interview: 'Audit de gouvernance IA' },
     },
     tabsAria: 'Sections de la mission',
     tabs: {

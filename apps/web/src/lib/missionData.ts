@@ -1,4 +1,4 @@
-import type { TenantId } from '@evolai/contracts';
+import type { MissionShape, TenantId } from '@evolai/contracts';
 import { listEngagements, type AdminEngagementSummary } from './adminData';
 import { withServiceAccount } from './db';
 import {
@@ -20,6 +20,7 @@ export interface MissionRow {
   readonly expected: number;
   readonly closesAt: string | null;
   readonly next: { step: NextStep; tab: MissionTab };
+  readonly shape: MissionShape;
 }
 
 /** Engagements of these organisations that have a published report version the client can see. */
@@ -42,6 +43,7 @@ export const toMissionRow = (s: AdminEngagementSummary, reportPublished: boolean
     reportPublished,
     links: s.invitationsTotal,
     submitted: s.invitationsSubmitted,
+    shape: s.shape,
   };
   return {
     id: s.engagement.id,
@@ -53,6 +55,7 @@ export const toMissionRow = (s: AdminEngagementSummary, reportPublished: boolean
     expected: s.expectedHeadcount,
     closesAt: s.engagement.closesAt,
     next: nextStep(facts),
+    shape: s.shape,
   };
 };
 
