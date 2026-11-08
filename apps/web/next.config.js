@@ -41,7 +41,7 @@ const nextConfig = {
       { source: '/app', destination: 'https://app.evolai.io/', permanent: false },
       {
         source: '/app/:path*',
-        destination: 'https://app.evolai.io/evolai/:path*',
+        destination: 'https://app.evolai.io/:path*',
         permanent: false,
       },
     ];
