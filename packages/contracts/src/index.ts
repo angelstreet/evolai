@@ -25,5 +25,6 @@ export * from './redactionTerm.js';
 export * from './improvementCatalogue.js';
 export * from './useCases.js';
 export * from './missionKind.js';
+export * from './taskCatalogue.js';
 export * from './report.js';
 export * from './learn.js';
