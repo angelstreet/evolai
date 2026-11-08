@@ -488,8 +488,13 @@ test('use cases: measured on the visit, ordered by the referent, shown with hour
   await ref.reload();
   const view = ref.getByTestId('report-view');
   await expect(view).toContainText('Where to save time');
-  await expect(view.getByTestId('use-case-today').first()).toContainText('about 6 hours a week');
-  await expect(view.getByTestId('use-case-saving').first()).toContainText('Estimated saving');
+  // The referent's order decides which use case comes first; check the measured one wherever it is.
+  await expect(
+    view.getByTestId('use-case-today').filter({ hasText: 'about 6 hours a week' }),
+  ).toHaveCount(1);
+  await expect(
+    view.getByTestId('use-case-saving').filter({ hasText: 'Estimated saving' }).first(),
+  ).toBeVisible();
   await expect(view.getByTestId('use-case-rank').first()).toContainText(
     'Priority given by your referent',
   );
