@@ -37,6 +37,10 @@ What the manual pilot captured and the plan must hold (the interview notes, made
 
 - **Five scores per task, 1 to 5:** complexity, time, cost, gain, AI risk. The auditor sets gain by judgement;
   it is not a formula of the others.
+- **AI risk** (owner definition 2026-11-08): how dangerous it would be to let AI do the task unattended. A task
+  that reaches a client, a candidate or a prospect (a message, a call, a reply, a proposal) is high risk: AI may
+  prepare it, a person confirms before anything is sent. Low risk: internal work AI can run alone and a person
+  checks afterwards.
 - **Task families:** one line such as "executive assistance" holds its sub-tasks (fleet, quotes, expense notes,
   bookings, HR questions).
 - **Volumes in the person's words:** "20 files a month, 2 h", "50 profiles a day at 3 min", "2 days a month".
@@ -65,6 +69,10 @@ What the manual pilot captured and the plan must hold (the interview notes, made
 6. **A survey report needs one review click** (owner decision 2026-11-08). It is built automatically from the
    answers and the rules; nothing reaches the client until an auditor opens it and publishes it. No full audit
    is needed, and the PRD §10 human-approval rule stays as it is.
+7. **AI never contacts people unattended.** Every fix for a task with AI risk 4 or 5, and every task that
+   sends something to a client, candidate or prospect, is proposed as "AI drafts, a person confirms and sends".
+   The report shows this as the fix's mode, next to the tools (a prospecting sequence tool included), and the
+   catalogue cannot propose a fully automatic version of it.
 
 ## Steps
 
@@ -91,8 +99,7 @@ Team audit first (K1 to K7), it is what clients buy now. Governance second (K8 t
 
 ## Open for the owner
 
-- **What "AI risk" and "cost" mean** in the five scores (AI risk: how much AI can take over the task, or the
-  data risk of using AI on it; cost: what the task costs today, or what the fix costs).
+- **What "cost" means** in the five scores: what the task costs today, or what the fix costs.
 - Applying the K1 migration on production (as for 0029-0034).
 - Whether the hourly cost is entered per team or once per company (default: per team).
 - The governance checklist wording: a first draft comes with K8 for the owner to read.
