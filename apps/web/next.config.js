@@ -34,6 +34,14 @@ const nextConfig = {
   eslint: { ignoreDuringBuilds: process.env['NEXT_SKIP_BUILD_CHECKS'] === '1' },
   typescript: { ignoreBuildErrors: process.env['NEXT_SKIP_BUILD_CHECKS'] === '1' },
   poweredByHeader: false,
+  async redirects() {
+    // evolai.io/app opens the Evolai operations app (Frappe + ERPNext, separate repo angelstreet/evolai_app), hosted on the
+    // owner's proxmox3 VM 390 behind app.evolai.io. Temporary (307) so the target can change without browsers caching it.
+    return [
+      { source: '/app', destination: 'https://app.evolai.io/evolai', permanent: false },
+      { source: '/app/:path*', destination: 'https://app.evolai.io/evolai/:path*', permanent: false },
+    ];
+  },
   async rewrites() {
     // Browsers ask for /favicon.ico on their own; serve the kit's icon instead of a copy (TASK-AD2).
     return [{ source: '/favicon.ico', destination: '/brand/kit/02_Icons/favicon.ico' }];
