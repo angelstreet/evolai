@@ -38,7 +38,7 @@ const nextConfig = {
     // evolai.io/app opens the Evolai operations app (Frappe + ERPNext, separate repo angelstreet/evolai_app), hosted on the
     // owner's proxmox3 VM 390 behind app.evolai.io. Temporary (307) so the target can change without browsers caching it.
     return [
-      { source: '/app', destination: 'https://app.evolai.io/evolai', permanent: false },
+      { source: '/app', destination: 'https://app.evolai.io/', permanent: false },
       { source: '/app/:path*', destination: 'https://app.evolai.io/evolai/:path*', permanent: false },
     ];
   },
