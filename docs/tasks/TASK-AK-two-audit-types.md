@@ -37,6 +37,8 @@ What the manual pilot captured and the plan must hold (the interview notes, made
 
 - **Five scores per task, 1 to 5:** complexity, time, cost, gain, AI risk. The auditor sets gain by judgement;
   it is not a formula of the others.
+- **Cost** (owner definition 2026-11-08): what the task costs today, in time, money and effort, before any
+  fix. A task can cost a lot and still have a low gain when it is hard to change (a report bound to a macro).
 - **AI risk** (owner definition 2026-11-08): how dangerous it would be to let AI do the task unattended. A task
   that reaches a client, a candidate or a prospect (a message, a call, a reply, a proposal) is high risk: AI may
   prepare it, a person confirms before anything is sent. Low risk: internal work AI can run alone and a person
@@ -99,7 +101,6 @@ Team audit first (K1 to K7), it is what clients buy now. Governance second (K8 t
 
 ## Open for the owner
 
-- **What "cost" means** in the five scores: what the task costs today, or what the fix costs.
 - Applying the K1 migration on production (as for 0029-0034).
 - Whether the hourly cost is entered per team or once per company (default: per team).
 - The governance checklist wording: a first draft comes with K8 for the owner to read.
