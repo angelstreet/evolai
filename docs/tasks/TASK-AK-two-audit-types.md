@@ -25,13 +25,13 @@ with a per-team model it adds the guardrails the team must follow (the client-da
 
 Owner decision 2026-11-08: the same questions are either asked by an auditor or answered alone.
 
-|               | Interview                                                               | Survey                                                                 |
-| ------------- | ----------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| Who fills it  | The auditor, with the person, on a laptop or tablet                     | The person, on a phone, from a link                                    |
-| Identity      | Named on staff pages; the client report shows roles, not names          | Anonymous; groups under 5 hidden (unchanged privacy rules)             |
-| Scores        | The auditor sets the five scores live                                   | Proposed by rules from the answers and the task catalogue              |
-| Extra capture | Sub-tasks, the steps of a chain, tools in place with cost, ideas, goals | Tools in place and one idea, as choices and short text                 |
-| Report        | Built from the auditor's board, reviewed, published                     | Built automatically from the answers (see the open question on review) |
+|               | Interview                                                               | Survey                                                                              |
+| ------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Who fills it  | The auditor, with the person, on a laptop or tablet                     | The person, on a phone, from a link                                                 |
+| Identity      | Named on staff pages; the client report shows roles, not names          | Anonymous; groups under 5 hidden (unchanged privacy rules)                          |
+| Scores        | The auditor sets the five scores live                                   | Proposed by rules from the answers and the task catalogue                           |
+| Extra capture | Sub-tasks, the steps of a chain, tools in place with cost, ideas, goals | Tools in place and one idea, as choices and short text                              |
+| Report        | Built from the auditor's board, reviewed, published                     | Built automatically from the answers; an auditor publishes it with one review click |
 
 What the manual pilot captured and the plan must hold (the interview notes, made generic):
 
@@ -62,6 +62,9 @@ What the manual pilot captured and the plan must hold (the interview notes, made
 4. **Comfort counts as much as time.** The report ranks by gain and by pain removed, not by time alone.
 5. **Interview mode is not anonymous.** People are met by name, so the minimum of 5 does not apply to it; the
    client report names roles, and the person is told so at the start of the interview.
+6. **A survey report needs one review click** (owner decision 2026-11-08). It is built automatically from the
+   answers and the rules; nothing reaches the client until an auditor opens it and publishes it. No full audit
+   is needed, and the PRD §10 human-approval rule stays as it is.
 
 ## Steps
 
@@ -88,9 +91,6 @@ Team audit first (K1 to K7), it is what clients buy now. Governance second (K8 t
 
 ## Open for the owner
 
-- **Survey mode without an auditor:** the PRD (§10) and AGENTS.md require a human approval before anything
-  reaches the client. Default: the survey report is built automatically and an auditor publishes it with one
-  review click. The alternative, publishing with no human, changes that rule and needs the owner's decision.
 - **What "AI risk" and "cost" mean** in the five scores (AI risk: how much AI can take over the task, or the
   data risk of using AI on it; cost: what the task costs today, or what the fix costs).
 - Applying the K1 migration on production (as for 0029-0034).
