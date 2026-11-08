@@ -39,7 +39,11 @@ const nextConfig = {
     // owner's proxmox3 VM 390 behind app.evolai.io. Temporary (307) so the target can change without browsers caching it.
     return [
       { source: '/app', destination: 'https://app.evolai.io/', permanent: false },
-      { source: '/app/:path*', destination: 'https://app.evolai.io/evolai/:path*', permanent: false },
+      {
+        source: '/app/:path*',
+        destination: 'https://app.evolai.io/evolai/:path*',
+        permanent: false,
+      },
     ];
   },
   async rewrites() {
