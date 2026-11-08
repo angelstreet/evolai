@@ -60,6 +60,7 @@ Work that came out of the Phase 1 and Phase 2 review. Each task has a brief in `
 | V    | Audit report: improvement catalogue and matching, readiness score, report editor and workflow, client Report tab, PDF, AI draft (ADRs 0041-0043) | #51, #53, #54, see git log | done  |
 | W    | Free-text answers anonymised before they are stored, backfill command (ADR 0044)                                                                 | this PR                    | done  |
 | Q    | Per-tenant redaction terms admin: list, add and remove from the admin shell, every change in the audit trail (ADR 0036)                          | #47                        | done  |
+| AK   | Two audit types: team audit (task inventory, fix, cost, time and comfort gain) and AI governance audit, plan only                                | —                          | todo  |
 
 CI fixes that landed alongside: #27 (database URL passed through turbo to the tests) and #28 (smokes and
 mobile-survey e2e made green).
