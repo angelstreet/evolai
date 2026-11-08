@@ -125,6 +125,12 @@ test('sign in, come back, send: one anonymous response in the referent team', as
     await page.getByRole('button', { name: 'Close' }).click();
     await expect(page.getByTestId('ck-sent')).toContainText('Answers sent');
   } finally {
+    // The sent response (and its answers, by cascade) must not outlive the test: later specs
+    // count the people of this engagement (findings.spec.ts expects exactly its five).
+    await dbQuery(`DELETE FROM invitations WHERE team_id = $1 AND created_at >= $2`, [
+      c.team_id,
+      since,
+    ]);
     await dbQuery(`UPDATE engagements SET status = $1 WHERE id = $2`, [c.status, c.id]);
   }
 });
